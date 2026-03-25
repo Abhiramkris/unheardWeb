@@ -137,7 +137,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
       </section>
 
       {/* SECTION 2: ABOUT & STATS (BLACK CARD - STICKY OVER HERO) */}
-      <section className="sticky top-[30px] md:top-[100px] z-20 w-full flex flex-col items-center mt-[40px] md:mt-[120px] px-2 md:px-0">
+      <section className="sticky top-[30px] md:top-[100px] z-20 w-full flex flex-col items-center mt-[-150px] md:mt-[-250px] px-2 md:px-0 pt-[200px] md:pt-[350px] bg-gradient-to-b from-transparent via-[#111111]/80 to-[#111111]">
         <div className="relative w-full md:w-[95vw] max-w-[1780px] bg-[#171612] rounded-[32px] md:rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.5)] p-6 md:p-16 lg:p-24 flex flex-col gap-10 md:gap-20 min-h-[auto] lg:min-h-[80vh] overflow-hidden">
           
           {/* Animated Background Blob for Black Card */}
@@ -173,63 +173,64 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
         </div>
       </section>
 
-      {/* SECTION 3: KEYWORDS (WHITE CARD - STICKY OVER ABOUT) */}
-      <section className="sticky top-[50px] md:top-[120px] z-30 w-full flex flex-col items-center mt-[40px] md:mt-[120px] px-2 md:px-0">
-        <div className="relative w-full md:w-[95vw] max-w-[1780px] bg-[#FEFEFC] rounded-[32px] md:rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] p-6 md:p-16 lg:p-24 flex flex-col gap-8 md:gap-14 min-h-[auto] lg:min-h-[60vh] overflow-hidden">
-          
-          <div className="absolute bottom-0 right-0 w-[50%] h-[50%] bg-[#0F9393]/5 rounded-full blur-[80px]"></div>
-
-          <div className="relative z-10 flex flex-col gap-4 md:gap-6 max-w-[700px]">
-            <h2 className="text-[32px] md:text-[64px] font-bold font-georgia text-black leading-tight tracking-tight">
-              I <span className="text-[#0F9393]">Excel</span> At.
-            </h2>
-            <p className="text-gray-500 font-bold text-[16px] md:text-[22px] leading-relaxed font-nunito">
-              Chosen areas of mastery for breakthroughs.
-            </p>
-          </div>
-
-          <div className="relative z-10 flex flex-wrap gap-2 md:gap-5">
-            {(t.specialties || ['Anxiety', 'Depression', 'Relationships', 'Trauma', 'Growth', 'Stress']).map((kw: string, i: number) => (
-              <div key={i} className="bg-black text-white text-[14px] md:text-[20px] px-6 md:px-12 py-3 md:py-5 rounded-[12px] md:rounded-[24px] font-bold shadow-xl">
-                {kw}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4: NOTE & FINAL CTA (BLACK CARD - STICKY OVER KEYWORDS) */}
-      <section className="sticky top-[70px] md:top-[140px] z-40 w-full flex flex-col items-center mt-[40px] md:mt-[120px] px-2 md:px-0">
-        <div className="relative w-full md:w-[95vw] max-w-[1780px] bg-[#171612] rounded-[32px] md:rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.5)] p-6 md:p-16 lg:p-24 flex flex-col gap-10 md:gap-16 min-h-[auto] lg:min-h-[75vh] overflow-hidden">
+      {/* SECTION 3: EXPERTISE & FINAL NOTE (BLACK CARD - STICKY OVER ABOUT) */}
+      <section className="sticky top-[50px] md:top-[120px] z-30 w-full flex flex-col items-center mt-[-150px] md:mt-[-250px] px-2 md:px-0 pt-[200px] md:pt-[350px] bg-gradient-to-b from-transparent via-[#111111]/80 to-[#111111]">
+        <div className="relative w-full md:w-[95vw] max-w-[1780px] bg-[#171612] rounded-[32px] md:rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.5)] p-6 md:p-16 lg:p-24 flex flex-col gap-12 md:gap-20 min-h-[auto] lg:min-h-[90vh] overflow-hidden">
           
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,#0F939311_0%,transparent_70%)]"></div>
 
-          <div className="relative z-10 flex flex-col gap-6 md:gap-8">
-            <h2 className="text-[24px] md:text-[56px] font-bold font-georgia text-white flex items-center gap-4 md:gap-6">
-               <span className="w-8 md:w-16 h-1 bg-[#0F9393]"></span>
-               Therapist's Note
-            </h2>
-            <div className="max-w-[1100px]">
-              <p className="text-[18px] md:text-[36px] font-bold text-white leading-relaxed font-nunito opacity-95">
-                &quot;{t.note || "Every step forward, no matter how small, is a victory. I am here to walk that path with you."}&quot;
+          {/* PART 3A: EXPERTISE (Previously Section 3) */}
+          <div className="relative z-10 flex flex-col gap-8 md:gap-12">
+            <div className="flex flex-col gap-4 md:gap-6 max-w-[700px]">
+              <h2 className="text-[32px] md:text-[64px] font-bold font-georgia text-white leading-tight tracking-tight">
+                I <span className="text-[#0F9393]">Excel</span> At.
+              </h2>
+              <p className="text-gray-400 font-bold text-[16px] md:text-[22px] leading-relaxed font-nunito">
+                Chosen areas of mastery for breakthroughs.
               </p>
             </div>
-          </div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-10 mt-6 md:mt-10">
-            <button 
-              onClick={openBookingModal}
-              className="w-full md:w-auto bg-white text-black px-10 md:px-16 py-5 md:py-7 rounded-full text-[16px] md:text-[20px] font-bold flex flex-row items-center justify-center gap-4 md:gap-6 hover:bg-gray-100 transition-all shadow-2xl group"
-            >
-              Start Transformation 
-              <span className="bg-[#0F9393] rounded-full p-2 md:p-2.5">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
-              </span>
-            </button>
-            <div className="text-gray-400 text-[14px] md:text-[18px] font-bold italic md:border-l border-white/10 md:pl-10 text-center md:text-left">
-              First session is always <br className="hidden md:block" /> <span className="text-white">100% Free of cost.</span>
+
+            <div className="flex flex-wrap gap-2 md:gap-5">
+              {(t.specialties || ['Anxiety', 'Depression', 'Relationships', 'Trauma', 'Growth', 'Stress']).map((kw: string, i: number) => (
+                <div key={i} className="bg-white/10 backdrop-blur-md border border-white/10 text-white text-[14px] md:text-[20px] px-6 md:px-12 py-3 md:py-5 rounded-[12px] md:rounded-[24px] font-bold shadow-xl">
+                  {kw}
+                </div>
+              ))}
             </div>
           </div>
+
+          <div className="w-full h-[1px] bg-white/5 relative z-10"></div>
+
+          {/* PART 3B: NOTE & CTA (Previously Section 4) */}
+          <div className="relative z-10 flex flex-col gap-10 md:gap-16">
+            <div className="flex flex-col gap-6 md:gap-8">
+              <h2 className="text-[24px] md:text-[56px] font-bold font-georgia text-white flex items-center gap-4 md:gap-6">
+                 <span className="w-8 md:w-16 h-1 bg-[#0F9393]"></span>
+                 Therapist's Note
+              </h2>
+              <div className="max-w-[1100px]">
+                <p className="text-[18px] md:text-[36px] font-bold text-white leading-relaxed font-nunito opacity-95">
+                  &quot;{t.note || "Every step forward, no matter how small, is a victory. I am here to walk that path with you."}&quot;
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 mt-2 md:mt-6">
+              <button 
+                onClick={openBookingModal}
+                className="w-full md:w-auto bg-white text-black px-10 md:px-16 py-5 md:py-7 rounded-full text-[16px] md:text-[20px] font-bold flex flex-row items-center justify-center gap-4 md:gap-6 hover:bg-gray-100 transition-all shadow-2xl group"
+              >
+                Start Transformation 
+                <span className="bg-[#0F9393] rounded-full p-2 md:p-2.5">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+                </span>
+              </button>
+              <div className="text-gray-400 text-[14px] md:text-[18px] font-bold italic md:border-l border-white/10 md:pl-10 text-center md:text-left">
+                First session is always <br className="hidden md:block" /> <span className="text-white">100% Free of cost.</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
