@@ -52,7 +52,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
   const t = therapist;
 
   return (
-    <div className="relative w-full bg-[#111111] font-nunito flex flex-col items-center pb-[100vh] pt-[80px] md:pt-[120px]">
+    <div className="relative w-full bg-[#111111] font-nunito flex flex-col items-center pb-[30vh] pt-[80px] md:pt-[120px]">
       
       {/* GLOBAL BACKGROUND BLOBS */}
       <div className="fixed top-[-10%] left-[-10%] w-[60vw] md:w-[40vw] h-[60vw] md:h-[40vw] bg-[#0F9393]/10 rounded-full blur-[80px] md:blur-[120px] pointer-events-none z-0"></div>
