@@ -26,15 +26,23 @@ const navLinks = [
 const Navbar = () => {
   const pathname = usePathname();
   const isLandingPage = pathname === '/';
-  
+
   // Safe check for admin pages
   const isAdminPage = pathname?.startsWith('/admin') || pathname?.startsWith('/super-admin') || pathname === '/login';
-  
+
   const { openBookingModal } = useBooking();
   const [isOpen, setIsOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -47,12 +55,12 @@ const Navbar = () => {
       setIsScrolled(scrolled);
 
       if (!isLandingPage) {
-        setIsDark(false); 
-        setIsScrolled(true); 
+        setIsDark(false);
+        setIsScrolled(true);
         return;
       }
 
-      setIsDark(!scrolled); 
+      setIsDark(!scrolled);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -67,110 +75,96 @@ const Navbar = () => {
 
   return (
     <nav className={cn(
-      "fixed top-[55px] left-1/2 -translate-x-1/2 z-50 w-[95vw] xl:w-[90vw] max-w-[1440px] transition-all duration-300",
-      !isDark && "top-[20px]" // Subtle shift when on light theme
+      "fixed top-[45px] md:top-[55px] left-1/2 -translate-x-1/2 z-50 w-[95vw] max-w-[1440px] transition-all duration-300",
+      !isDark && "top-[20px]"
     )}>
-      {/* Desktop Layout */}
-      <div className="hidden xl:flex items-center w-full">
-        {/* Logo Outside */}
-        <Link href="/" className="flex-shrink-0 mr-4 xl:mr-8">
-          <img 
-            src="/assets/logo unherd white.svg" 
+      {/* Container with All Elements (Logo, Links, Button) */}
+      <div
+        className={cn(
+          "relative h-[68px] md:h-[75px] px-4 md:px-8 lg:px-12 flex items-center justify-between transition-all duration-500 rounded-[20px] md:rounded-[24px] overflow-hidden shadow-2xl group/nav",
+          (!isScrolled || isDark || isMobile)
+            ? "bg-[rgba(39,37,37,0.1)] border border-white/10 backdrop-blur-[12px] shadow-[0px_0px_10px_rgba(0,0,0,0.3)]"
+            : "bg-white/90 border border-black/5 shadow-xl backdrop-blur-[12px]"
+        )}
+      >
+        {/* Sub-blob background for extra glow on dark */}
+        {(!isScrolled || isDark) && (
+          <div className="absolute top-[-50%] left-[-10%] w-[40%] h-[200%] bg-[#0F9393]/5 rounded-full blur-[40px] pointer-events-none group-hover/nav:bg-[#0F9393]/10 transition-all duration-1000"></div>
+        )}
+
+        {/* LEFT: Logo */}
+        <Link href="/" className="flex-shrink-0 z-10 hover:opacity-80 transition-opacity">
+          <img
+            src="/assets/logo unherd white.svg"
             alt="unHeard Logo"
-            className={cn("h-[35px] xl:h-[40px] w-auto transition-all", !isDark && "brightness-0")}
+            className={cn("h-[30px] md:h-[35px] lg:h-[40px] w-auto transition-all", (!isDark && isScrolled && !isMobile) && "brightness-0")}
           />
         </Link>
 
-        {/* Glass Container with Links */}
-        <div 
-          className={cn(
-            "h-[63px] px-8 xl:px-16 flex items-center justify-center flex-grow mx-2 xl:mx-4 transition-all duration-300",
-            !isScrolled || isDark 
-              ? "bg-[rgba(39,37,37,0.05)] border border-[rgba(255,255,255,0.08)] shadow-[0px_0px_7.9px_rgba(0,0,0,0.25)] backdrop-blur-[8px]" 
-              : "bg-white/80 border border-black/10 shadow-lg backdrop-blur-[8px]",
-            "rounded-[15px]",
-            "max-w-[850px]"
-          )}
-        >
-          <div className="flex items-center gap-6 lg:gap-10 xl:gap-[53px]">
-            {navLinks.map((link) => (
-              <Link 
-                key={link.name} 
-                href={link.href} 
-                className={cn(
-                  "text-[16px] xl:text-[20px] font-medium font-nunito whitespace-nowrap transition-colors",
-                  isDark || !isScrolled ? "text-white hover:text-white/70" : "text-black hover:text-[#0F9393]"
-                )}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
+        {/* CENTER: Navigation Links (Visible on tablets and up) */}
+        <div className="hidden md:flex items-center justify-center gap-4 lg:gap-8 xl:gap-[50px] z-10 bg-black/5 dark:bg-white/5 py-2 px-6 rounded-full transition-all">
+          {navLinks.map((link) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              className={cn(
+                "text-[14px] lg:text-[16px] xl:text-[20px] font-bold font-nunito whitespace-nowrap transition-all hover:scale-105",
+                isDark || !isScrolled ? "text-white/80 hover:text-white" : "text-black/70 hover:text-[#0F9393]"
+              )}
+            >
+              {link.name}
+            </Link>
+          ))}
         </div>
 
-        {/* Button Outside */}
-        <div className="flex-shrink-0 ml-4 xl:ml-8">
-          <Button 
-            variant={isDark || !isScrolled ? "gray" : "black"} 
-            onClick={openBookingModal} 
-            className="w-[140px] xl:w-[161px] h-[50px] xl:h-[56px] text-[16px] xl:text-[20px]"
+        {/* RIGHT: Button and Hamburger (Mobile only toggle) */}
+        <div className="flex items-center gap-3 md:gap-4 lg:gap-6 z-10">
+          <Button
+            variant={isDark || !isScrolled || isMobile ? "gray" : "black"}
+            onClick={openBookingModal}
+            className="w-[100px] md:w-[130px] lg:w-[160px] h-[40px] md:h-[48px] lg:h-[56px] text-xs md:text-base font-black shadow-lg rounded-[15px] md:rounded-[18px] transition-all hover:scale-105 active:scale-95"
           >
             Book Now
           </Button>
+
+          {/* Hamburger Only on Mobile */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className={cn(
+              "md:hidden p-1.5 rounded-xl transition-all border",
+              (isDark || !isScrolled || isMobile)
+                ? "text-white border-white/10 hover:bg-white/10"
+                : "text-black border-black/5 hover:bg-black/5"
+            )}
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile/Tablet Layout */}
-      <div className="xl:hidden flex items-center justify-center w-full">
-        <div 
-          className={cn(
-            "w-full h-[63px] px-4 flex items-center justify-between transition-all duration-300",
-            !isScrolled || isDark 
-              ? "bg-[rgba(39,37,37,0.05)] border border-[rgba(255,255,255,0.08)] shadow-[0px_0px_7.9px_rgba(0,0,0,0.25)] backdrop-blur-[8px]" 
-              : "bg-white/90 border border-black/10 shadow-lg backdrop-blur-[8px]",
-            "rounded-[15px]"
-          )}
-        >
-          <Link href="/">
-            <img 
-              src="/assets/logo unherd white.svg" 
-              alt="unHeard Logo" 
-              className={cn("h-[30px] w-auto transition-all", (!isDark && isScrolled) && "brightness-0")}
-            />
-          </Link>
-
-          <div className="flex items-center gap-4">
-            <Button variant={isDark || !isScrolled ? "gray" : "black"} className="w-[120px] h-[40px] text-sm rounded-[15px]" onClick={openBookingModal}>
-              Book Now
-            </Button>
-            <button 
-              onClick={() => setIsOpen(!isOpen)}
-              className={cn("p-1 rounded-md transition-colors", (isDark || !isScrolled) ? "text-white hover:bg-white/10" : "text-black hover:bg-black/5")}
-            >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile/Tablet Menu Drawer */}
+      {/* Mobile Menu Drawer (Framer Motion) */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="xl:hidden absolute top-[75px] left-0 right-0 bg-[#1A1A1A]/95 border border-white/10 rounded-2xl p-6 shadow-2xl backdrop-blur-xl z-50 mx-4"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="md:hidden absolute top-[85px] left-0 right-0 bg-[#1A1A1A]/95 border border-white/10 rounded-[32px] p-8 shadow-2xl backdrop-blur-2xl z-50 overflow-hidden"
           >
-            <div className="flex flex-col gap-4">
+            {/* Decorative Background for drawer */}
+            <div className="absolute top-[-20%] right-[-10%] w-32 h-32 bg-[#0F9393]/20 rounded-full blur-3xl"></div>
+
+            <div className="relative z-10 flex flex-col gap-5">
               {navLinks.map((link) => (
-                <Link 
-                  key={link.name} 
+                <Link
+                  key={link.name}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="text-lg font-bold text-white font-nunito hover:text-white/70 transition-colors py-2 border-b border-white/5 last:border-0"
+                  className="text-[20px] md:text-[24px] font-black text-white/90 font-nunito hover:text-[#0F9393] transition-all py-3 flex items-center justify-between border-b border-white/5 last:border-0"
                 >
                   {link.name}
+                  <span className="text-[#0F9393] opacity-0 group-hover:opacity-100">&rarr;</span>
                 </Link>
               ))}
             </div>

@@ -12,63 +12,66 @@ import Button from '@/components/ui/Button';
 // ----------------------------------------------------------------------
 const TherapistCard = ({ t, openBooking }: { t: any, openBooking: () => void }) => {
   return (
-    <div className="bg-[#FEFEFC] rounded-[32px] p-6 flex flex-col gap-6 shadow-xl border border-gray-100/50 hover:shadow-2xl transition-all duration-500 hover:scale-[1.01]">
+    <div className="group relative bg-white rounded-[40px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-black/5 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] transition-all duration-700 hover:-translate-y-2">
       
-      {/* Top Image Section (Rounded) */}
-      <div className="relative w-full aspect-[16/9] rounded-[24px] overflow-hidden group">
+      <div className="relative w-full aspect-[4/3] overflow-hidden">
         <Image 
           src={t.avatar_url || '/assets/section_2_3.png'} 
           alt={t.full_name} 
           fill 
-          className="object-cover transition-transform duration-700 group-hover:scale-105" 
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+          className="object-cover transition-transform duration-1000 group-hover:scale-110" 
         />
-        {/* Floating Action Button (Arrow) */}
-        <Link href={`/therapists/${t.user_id}`}>
-          <div className="absolute bottom-4 right-4 w-12 h-12 md:w-16 md:h-16 bg-[#0F9393] rounded-full flex items-center justify-center text-white text-[24px] md:text-[32px] shadow-lg transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-             &nearrow;
+        
+        {/* Sophisticated White Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent opacity-100" />
+        
+        {/* Artist Name Overlay */}
+        <div className="absolute bottom-6 left-8 right-8 z-10 translate-y-2 group-hover:translate-y-0 transition-all duration-500">
+          <h3 className="font-georgia font-bold text-[28px] md:text-[34px] lg:text-[38px] text-black leading-[1.1] tracking-[-0.03em] mb-1">
+            {t.full_name}
+          </h3>
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] md:text-[14px] font-black text-[#0F9393] uppercase tracking-[0.1em] font-nunito opacity-90">
+              {t.qualification || 'Licensed Therapist'}
+            </span>
           </div>
-        </Link>
+        </div>
       </div>
 
-      {/* Content Section */}
-      <div className="flex flex-col gap-4 px-2">
-        <h3 className="font-georgia font-bold text-[24px] md:text-[28px] text-black leading-tight tracking-tight">
-          {t.full_name}
-        </h3>
+      {/* Modern Info Section */}
+      <div className="p-8 pt-4 flex flex-col gap-6">
         
-        {/* Keywords / Tags (Black Pills) */}
+        {/* Keywords / Tags (Minimal Outline) */}
         <div className="flex flex-wrap gap-2">
-          {(t.specialties || ['Anxiety', 'Growth']).slice(0, 3).map((kw: string, i: number) => (
-            <span key={i} className="bg-black text-white text-[10px] md:text-[12px] px-4 py-1.5 rounded-full font-bold uppercase tracking-widest">
+          {(t.specialties || ['Anxiety', 'Growth', 'Stress']).slice(0, 3).map((kw: string, i: number) => (
+            <span key={i} className="bg-black text-white text-[10px] px-4 py-1.5 rounded-full font-bold uppercase tracking-widest">
               {kw}
             </span>
           ))}
         </div>
 
-        <div className="w-full border-t border-gray-100 my-2"></div>
-
-        {/* Footer info (Qualification & Stats) */}
-        <div className="flex justify-between items-center text-black">
+        <div className="flex justify-between items-end">
           <div className="flex flex-col">
-            <span className="text-[14px] md:text-[16px] font-bold opacity-80">{t.qualification || 'Msc'}</span>
-            <span className="text-[12px] font-bold text-gray-400">{t.display_hours || '0+'} sessions</span>
+            <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">Impact</span>
+            <span className="text-[16px] font-bold text-black leading-none font-georgia">{t.display_hours || '0+'} <span className="text-[13px] font-bold text-gray-400">Sessions</span></span>
           </div>
           <div className="text-right">
-            <span className="text-[10px] md:text-[12px] font-bold text-gray-400 block uppercase tracking-widest">Next Available</span>
-            <span className="text-[12px] md:text-[14px] font-bold text-[#0F9393] tracking-tighter">{t.next_available_at || 'Soon'}</span>
+            <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Availability</span>
+            <span className="px-3 py-1 bg-[#0F9393]/10 text-[#0F9393] rounded-full text-[13px] font-black inline-block">{t.next_available_at || 'Soon'}</span>
           </div>
         </div>
 
-        {/* Booking Buttons */}
-        <div className="grid grid-cols-2 gap-4 mt-4">
+        {/* Booking & Profile Action Grid */}
+        <div className="grid grid-cols-2 gap-4 mt-2">
           <Link href={`/therapists/${t.user_id}`} className="w-full">
-            <button className="w-full h-[48px] border-2 border-black text-black rounded-full font-bold text-[14px] hover:bg-black hover:text-white transition-all">
+            <button className="w-full h-[52px] border-2 border-black text-black rounded-[16px] font-black text-[14px] hover:bg-black hover:text-white transition-all active:scale-95 shadow-sm">
               View Profile
             </button>
           </Link>
           <button 
             onClick={openBooking}
-            className="w-full h-[48px] bg-black text-white rounded-full font-bold text-[14px] hover:bg-gray-800 transition-all shadow-md active:scale-95"
+            className="w-full h-[52px] bg-black text-white rounded-[16px] font-black text-[14px] hover:bg-[#1a1a1a] transition-all shadow-lg active:scale-95"
           >
             Book Free Trial
           </button>
@@ -121,7 +124,7 @@ export default function TherapistListing() {
   }
 
   return (
-    <div className="min-h-screen bg-[#111111] font-nunito flex flex-col items-center py-24 gap-12 lg:gap-16 px-4 md:px-10 lg:px-20 overflow-x-hidden">
+    <div className="min-h-screen bg-[#111111] font-nunito flex flex-col items-center pt-32 md:pt-48 pb-24 gap-12 lg:gap-16 px-4 md:px-10 lg:px-20 overflow-x-hidden">
       
       {/* HEADER SECTION */}
       <div className="w-full max-w-[1400px] flex flex-col items-center text-center gap-6 mb-4">
@@ -169,7 +172,7 @@ export default function TherapistListing() {
       </div>
 
       {/* THERAPIST GRID: WIDER LAYOUT (2 per row on laptop) */}
-      <div className="w-full max-w-[1400px] grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 min-h-[400px]">
+      <div className="w-full max-w-[1400px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 lg:gap-12 min-h-[400px]">
         {filteredTherapists.length === 0 ? (
           <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-500 gap-4">
              <span className="text-[48px]">📭</span>

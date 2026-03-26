@@ -152,8 +152,10 @@ export const LandingStack = () => {
   const card2Ref = React.useRef<HTMLElement>(null);
   const cta2Ref = React.useRef<HTMLButtonElement>(null);
   const cta2MobileRef = React.useRef<HTMLButtonElement>(null);
+  const lastRef2 = React.useRef<HTMLDivElement>(null);
   const card3Ref = React.useRef<HTMLElement>(null);
   const cta3Ref = React.useRef<HTMLButtonElement>(null);
+  const lastRef3 = React.useRef<HTMLDivElement>(null);
 
   const [stickyTop1, setStickyTop1] = React.useState(0);
   const [stickyTop2, setStickyTop2] = React.useState(0);
@@ -187,8 +189,8 @@ export const LandingStack = () => {
       };
 
       setStickyTop1(getOffset(card1Ref.current, cta1Ref.current));
-      setStickyTop2(getOffset(card2Ref.current, getActiveCta2()));
-      setStickyTop3(getOffset(card3Ref.current, cta3Ref.current));
+      setStickyTop2(getOffset(card2Ref.current, lastRef2.current));
+      setStickyTop3(getOffset(card3Ref.current, lastRef3.current));
     };
 
     calculatePinOffset();
@@ -208,7 +210,7 @@ export const LandingStack = () => {
   }, []);
 
   return (
-    <div className="relative w-full bg-[#111111] pb-[300vh]">
+    <div className="relative w-full bg-[#111111]">
       {/* 
         CARD 1: Hero + White Card 
         Scrolls up and uses a dynamically calculated top offset.
@@ -222,7 +224,7 @@ export const LandingStack = () => {
           {/* Hero Section */}
           <div className="relative h-screen w-full flex items-center px-[5vw] lg:px-[10vw]">
             <div className="absolute inset-0 z-0">
-              <Image src="/assets/landingimage.png" alt="Hero Background" fill className="object-cover opacity-60" priority />
+              <Image src="/assets/landingimage.png" alt="Hero Background" fill sizes="100vw" className="object-cover opacity-60" priority />
               <div className="absolute inset-0" />
             </div>
             <div className="relative z-10 max-w-[800px] flex flex-col gap-8">
@@ -241,7 +243,7 @@ export const LandingStack = () => {
 
           {/* White Card Section */}
           <div className="w-full px-4 flex justify-center pb-20 -mt-[150px] md:-mt-[200px] relative z-10">
-            <div className="w-[95vw] max-w-[1840px] bg-[#FEFEFC] rounded-[40px] py-16 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-xl min-h-[120vh]">
+            <div className="w-[90vw] max-w-[1400px] bg-[#FEFEFC] rounded-[40px] py-16 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-xl min-h-[120vh]">
               <div className="md:w-[832px] text-center mb-16">
                 <h2 className="font-georgia text-[32px] md:text-[45px] font-bold leading-tight text-black mb-8">
                   Feeling like no one in the world understands <span className="text-[#008080]">your struggle</span>?
@@ -280,16 +282,13 @@ export const LandingStack = () => {
         </div>
       </section>
 
-      {/* 
-        CARD 2: Why Choose (Black Card) 
-        Slides up over Card 1. Using sticky with calculated top offset.
-      */}
+
       <section 
         ref={card2Ref}
-        className="sticky z-20 w-full flex justify-center pt-[100px] pb-20 -mt-40 md:-mt-[250px] pointer-events-none bg-[#111111]"
+        className="sticky z-20 w-full flex justify-center pt-[200px] pb-20 -mt-40 md:-mt-[250px] pointer-events-none"
         style={{ top: `${stickyTop2}px` }}
       >
-        <div className="w-[95vw] max-w-[1840px] bg-[#171612] rounded-t-[40px] rounded-b-[40px] pt-32 pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-2xl pointer-events-auto">
+        <div className="w-[90vw] max-w-[1400px] bg-[#171612] rounded-t-[40px] rounded-b-[40px] pt-32 pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-2xl pointer-events-auto">
           <div className="text-center mb-20 max-w-[900px]">
             <h2 className="font-georgia text-[32px] md:text-[52px] font-bold leading-tight text-white mb-6">Why Choose Unheard? Because the <span className="text-[#008080]">Silenced Voice Deserves</span> to Be Heard!</h2>
             <p className="font-georgia text-[24px] md:text-[45px] font-bold leading-tight text-white">
@@ -329,35 +328,32 @@ export const LandingStack = () => {
                  </div>
               </div>
               
-              {/* Mobile Overlay Text */}
-              <div className="md:hidden absolute inset-0 p-6 flex flex-col justify-center z-10 pointer-events-none">
-                 <h3 className="font-georgia font-bold text-[22px] sm:text-[28px] leading-[1.2] text-white tracking-[-0.02em] max-w-[250px]">
+              {/* Mobile Overlay Content */}
+              <div className="md:hidden absolute inset-0 p-6 flex flex-col justify-center z-10 items-center bg-black/20">
+                 <h3 className="font-georgia font-bold text-[22px] sm:text-[28px] leading-[1.2] text-white tracking-[-0.02em] text-center mb-6 drop-shadow-lg">
                    Thinking of the<br/>effectiveness<br/>of online consultation
                  </h3>
+                 <div className="flex flex-row items-center gap-4">
+                    <Button 
+                      ref={cta2MobileRef}
+                      variant="black" 
+                      className="w-[180px] h-[50px] text-[15px] px-4 font-bold rounded-[15px] shadow-2xl border border-white/20"
+                      onClick={openBookingModal}
+                    >
+                      Book a free demo
+                    </Button>
+                    <div className="flex items-center">
+                       <img src="/assets/Group 54.svg" alt="Arrow" className="h-[40px] w-auto brightness-0 invert rotate-[-10deg]" />
+                    </div>
+                 </div>
               </div>
-            </div>
-
-            {/* Mobile CTA Button (visible only below md) */}
-            <div className="w-full flex justify-center mt-6 md:hidden">
-              <Button 
-                ref={cta2MobileRef}
-                variant="black" 
-                className="w-full max-w-[300px] h-[50px] text-[18px] px-4 font-bold"
-                onClick={openBookingModal}
-              >
-                 Book a free demo
-              </Button>
-               <div className="flex flex-col items-center mt-3">
-                 {/* The SVG itself contains 'Try now!' so we don't need a span */}
-                 <img src="/assets/Group 54.svg" alt="Arrow" className="h-[40px] w-auto brightness-0 invert ml-8" />
-               </div>
             </div>
 
           </div>
 
 
           {/* Stats Section */}
-          <div className="mt-20 md:mt-28 w-full max-w-[1000px] flex flex-col md:flex-row items-center justify-between gap-12 md:gap-6 px-10">
+          <div ref={lastRef2} className="mt-20 md:mt-28 w-full max-w-[1000px] flex flex-col md:flex-row items-center justify-between gap-12 md:gap-6 px-10">
              <div className="flex flex-col items-center text-center">
                <span className="font-georgia font-bold text-[56px] md:text-[72px] text-white leading-none">
                  <AnimatedCounter end={1500} suffix="+" />
@@ -379,7 +375,7 @@ export const LandingStack = () => {
           </div>
           
           {/* Spacer to prevent content from being covered by next card's rounded top */}
-          <div className="h-[100px] md:h-[150px] w-full" />
+          <div className="h-[400px] md:h-[600px] w-full" />
         </div>
       </section>
 
@@ -389,10 +385,10 @@ export const LandingStack = () => {
       */}
       <section 
         ref={card3Ref}
-        className="sticky z-30 w-full flex justify-center  -mt-10 md:-mt-20 pointer-events-none bg-[#111111]"
+        className="sticky z-30 w-full flex justify-center pt-[200px] -mt-10 md:-mt-20 pointer-events-none"
         style={{ top: `${stickyTop3}px` }}
       >
-        <div className="w-[95vw] max-w-[1840px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] pt-24 md:pt-32 pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-[0_-20px_50px_rgba(0,0,0,0.3)] pointer-events-auto min-h-screen">
+        <div className="w-[90vw] max-w-[1400px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] pt-24 md:pt-32 pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-[0_-20px_50px_rgba(0,0,0,0.3)] pointer-events-auto min-h-screen">
           
           {/* FAQ Header */}
           <div className="text-center mb-16 max-w-[900px]">
@@ -433,7 +429,9 @@ export const LandingStack = () => {
             </h2>
             
             {/* Carousel implementation */}
-            <TestimonialCarousel testimonials={testimonialData} />
+            <div ref={lastRef3} className="w-full">
+              <TestimonialCarousel testimonials={testimonialData} />
+            </div>
           </div>
 
           {/* Spacer to prevent content from being covered by next component */}
