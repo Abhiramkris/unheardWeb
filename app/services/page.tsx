@@ -12,11 +12,11 @@ export default function ServicesPage() {
   const card1Ref = useRef<HTMLElement>(null);
   const target1Ref = useRef<HTMLDivElement>(null);
   const card2Ref = useRef<HTMLElement>(null);
-  const target2Ref = useRef<HTMLDivElement>(null);
+  const target2Ref = useRef<HTMLButtonElement>(null);
   const card3Ref = useRef<HTMLElement>(null);
-  const target3Ref = useRef<HTMLDivElement>(null);
+  const target3Ref = useRef<HTMLButtonElement>(null);
   const card4Ref = useRef<HTMLElement>(null);
-  const target4Ref = useRef<HTMLDivElement>(null);
+  const target4Ref = useRef<HTMLButtonElement>(null);
   const card5Ref = useRef<HTMLElement>(null);
   const target5Ref = useRef<HTMLDivElement>(null);
 
