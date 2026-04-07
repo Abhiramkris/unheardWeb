@@ -22,7 +22,7 @@ export const FeatureCard = ({ title, description }: FeatureCardProps) => {
   };
 
   return (
-    <div className="relative w-full max-w-[367px] h-auto min-h-[496px] rounded-[15px] overflow-hidden group mx-auto flex flex-col items-stretch">
+    <div className="relative w-full max-w-[367px] h-auto min-h-[400px] rounded-[15px] overflow-hidden group mx-auto flex flex-col items-stretch">
       
       {/* LAYER 0: Bottom Background Elements (Behind the glass) */}
       <div className="absolute inset-0 z-0 flex flex-col justify-end pointer-events-none">
@@ -35,7 +35,7 @@ export const FeatureCard = ({ title, description }: FeatureCardProps) => {
                <div className="w-[29px] h-[29px]"></div>
              </div>
              
-             <div className="font-georgia font-bold text-[18px] md:text-[20px] leading-[23px] tracking-[-0.02em] text-right bg-[linear-gradient(90deg,#A0F5F5_0%,#0F9393_100%)] bg-clip-text text-transparent opacity-50">
+             <div className="font-georgia font-bold text-[18px] md:text-[20px] leading-[23px] tracking-[-0.02em] text-right text-white opacity-50">
                {formatTitle(title)}
              </div>
           </div>
@@ -43,7 +43,7 @@ export const FeatureCard = ({ title, description }: FeatureCardProps) => {
       </div>
 
       {/* LAYER 1: The Glassmorphism Base (Rectangle 3) */}
-      <div className="absolute inset-0 z-10 bg-[rgba(28,27,20,0.23)] backdrop-blur-[1px] border border-[rgba(0,0,0,0.12)] rounded-[15px] shadow-[0px_0px_7.9px_rgba(0,0,0,0.25)] pointer-events-none transition-all duration-300 group-hover:bg-[rgba(28,27,20,0.3)]"></div>
+      <div className="absolute inset-0 z-10 bg-[rgba(28,27,20,0.23)] backdrop-blur-[1px] border border-white/5 rounded-[15px] shadow-[0px_0px_7.9px_rgba(0,0,0,0.25)] pointer-events-none transition-all duration-300 group-hover:bg-[rgba(28,27,20,0.3)]"></div>
 
       {/* LAYER 2: Foreground Text & Crisp Elements */}
       <div className="relative z-20 pt-[30px] flex flex-col h-full pointer-events-auto">

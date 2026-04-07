@@ -5,8 +5,6 @@ import Image from 'next/image';
 import Button from './ui/Button';
 import { useBooking } from '@/components/BookingContext';
 import AnimatedCounter from './ui/AnimatedCounter';
-
-// New Modular Imports
 import { faqData, testimonialData, blogData, understandingContent } from '@/lib/data/landing';
 import { FeatureCard } from '@/components/landing/FeatureCard';
 import { FAQAccordion } from '@/components/landing/FAQAccordion';
@@ -47,7 +45,7 @@ export const LandingStack = () => {
         const ctaHeight = cta.offsetHeight;
 
         // We want the CTA center to be at 50% of the viewport
-        const targetViewportY = window.innerHeight * 0.5;
+        const targetViewportY = window.innerHeight * 0.4;
         const ctaCenterOffset = ctaOffsetInCard + (ctaHeight / 2);
 
         return Math.min(targetViewportY - ctaCenterOffset, 0);
@@ -94,10 +92,10 @@ export const LandingStack = () => {
       */}
       <section ref={card1Ref} className="sticky z-10 w-full" style={{ top: `${stickyTop1}px` }}>
         <div className="w-full flex flex-col items-center">
-          <div className="relative h-screen w-full flex items-center px-[5vw] lg:px-[10vw]">
+          <div className="relative h-screen max-h-[1000px] w-full max-w-[2560px] flex items-center px-[5vw] lg:px-[10vw]">
             <div className="absolute inset-0 z-0 text-white" style={{ position: 'absolute' }}>
               <Image
-                src="/assets/landingimage.png"
+                src="/assets/landingimage.webp"
                 alt="Hero Background"
                 fill
                 sizes="100vw"
@@ -118,21 +116,21 @@ export const LandingStack = () => {
                   Not everything you experience is easy to articulate. That does not make it complicated, only unexplored.
                 </p>
               </div>
-              <div className="flex flex-row items-center gap-6 mt-4">
-                <Button variant="gray" className="w-[260px] h-[56px] text-[20px] px-6 whitespace-nowrap" onClick={openBookingModal}>Begin with understanding.</Button>
-                <img src="/assets/Group 54.svg" alt="Try now!" className="h-[40px] md:h-[60px] w-auto mt-2" />
+              <div className="flex flex-row items-center gap-4 md:gap-6 mt-4">
+                <Button variant="gray" className="w-[250px] sm:w-[260px] md:w-[300px] h-[54px] md:h-[67px] text-[16px] md:text-[18px] px-6 md:px-12 whitespace-nowrap" onClick={openBookingModal}>Begin with understanding.</Button>
+                <img src="/assets/Group 54.svg" alt="Try now!" className="h-[40px] md:h-[60px] w-auto -mt-4" />
               </div>
             </div>
           </div>
 
           <div className="w-full px-4 flex justify-center pb-20 -mt-[150px] md:-mt-[200px] relative z-10">
-            <div className="w-[90vw] max-w-[1400px] bg-[#FEFEFC] rounded-[40px] py-16 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-xl min-h-[120vh]">
-              <div className="w-full space-y-20">
+            <div className="w-[97vw] max-w-[2400px] bg-[#FEFEFC] rounded-[40px] pt-16 pb-[100px] md:pb-[150px] px-6 md:px-12 lg:px-16 flex flex-col items-center shadow-xl">
+              <div className="w-full space-y-8">
                 {understandingContent.map((row, idx) => (
-                  <div key={idx} className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-                    <div className="flex flex-row gap-4 md:gap-6 w-full lg:w-auto">
+                  <div key={idx} className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-16 w-full items-center">
+                    <div className="col-span-1 lg:col-span-7 flex flex-row justify-center lg:justify-end gap-6 md:gap-8 w-full">
                       {row.images.map((img, i) => (
-                        <div key={i} className="relative w-[140px] sm:w-[200px] md:w-[278px] h-[130px] sm:h-[180px] md:h-[260px] rounded-[22px] overflow-hidden group border border-black/5">
+                        <div key={i} className="relative w-full max-w-[260px] lg:max-w-[340px] aspect-[14/13] rounded-[22px] overflow-hidden group border border-black/5">
                           <img src={img.src} alt={img.label} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-3 md:p-4">
                             <span className="text-white font-nunito text-[12px] md:text-[16px] font-bold opacity-90 leading-tight">{img.label}</span>
@@ -140,19 +138,25 @@ export const LandingStack = () => {
                         </div>
                       ))}
                     </div>
-                    <div className="flex-grow max-w-[500px] lg:max-w-none">
-                      <div className="font-nunito text-[18px] md:text-[20px] font-bold leading-relaxed text-black/80 whitespace-pre-line">
-                        {row.text}
+                    <div className="col-span-1 lg:col-span-5 flex justify-center lg:justify-start w-full">
+                      <div className="w-full max-w-[500px]">
+                        <div className="font-nunito text-[16px] md:text-[18px] xl:text-[20px] font-bold leading-relaxed text-black/80 whitespace-pre-line text-justify">
+                          {row.text}
+                        </div> 
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <div ref={cta1Ref} className="mt-20 flex flex-row items-center gap-6">
-                <Button variant="black" className="w-[260px] h-[56px] text-[20px] px-6 whitespace-nowrap" onClick={openBookingModal}>Begin with understanding.</Button>
-                <img src="/assets/Group 54.svg" alt="Try now!" className="h-[35px] md:h-[50px] w-auto mt-2 invert" />
+              <div className="mt-12 lg:mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-16 w-full items-center">
+                <div className="hidden lg:block lg:col-span-7"></div>
+                <div className="col-span-1 lg:col-span-5 flex justify-center lg:justify-start w-full">
+                  <div ref={cta1Ref} className="w-full max-w-[500px] flex flex-row items-center justify-center lg:justify-start gap-4 md:gap-6">
+                    <Button variant="black" className="w-[250px] sm:w-[260px] md:w-[300px] h-[54px] md:h-[67px] text-[16px] md:text-[18px] px-6 md:px-12 whitespace-nowrap" onClick={openBookingModal}>Begin with understanding.</Button>
+                    <img src="/assets/Group 54.svg" alt="Try now!" className="h-[35px] md:h-[50px] w-auto invert -mt-2" />
+                  </div>
+                </div>
               </div>
-              <div className="h-[150px] md:h-[250px] w-full" />
             </div>
           </div>
         </div>
@@ -161,11 +165,11 @@ export const LandingStack = () => {
       {/* 
         CARD 2: Features (Black Card)
       */}
-      <section ref={card2Ref} className="sticky z-20 w-full flex justify-center pt-[200px] pb-20 -mt-40 md:-mt-[250px] pointer-events-none" style={{ top: `${stickyTop2}px` }}>
-        <div className="w-[90vw] max-w-[1440px] bg-[#171612] rounded-t-[40px] rounded-b-[40px] pt-32 pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-2xl pointer-events-auto">
+      <section ref={card2Ref} className="sticky z-20 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none" style={{ top: `${stickyTop2}px` }}>
+        <div className="w-[97vw] max-w-[2440px] bg-[#171612] rounded-t-[40px] rounded-b-[40px] pt-32 pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-2xl pointer-events-auto">
           <div className="text-center mb-20 max-w-[900px]">
             <h2 className="font-georgia text-[32px] md:text-[52px] font-bold leading-tight text-white mb-6">
-              Why Unheard? Insight-driven counseling, <span className="text-[#008080]">not scripted conversations</span>
+              Why Unheard?
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-[1400px] items-stretch">
@@ -198,8 +202,8 @@ export const LandingStack = () => {
           <div className="mt-24 md:mt-40 w-full max-w-[1440px] flex flex-col items-center">
             <div className="relative w-full rounded-[24px] overflow-hidden bg-[#131210]" style={{ position: 'relative' }}>
               <picture className="w-full">
-                <source media="(min-width: 768px)" srcSet="/assets/freeDekstop.png" />
-                <img src="/assets/freeMobile.png" alt="Free Demo Banner Background" className="w-full h-auto object-cover" />
+                <source media="(min-width: 768px)" srcSet="/assets/freeDekstop.webp" />
+                <img src="/assets/freeMobile.webp" alt="Free Demo Banner Background" className="w-full h-auto object-cover" />
               </picture>
               <div className="hidden md:flex absolute inset-0 flex-col justify-center pl-12 lg:pl-[8%] w-[70%] lg:w-[60%] z-10">
                 <h3 className="font-georgia font-bold text-[28px] lg:text-[40px] xl:text-[46px] leading-[1.1] text-white tracking-[-0.02em]">
@@ -234,12 +238,12 @@ export const LandingStack = () => {
               <span className="font-nunito font-semibold text-[20px] md:text-[24px] text-white mt-1">Hours of Therapy</span>
             </div>
           </div>
-          <div className="h-[400px] md:h-[600px] w-full" />
+          <div className="h-[70px] md:h-[70px] w-full" />
         </div>
       </section>
 
-      <section ref={card3Ref} className="sticky z-30 w-full flex justify-center pt-[200px] -mt-10 md:-mt-20 pointer-events-none" style={{ top: `${stickyTop3}px` }}>
-        <div className="w-[90vw] max-w-[1440px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] pt-24 md:pt-32 pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-[0_-20px_50px_rgba(0,0,0,0.3)] pointer-events-auto min-h-screen">
+      <section ref={card3Ref} className="sticky z-30 w-full flex justify-center -mt-[170px] pointer-events-none" style={{ top: `${stickyTop3}px` }}>
+        <div className="w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] pt-24 md:pt-32 pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-[0_-20px_50px_rgba(0,0,0,0.3)] pointer-events-auto">
           <div className="text-center mb-16 max-w-[900px]">
             <h2 className="font-georgia text-[36px] md:text-[48px] font-bold leading-tight text-black">Your Questions, Answered <br /> <span className="text-[#0F9393]">At Unheard.</span></h2>
           </div>
@@ -247,7 +251,7 @@ export const LandingStack = () => {
             <div className="w-full lg:w-1/2 flex justify-center lg:justify-end shrink-0">
               <div className="relative w-full max-w-[450px] aspect-[4/5] rounded-[30px] overflow-hidden shadow-lg" style={{ position: 'relative' }}>
                 <Image
-                  src="/assets/section_2_2.png"
+                  src="/assets/section_2_2.webp"
                   alt="FAQ Preview"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 450px"
@@ -255,10 +259,12 @@ export const LandingStack = () => {
                 />
               </div>
             </div>
-            <div className="w-full lg:w-1/2 flex flex-col justify-center"><FAQAccordion data={faqData} /></div>
-          </div>
-          <div className="mt-20">
-            <button ref={cta3Ref} className="bg-black hover:bg-gray-800 text-white font-nunito font-bold text-[18px] px-10 py-4 rounded-full transition-colors whitespace-nowrap">Contact Us</button>
+            <div className="w-full lg:w-1/2 flex flex-col justify-center">
+              <FAQAccordion data={faqData} />
+              <div className="mt-12 w-full flex justify-center">
+                <button ref={cta3Ref} className="bg-black hover:bg-gray-800 text-white font-nunito font-bold text-[16px] md:text-[18px] w-[200px] md:w-[300px] h-[54px] md:h-[64px] flex items-center justify-center rounded-full transition-colors whitespace-nowrap">Contact Us</button>
+              </div>
+            </div>
           </div>
           <div className="mt-32 w-full max-w-[900px] flex flex-col items-center text-center">
             <h2 className="font-georgia text-[36px] md:text-[48px] font-bold leading-tight text-black mb-8">Voices Finally Heard, <br /> <span className="text-[#0F9393]">Lives Transformed</span></h2>
@@ -271,7 +277,7 @@ export const LandingStack = () => {
       {/* 
         FOOTER BANNER: Unheard Truth
       */}
-      <section className="relative z-40 w-[90vw] mx-auto bg-black rounded-t-[60px] md:rounded-t-[80px] pt-32 pb-40 flex flex-col items-center shadow-[0_-20px_50px_rgba(0,0,0,0.4)] border-t border-white/5 overflow-hidden">
+      <section className="-mt-[130px] relative z-40 w-[97vw] mx-auto bg-black rounded-t-[60px] md:rounded-t-[80px] pt-32 pb-40 flex flex-col items-center border-t border-white/5 overflow-hidden">
         <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-[#0F9393]/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
         <div className="relative z-10 w-full max-w-[1440px] flex flex-col items-center px-6">
           <div className="text-center mb-20 text-white">

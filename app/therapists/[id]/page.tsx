@@ -153,7 +153,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
             <div className="w-full lg:w-[45%] relative group">
               <div className="aspect-[1/1] md:aspect-[4/5] relative rounded-[24px] md:rounded-[40px] overflow-hidden shadow-2xl border-[6px] md:border-[12px] border-white transition-all duration-700">
                 <Image 
-                  src={t.avatar_url || '/assets/section_2_4.png'} 
+                  src={t.avatar_url || '/assets/section_2_4.webp'} 
                   alt={t.full_name} 
                   fill 
                   sizes="(max-width: 1024px) 100vw, 50vw"
@@ -208,7 +208,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                      {[1,2,3].map(i => (
                        <div key={i} className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white bg-gray-200 overflow-hidden relative">
                          <Image 
-                           src={`/assets/section_2_${i}.png`} 
+                           src={`/assets/section_2_${i}.webp`} 
                            alt="" 
                            fill 
                            sizes="40px"

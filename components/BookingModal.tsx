@@ -145,7 +145,7 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
                 <div className="flex -space-x-3">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="w-10 h-10 rounded-full border-2 border-[#111111] bg-gray-600 overflow-hidden">
-                       <img src={`/assets/section_2_${i}.png`} alt="User" className="w-full h-full object-cover" />
+                       <img src={`/assets/section_2_${i}.webp`} alt="User" className="w-full h-full object-cover" />
                     </div>
                   ))}
                 </div>
@@ -156,14 +156,14 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
 
               {/* Decorative elements */}
               <div className="absolute bottom-[-50px] right-[-50px] opacity-20 rotate-12">
-                 <img src="/assets/landingimage.png" alt="" className="w-[400px] grayscale" />
+                 <img src="/assets/landingimage.webp" alt="" className="w-[400px] grayscale" />
               </div>
             </div>
 
             {/* Mobile Header (Mobile Only) */}
             <div className="md:hidden w-full h-[200px] bg-[#111111] relative p-8 flex flex-col justify-end overflow-hidden">
                <div className="absolute inset-0 opacity-40">
-                  <img src="/assets/landingimage.png" alt="" className="w-full h-full object-cover grayscale" />
+                  <img src="/assets/landingimage.webp" alt="" className="w-full h-full object-cover grayscale" />
                </div>
                <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent" />
                <button onClick={closeAndReset} className="absolute top-6 right-6 z-20 text-white/70 hover:text-white">
@@ -331,7 +331,7 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
                             >
                               <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 rounded-xl bg-gray-200 overflow-hidden shrink-0">
-                                   <img src={`/assets/section_2_${((i-1)%4)+1}.png`} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt="Therapist" />
+                                   <img src={`/assets/section_2_${((i-1)%4)+1}.webp`} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt="Therapist" />
                                 </div>
                                 <div>
                                   <h4 className="font-georgia font-bold text-[16px] text-black leading-tight">Ashaya Rathor</h4>

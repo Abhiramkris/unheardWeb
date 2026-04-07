@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 import { useBooking } from '@/components/BookingContext';
 import Button from '@/components/ui/Button';
+import { blogData } from '@/lib/data/landing';
+import { BlogCard } from '@/components/landing/BlogCard';
 
 // ----------------------------------------------------------------------
 // THERAPIST CARD COMPONENT (WIDE DESIGN)
@@ -16,7 +18,7 @@ const TherapistCard = ({ t, openBooking }: { t: any, openBooking: () => void }) 
       
       <div className="relative w-full aspect-[4/3] overflow-hidden">
         <Image 
-          src={t.avatar_url || '/assets/section_2_3.png'} 
+          src={t.avatar_url || '/assets/section_2_3.webp'} 
           alt={t.full_name} 
           fill 
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
@@ -124,87 +126,131 @@ export default function TherapistListing() {
   }
 
   return (
-    <div className="min-h-screen bg-[#111111] font-nunito flex flex-col items-center pt-32 md:pt-48 pb-24 gap-12 lg:gap-16 px-4 md:px-10 lg:px-20 overflow-x-hidden">
+    <div className="relative w-full bg-[#111111] overflow-x-clip pb-[20vh]">
       
-      {/* HEADER SECTION */}
-      <div className="w-full max-w-[1400px] flex flex-col items-center text-center gap-6 mb-4">
-        <h1 className="text-[48px] md:text-[72px] font-bold font-georgia text-white leading-[1] tracking-[-0.03em]">
-          Ready to be <span className="text-[#0F9393]">Heard?</span>
-        </h1>
-        <p className="text-[18px] md:text-[22px] font-medium text-gray-400 max-w-[700px] leading-relaxed">
-          Meet the experts dedicated to helping you find your way forward. 
-        </p>
-      </div>
-
-      {/* FILTER BAR SECTION */}
-      <div className="w-full max-w-[1400px] flex flex-col gap-8 mb-4">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-y border-white/5 py-8">
-           {/* Specialty Pills */}
-           <div className="flex flex-wrap justify-center md:justify-start gap-3 flex-grow order-2 md:order-1">
-             {uniqueSpecialties.slice(0, 8).map(spec => (
-               <button 
-                 key={spec}
-                 onClick={() => setSelectedSpecialty(spec)}
-                 className={`px-6 py-2 rounded-full text-[14px] font-bold transition-all border ${
-                   selectedSpecialty === spec 
-                   ? 'bg-[#0F9393] text-white border-[#0F9393] shadow-lg shadow-[#0F9393]/20 scale-105' 
-                   : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'
-                 }`}
-               >
-                 {spec}
-               </button>
-             ))}
-           </div>
-
-           {/* Availability Toggle */}
-           <button 
-             onClick={() => setShowAvailableOnly(!showAvailableOnly)}
-             className={`shrink-0 flex items-center gap-3 px-6 py-3 rounded-2xl font-bold text-[14px] transition-all border order-1 md:order-2 ${
-               showAvailableOnly 
-               ? 'bg-white text-black border-white' 
-               : 'bg-transparent text-white border-white/20 hover:border-white/40'
-             }`}
-           >
-             <div className={`w-3 h-3 rounded-full ${showAvailableOnly ? 'bg-[#0F9393] animate-pulse' : 'bg-gray-600'}`}></div>
-             Show Available Only
-           </button>
+      {/* 
+        HERO SECTION
+      */}
+      <section className="sticky top-0 z-0 w-full h-[60vh] max-h-[700px] flex items-center justify-center overflow-hidden">
+        <Image 
+          src="/assets/section_2_1.webp" 
+          alt="Therapists Hero" 
+          fill 
+          className="object-cover opacity-60"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#111111]/50 to-[#111111]"></div>
+        <div className="relative z-10 w-full max-w-[2440px] px-[5vw] flex flex-col items-center text-center gap-6 -mt-20">
+          <h1 className="text-[48px] md:text-[80px] lg:text-[100px] font-bold font-georgia text-white leading-[1] tracking-[-0.04em]">
+            Ready to be <span className="text-[#0F9393]">Heard?</span>
+          </h1>
+          <p className="text-[18px] md:text-[24px] font-medium text-gray-300 max-w-[800px] leading-relaxed font-nunito">
+            Our counselors are selected for their clinical precision and strategic empathy. Find the mind that resonates with your own.
+          </p>
         </div>
-      </div>
+      </section>
 
-      {/* THERAPIST GRID: WIDER LAYOUT (2 per row on laptop) */}
-      <div className="w-full max-w-[1400px] grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 min-h-[400px]">
-        {filteredTherapists.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-500 gap-4">
-             <span className="text-[48px]">📭</span>
-             <p className="italic text-[20px]">No counselors match your current filters. Try adjust your search!</p>
-             <button onClick={() => {setSelectedSpecialty('All'); setShowAvailableOnly(false)}} className="text-[#0F9393] font-bold underline">Reset Filters</button>
+      <div className="relative z-10 w-full flex flex-col items-center gap-12 lg:gap-20 -mt-[100px] md:-mt-[150px]">
+        
+        {/* FILTER BAR SECTION */}
+        <div className="w-[97vw] max-w-[2440px] flex flex-col gap-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-[#1a1a1a]/80 backdrop-blur-xl p-8 rounded-[40px] border border-white/5 shadow-2xl">
+             {/* Specialty Pills */}
+             <div className="flex flex-wrap justify-center md:justify-start gap-3 flex-grow order-2 md:order-1">
+               {uniqueSpecialties.slice(0, 8).map(spec => (
+                 <button 
+                   key={spec}
+                   onClick={() => setSelectedSpecialty(spec)}
+                   className={`px-6 py-2.5 rounded-full text-[13px] md:text-[14px] font-bold transition-all border ${
+                     selectedSpecialty === spec 
+                     ? 'bg-[#0F9393] text-white border-[#0F9393] shadow-lg shadow-[#0F9393]/20 scale-105' 
+                     : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'
+                   }`}
+                 >
+                   {spec}
+                 </button>
+               ))}
+             </div>
+
+             {/* Availability Toggle */}
+             <button 
+               onClick={() => setShowAvailableOnly(!showAvailableOnly)}
+               className={`shrink-0 flex items-center gap-3 px-8 py-3.5 rounded-full font-bold text-[14px] transition-all border order-1 md:order-2 ${
+                 showAvailableOnly 
+                 ? 'bg-white text-black border-white' 
+                 : 'bg-transparent text-white border-white/20 hover:border-white/40'
+               }`}
+             >
+               <div className={`w-3 h-3 rounded-full ${showAvailableOnly ? 'bg-[#0F9393] animate-pulse' : 'bg-gray-600'}`}></div>
+               Show Available Only
+             </button>
           </div>
-        ) : (
-          filteredTherapists.map((t) => (
-            <TherapistCard key={t.id} t={t} openBooking={openBookingModal} />
-          ))
-        )}
+        </div>
+
+        {/* THERAPIST GRID */}
+        <div className="w-[97vw] max-w-[2440px] grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 min-h-[400px]">
+          {filteredTherapists.length === 0 ? (
+            <div className="col-span-full flex flex-col items-center justify-center py-32 text-gray-500 gap-6 bg-white/5 rounded-[60px] border border-white/5">
+               <span className="text-[64px]">📭</span>
+               <p className="italic text-[22px] font-nunito">No counselors match your current filters. Try adjusting your parameters.</p>
+               <button onClick={() => {setSelectedSpecialty('All'); setShowAvailableOnly(false)}} className="text-[#0F9393] font-bold underline text-[18px]">Reset Filters</button>
+            </div>
+          ) : (
+            filteredTherapists.map((t) => (
+              <TherapistCard key={t.id} t={t} openBooking={openBookingModal} />
+            ))
+          )}
+        </div>
+
+        {/* MATCHING CTA (97vw Card) */}
+        <div className="relative w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-[40px] md:rounded-[60px] p-12 md:p-24 flex flex-col lg:flex-row items-center justify-between gap-12 shadow-[0_40px_100px_rgba(0,0,0,0.3)] overflow-hidden">
+          <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-[#0F9393]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-[100px]"></div>
+          <div className="flex-grow max-w-[800px] text-center lg:text-left z-10 flex flex-col gap-6">
+             <h2 className="text-[36px] md:text-[64px] font-bold font-georgia text-black leading-tight tracking-tight">
+               Find your <span className="text-[#0F9393]">Perfect Match.</span>
+             </h2>
+             <p className="text-gray-500 font-bold text-[18px] md:text-[24px] leading-relaxed font-nunito max-w-[650px]">
+               Not sure where to start? Answer a few questions and we'll recommend the best counselor for your unique psychological profile.
+             </p>
+          </div>
+          <div className="z-10 shrink-0">
+            <Button 
+              variant="black" 
+              className="w-[280px] md:w-[350px] h-[64px] md:h-[80px] text-[18px] md:text-[22px] font-bold shadow-2xl transition-transform hover:-translate-y-1 rounded-full" 
+              onClick={openBookingModal}
+            >
+              Match Me Now
+            </Button>
+          </div>
+        </div>
+
       </div>
 
-      {/* MATCHING CTA (95vw Card) */}
-      <div className="w-full max-w-[1400px] bg-[#FEFEFC] rounded-[40px] p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-10 shadow-2xl mt-12 mb-20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#0F9393]/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-        <div className="flex-grow max-w-[700px] text-center md:text-left z-10">
-           <h2 className="text-[32px] md:text-[48px] font-bold font-georgia text-black leading-tight mb-4">
-             Find your <span className="text-[#0F9393]">Perfect Match</span>
-           </h2>
-           <p className="text-gray-500 font-bold text-[18px] md:text-[20px] leading-relaxed font-nunito opacity-80">
-             Not sure where to start? Answer a few questions and we'll recommend the best counselor for you.
-           </p>
+      {/* 
+        FOOTER BANNER: Unheard Truth (Mirrored from Landing)
+      */}
+      <section className="-mt-[130px] relative z-[20] w-[97vw] mx-auto bg-black rounded-t-[60px] md:rounded-t-[80px] pt-32 pb-40 flex flex-col items-center border-t border-white/5 overflow-hidden">
+        <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-[#0F9393]/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+        <div className="relative z-10 w-full max-w-[1440px] flex flex-col items-center px-6">
+          <div className="text-center mb-20 text-white">
+            <h2 className="font-georgia text-[40px] md:text-[64px] font-bold leading-tight flex flex-col items-center text-center">
+              <span className="text-[#0F9393]">Unheard Truth:</span>
+              <span>Discover, Reflect, and Grow</span>
+            </h2>
+          </div>
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+            {blogData.map((blog, idx) => <BlogCard key={idx} blog={blog} />)}
+          </div>
+          <div className="mt-20">
+            <button className="group flex items-center gap-4 bg-white p-1.5 pl-8 pr-2 rounded-full border-2 border-white hover:bg-gray-100 transition-all shadow-xl">
+              <span className="text-black font-nunito font-black text-[18px]">View all</span>
+              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center transition-transform group-hover:translate-x-1">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
+              </div>
+            </button>
+          </div>
         </div>
-        <Button 
-          variant="black" 
-          className="w-full md:w-auto px-12 h-[64px] text-[20px] font-bold shadow-xl shrink-0 z-10 hover:scale-105 active:scale-95 transition-all" 
-          onClick={openBookingModal}
-        >
-          Match Me Now
-        </Button>
-      </div>
+      </section>
 
     </div>
   );
