@@ -159,11 +159,16 @@ const Navbar = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="md:hidden absolute top-[85px] left-0 right-0 bg-[#1A1A1A]/95 border border-white/10 rounded-[32px] p-8 shadow-2xl backdrop-blur-2xl z-50 overflow-hidden"
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ 
+              type: "spring", 
+              damping: 25, 
+              stiffness: 200,
+              opacity: { duration: 0.2 }
+            }}
+            className="md:hidden absolute top-[85px] left-0 right-0 bg-[#1A1A1A]/95 border border-white/10 rounded-[32px] p-8 shadow-2xl backdrop-blur-xl z-50 overflow-hidden will-change-transform"
           >
             {/* Decorative Background for drawer */}
             <div className="absolute top-[-20%] right-[-10%] w-32 h-32 bg-[#0F9393]/20 rounded-full blur-3xl"></div>

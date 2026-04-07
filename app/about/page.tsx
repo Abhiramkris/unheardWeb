@@ -23,8 +23,10 @@ export default function AboutPage() {
   const [stickyTop1, setStickyTop1] = useState(0);
   const [stickyTop2, setStickyTop2] = useState(0);
   const [stickyTop3, setStickyTop3] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const calculatePinOffset = () => {
       const getOffset = (card: HTMLElement | null, target: HTMLElement | null) => {
         if (!card || !target) return 0;
@@ -39,11 +41,11 @@ export default function AboutPage() {
           curr = parent;
         }
 
-        // Pin when the target reaches 50% of the viewport height
-        const targetViewportY = window.innerHeight * 0.5;
+        // Pin when the target reaches ~45% of the viewport height for a modern look
+        const targetViewportY = window.innerHeight * 0.45;
 
-        // Never move upwards (offset <= 0), effectively allowing the section to stack
-        return Math.min(targetViewportY - targetCenterOffset, 0);
+        // Allow the calculation to drive the pin offset naturally
+        return targetViewportY - targetCenterOffset;
       };
 
       setStickyTop1(getOffset(card1Ref.current, cta1Ref.current));
@@ -77,6 +79,8 @@ export default function AboutPage() {
     };
   }, []);
 
+  if (!mounted) return null;
+
   return (
     <div className="relative w-full bg-[#111111] overflow-x-clip pb-[40vh]">
       
@@ -90,18 +94,19 @@ export default function AboutPage() {
       >
         <div className="w-full flex flex-col items-center">
           <div className="relative h-screen max-h-[1000px] w-full max-w-[2560px] flex items-center px-[5vw] lg:px-[10vw]">
-            <div className="absolute inset-0 z-0 text-white" style={{ position: 'absolute' }}>
+            <div className="absolute inset-0 z-0">
               <Image
-                src="/assets/landingimage.webp"
+                src="/assets/service/about/1.webp"
                 alt="About Background"
                 fill
                 sizes="100vw"
-                className="object-cover opacity-60"
+                className="object-cover opacity-70"
                 priority
                 quality={90}
               />
+              <div className="absolute inset-0 bg-black/50 z-[1]"></div>
             </div>
-            <div className="relative z-10 max-w-[800px] flex flex-col gap-8 -mt-[100px]">
+            <div className="relative z-10 max-w-[800px] flex flex-col gap-8 mt-28 md:-mt-[100px]">
               <h1 className="text-[40px] md:text-[50px] font-bold leading-[1.1] tracking-[-0.02em] text-white font-georgia">
                  Because patterns are not random. <br /> They are structural.
               </h1>
@@ -111,7 +116,7 @@ export default function AboutPage() {
             </div>
           </div>
 
-          <div className="relative w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-[40px] md:rounded-[60px] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col items-center pt-24 md:pt-32 pb-20 px-6 md:px-12 lg:px-24 -mt-[100px] md:-mt-[150px] z-20">
+          <div className="relative w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-[40px] md:rounded-[60px] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col items-center pt-24 md:pt-32 pb-20 px-6 md:px-12 lg:px-24 mt-10 md:-mt-[150px] z-20">
             
             <div className="absolute top-[10%] right-[5%] w-[400px] h-[400px] bg-[#0F9393]/5 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -126,23 +131,37 @@ export default function AboutPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 text-center items-center">
                  <div className="flex flex-col gap-8 items-center text-center">
-                   <p className="font-nunito font-bold text-[22px] md:text-[28px] text-black leading-relaxed text-justify">
+                   <p className="font-nunito font-bold text-[20px] md:text-[26px] text-black leading-relaxed text-center lg:text-justify">
                      unHeard. is a dedicated space for those who feel mentally overwhelmed or internally unclear but do not necessarily fit traditional clinical labels. We believe that true growth happens when you stop managing symptoms and start restructuring patterns.
                    </p>
                  </div>
-                 <div className="flex flex-col gap-8 bg-black/5 p-10 md:p-14 rounded-[40px] border border-black/5 relative items-center text-center">
-                   <p className="font-nunito font-extrabold text-[20px] md:text-[26px] text-black/90 leading-relaxed italic text-justify">
-                     "This space exists to identify the repetitive emotional loops that create friction and disconnect — and to provide the tools for sustainable mental well-being."
-                   </p>
-                   <p className="font-nunito font-bold text-[16px] md:text-[20px] text-gray-500 leading-relaxed text-justify">
-                     We work with modern individuals who prioritize strategic awareness and the intention of personal expansion over standard comforting narratives.
-                   </p>
-                 </div>
+                  <div className="relative flex flex-col gap-8 p-10 md:p-14 rounded-[40px] overflow-hidden group items-center text-center">
+                    <div className="absolute inset-0 z-0">
+                      <Image 
+                        src="/assets/service/about/2.webp" 
+                        alt="Restructuring" 
+                        fill 
+                        className="object-cover transition-transform duration-700 hover:scale-110 opacity-100" 
+                      />
+                      <div className="absolute inset-0 bg-black/50 z-[1]"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10"></div>
+                    </div>
+                    <div className="relative z-20 flex flex-col gap-8">
+                      <p className="font-nunito font-extrabold text-[20px] md:text-[26px] text-white leading-relaxed italic text-center lg:text-justify">
+                        "This space exists to identify the repetitive emotional loops that create friction and disconnect — and to provide the tools for sustainable mental well-being."
+                      </p>
+                      <p className="font-nunito font-bold text-[16px] md:text-[20px] text-white/80 leading-relaxed text-center lg:text-justify">
+                        We work with modern individuals who prioritize strategic awareness and the intention of personal awareness over standard comforting narratives.
+                      </p>
+                    </div>
+                  </div>
               </div>
 
               <div ref={cta1Ref} className="mt-10 flex flex-col items-center gap-8">
-                 <Button variant="black" className="w-[260px] md:w-[350px] h-[54px] md:h-[72px] flex items-center justify-center rounded-full text-[16px] md:text-[20px] font-bold shadow-2xl transition-transform hover:-translate-y-1" onClick={openBookingModal}>Begin with Clarity</Button>
-                 <p className="text-gray-400 font-bold text-[14px] uppercase tracking-[0.3em] text-center">Awareness • Understanding • Restructuring • Integration</p>
+                 <div className="flex flex-row items-center gap-4 md:gap-6">
+                    <Button variant="black" className="w-[260px] md:w-[350px] h-[54px] md:h-[72px] flex items-center justify-center rounded-full text-[16px] md:text-[20px] font-bold shadow-2xl transition-transform hover:-translate-y-1" onClick={openBookingModal}>Begin with Clarity</Button>
+                    <img src="/assets/Group 54.svg" alt="Arrow" className="h-[35px] md:h-[50px] w-auto brightness-0 -mt-2" />
+                 </div>
               </div>
             </div>
             <div className="h-[120px] md:h-[180px] w-full shrink-0" />
@@ -165,18 +184,18 @@ export default function AboutPage() {
           <div className="relative z-10 w-full flex flex-col gap-16 md:gap-24">
             <div className="flex flex-col gap-6 items-center">
               <span className="text-[#0F9393] font-bold uppercase tracking-[0.25em] text-[14px]">OUR APPROACH</span>
-              <h2 className="text-[32px] md:text-[60px] lg:text-[68px] font-bold font-georgia text-white leading-tight tracking-tight text-center">
+              <h2 className="text-[36px] md:text-[60px] lg:text-[80px] font-bold font-georgia text-white leading-tight tracking-tight text-center">
                 Grounded in psychological science, <br />
                 <span className="text-[#0F9393]">expanded through applied insight.</span>
               </h2>
-              <p className="text-gray-400 font-bold text-[18px] md:text-[24px] font-nunito leading-relaxed max-w-[900px] text-center">
+              <p className="text-gray-400 font-bold text-[20px] md:text-[26px] font-nunito leading-relaxed max-w-[900px] text-center">
                 We work across cognitive patterns, emotional responses, and behavioral loops.
               </p>
             </div>
 
             <div className="flex flex-col gap-10 items-center w-full">
                <span className="text-[#0F9393] font-bold uppercase tracking-[0.25em] text-[14px]">METHODOLOGY</span>
-               <div ref={target2Ref} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10 w-full">
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10 w-full">
                   {[
                     { step: '01', title: 'Awareness', desc: 'Decoding the silent narratives that influence your daily reactions.', img: '/assets/service/1.webp' },
                     { step: '02', title: 'Understanding', desc: 'Mapping the correlation between cognitive patterns and emotional state.', img: '/assets/service/2.webp' },
@@ -198,14 +217,17 @@ export default function AboutPage() {
                </div>
             </div>
 
-            <div className="bg-white/5 p-10 md:p-16 lg:p-20 rounded-[40px] md:rounded-[60px] border border-white/5 flex flex-col lg:flex-row items-center justify-between gap-12 mt-10 relative overflow-hidden w-full">
-               <div className="absolute top-0 right-0 w-80 h-80 bg-[#0F9393]/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-               <div className="max-w-[700px] flex flex-col gap-8 text-center lg:text-left items-center lg:items-start">
-                  <h3 className="text-[24px] md:text-[38px] lg:text-[44px] font-bold text-white font-georgia leading-tight tracking-tight">The focus remains: <br /><span className="text-[#0F9393]">awareness → understanding → restructuring → integration.</span></h3>
-                  <p className="text-gray-400 font-bold text-[18px] md:text-[22px] leading-relaxed font-nunito max-w-[600px] text-justify">Each engagement is structured yet adaptive, analytical yet human, reflective yet action-oriented.</p>
+               <div ref={target2Ref} className="bg-white/5 p-8 md:p-16 lg:p-20 rounded-[40px] md:rounded-[60px] border border-white/5 flex flex-col lg:flex-row items-center justify-between gap-12 mt-10 relative w-full">
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-[#0F9393]/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                  <div className="max-w-[700px] flex flex-col gap-8 text-center lg:text-left items-center lg:items-start z-10">
+                     <h3 className="text-[24px] md:text-[38px] lg:text-[44px] font-bold text-white font-georgia leading-tight tracking-tight">The focus remains: <br /><span className="text-[#0F9393]">Awareness, Understanding, Restructuring & Integration.</span></h3>
+                     <p className="text-gray-400 font-bold text-[18px] md:text-[22px] leading-relaxed font-nunito max-w-[600px] text-center lg:text-justify">Each engagement is structured yet adaptive, analytical yet human, reflective yet action-oriented.</p>
+                  </div>
+                  <div className="flex flex-row items-center justify-center gap-4 md:gap-6 z-10 px-2 lg:px-0">
+                    <Button variant="black" className="bg-white text-black hover:bg-gray-100 rounded-full w-[240px] md:w-[350px] h-[54px] md:h-[72px] flex items-center justify-center font-bold text-[16px] md:text-[20px] shrink-0 shadow-2xl transition-transform hover:-translate-y-1" onClick={openBookingModal}>Practice Methodology</Button>
+                    <img src="/assets/Group 54.svg" alt="Arrow" className="h-[30px] md:h-[50px] w-auto brightness-0 invert -mt-1 md:-mt-2" />
+                  </div>
                </div>
-               <Button variant="black" className="bg-white text-black hover:bg-gray-100 rounded-full w-[260px] md:w-[350px] h-[54px] md:h-[72px] flex items-center justify-center font-bold text-[16px] md:text-[20px] shrink-0 shadow-2xl transition-transform hover:-translate-y-1" onClick={openBookingModal}>Practice Methodology</Button>
-            </div>
           </div>
           <div className="h-[100px] md:h-[150px] w-full shrink-0" />
         </div>
@@ -216,7 +238,7 @@ export default function AboutPage() {
       */}
       <section 
         ref={card3Ref}
-        className="sticky z-30 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
+        className="sticky z-[30] w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
         style={{ top: `${stickyTop3}px` }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-[40px] md:rounded-[60px] shadow-[0_[-40px]_100px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 pointer-events-auto">
@@ -226,14 +248,14 @@ export default function AboutPage() {
           <div className="relative z-10 w-full max-w-[1300px] flex flex-col items-center text-center gap-16 md:gap-24">
             <div className="flex flex-col gap-6 items-center">
               <span className="text-[#0F9393] font-bold uppercase tracking-[0.25em] text-[14px]">OUR PHILOSOPHY</span>
-              <h2 className="text-[36px] md:text-[60px] lg:text-[72px] font-bold font-georgia text-black leading-[1.1] tracking-tight">
+              <h2 className="text-[36px] md:text-[60px] lg:text-[80px] font-bold font-georgia text-black leading-[1.1] tracking-tight">
                 Clarity is not comfort. <br className="hidden md:block" />
                 It is alignment. <br className="hidden md:block" />
                 <span className="text-[#0F9393]">And alignment creates sustainable <br className="hidden lg:block" /> mental well-being.</span>
               </h2>
             </div>
 
-            <div ref={target3Ref} className="flex flex-col gap-12 items-center text-center">
+            <div className="flex flex-col gap-12 items-center text-center">
                <div className="flex flex-col gap-6 items-center">
                  <p className="text-[22px] md:text-[38px] lg:text-[42px] font-extrabold text-black/95 leading-snug font-nunito italic max-w-[1100px] tracking-tight">
                    "Not everything needs to be labeled to be real."
@@ -247,23 +269,26 @@ export default function AboutPage() {
                  <div className="p-12 rounded-[50px] bg-[#111111] text-white flex flex-col items-center gap-8 relative overflow-hidden group">
                    <div className="absolute -top-10 -right-10 w-48 h-48 bg-[#0F9393]/10 rounded-full blur-3xl group-hover:bg-[#0F9393]/20 transition-all"></div>
                    <h3 className="text-[28px] md:text-[32px] font-bold font-georgia text-[#0F9393]">Adaptive & Human</h3>
-                   <p className="text-gray-400 font-bold text-[16px] md:text-[19px] leading-relaxed text-justify">Each engagement is structured yet adaptive, analytical yet human, reflective yet action-oriented. We prioritize the resonance of the experience over rigid metrics.</p>
+                   <p className="text-gray-400 font-bold text-[16px] md:text-[19px] leading-relaxed text-center lg:text-justify">Each engagement is structured yet adaptive, analytical yet human, reflective yet action-oriented. We prioritize the resonance of the experience over rigid metrics.</p>
                  </div>
                  <div className="p-12 rounded-[50px] bg-white border border-black/5 flex flex-col items-center gap-8 group hover:bg-black/5 transition-all shadow-sm">
                    <h3 className="text-[28px] md:text-[32px] font-bold font-georgia text-black">Action-Oriented</h3>
-                   <p className="text-gray-500 font-bold text-[16px] md:text-[19px] leading-relaxed text-justify">We don't just explore the past; we build the future. Our methodology is designed for breakthroughs that manifest in your actual reality, improving your daily response mechanisms.</p>
+                   <p className="text-gray-500 font-bold text-[16px] md:text-[19px] leading-relaxed text-center lg:text-justify">We don't just explore the past; we build the future. Our methodology is designed for breakthroughs that manifest in your actual reality, improving your daily response mechanisms.</p>
                  </div>
                </div>
             </div>
 
             <div className="mt-10 flex flex-col items-center gap-12">
-               <div className="flex flex-col items-center gap-6">
-                  <h3 className="text-[32px] md:text-[56px] font-bold font-georgia text-black tracking-tight">Ready to Align?</h3>
+               <div ref={target3Ref} className="flex flex-col items-center gap-6">
+                  <h3 className="text-[36px] md:text-[64px] font-bold font-georgia text-black tracking-tight">Ready to Align?</h3>
                   <p className="text-gray-500 font-bold text-[18px] md:text-[24px] font-nunito italic text-center">Let your inner world finally make sense.</p>
                </div>
                
                <div className="flex flex-col md:flex-row items-center gap-8">
-                 <Button variant="black" className="w-[280px] md:w-[350px] h-[54px] md:h-[72px] flex items-center justify-center rounded-full text-[16px] md:text-[20px] font-extrabold shadow-2xl transition-transform hover:-translate-y-1" onClick={openBookingModal}>Start Your Transformation</Button>
+                <div className="flex flex-row items-center gap-4 md:gap-6">
+                  <Button variant="black" className="w-[280px] md:w-[350px] h-[54px] md:h-[72px] flex items-center justify-center rounded-full text-[16px] md:text-[20px] font-extrabold shadow-2xl transition-transform hover:-translate-y-1" onClick={openBookingModal}>Start Your Transformation</Button>
+                  <img src="/assets/Group 54.svg" alt="Arrow" className="h-[35px] md:h-[50px] w-auto brightness-0 -mt-2" />
+                </div>
                  <Link href="/therapists">
                    <button className="w-280px md:w-[300px] h-[54px] md:h-[72px] flex items-center justify-center rounded-full border-[3px] border-black text-black font-black text-[16px] md:text-[20px] hover:bg-black hover:text-white transition-all text-center">Explore Counselors</button>
                  </Link>

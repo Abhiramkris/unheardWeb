@@ -126,7 +126,7 @@ export default function TherapistListing() {
   }
 
   return (
-    <div className="relative w-full bg-[#111111] overflow-x-clip pb-[20vh]">
+    <div className="relative w-full bg-[#111111] overflow-x-clip">
       
       {/* 
         HERO SECTION

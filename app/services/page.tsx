@@ -93,7 +93,7 @@ export default function ServicesPage() {
   }
 
   return (
-    <div className="relative w-full bg-[#111111] overflow-x-clip pb-[40vh]">
+    <div className="relative w-full bg-[#111111] overflow-x-clip">
 
       {/* 
         SECTION 1: HERO & INDIVIDUAL PSYCHOLOGICAL WORK (White Card)
@@ -107,7 +107,7 @@ export default function ServicesPage() {
           <div className="relative h-screen max-h-[1000px] w-full max-w-[2560px] flex items-center px-[5vw] lg:px-[10vw]">
             <div className="absolute inset-0 z-0 text-white" style={{ position: 'absolute' }}>
               <Image
-                src="/assets/servicesland.webp"
+                src="/assets/servicesland.avif"
                 alt="Services Background"
                 fill
                 sizes="100vw"
@@ -306,7 +306,7 @@ export default function ServicesPage() {
             <motion.div
               initial="hidden"
               whileInView="show"
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: "0px 0px -50% 0px" }}
               variants={{
                 hidden: { opacity: 0 },
                 show: {
@@ -398,14 +398,38 @@ export default function ServicesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-[1100px]">
-              <div className="bg-white/5 p-12 rounded-[50px] border border-white/10 text-left flex flex-col gap-8 transition-all hover:bg-white/10">
-                <h3 className="text-[28px] md:text-[34px] font-bold font-georgia text-[#0F9393]">For Schools</h3>
-                <p className="text-gray-400 font-bold text-[16px] md:text-[19px] leading-relaxed">Integrated student counseling, teacher sensitization programs, and parent psychological workshops.</p>
-              </div>
-              <div className="bg-white/5 p-12 rounded-[50px] border border-white/10 text-left flex flex-col gap-8 transition-all hover:bg-white/10">
-                <h3 className="text-[28px] md:text-[34px] font-bold font-georgia text-white">For Universities</h3>
-                <p className="text-gray-400 font-bold text-[16px] md:text-[19px] leading-relaxed">High-performance mental coaching, peer-support networks, and crisis management protocols.</p>
-              </div>
+              {[
+                {
+                  title: 'For Schools',
+                  desc: 'Integrated student counseling, teacher sensitization programs, and parent psychological workshops. We build structural safety within the K-12 ecosystem.',
+                  img: '/assets/service/7.webp'
+                },
+                {
+                  title: 'For Universities',
+                  desc: 'High-performance mental coaching, peer-support networks, and crisis management protocols. Designed for the high-stakes academic environment.',
+                  img: '/assets/service/8.webp'
+                }
+              ].map((item, i) => (
+                <div key={i} className="relative p-10 md:p-12 rounded-[40px] md:rounded-[50px] overflow-hidden group shadow-2xl transition-all h-full min-h-[500px] flex flex-col justify-end border border-white/10">
+                  {/* Background Image & Overlay */}
+                  <div className="absolute inset-0 z-0">
+                    <Image
+                      src={item.img}
+                      alt={item.title}
+                      fill
+                      className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/50 to-transparent"></div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="relative z-10 flex flex-col items-start text-left gap-4">
+                    <h3 className="text-[28px] md:text-[36px] font-bold font-georgia text-white leading-tight">{item.title}</h3>
+                    <div className="h-[3px] w-16 bg-[#0F9393] group-hover:w-24 transition-all duration-500"></div>
+                    <p className="text-[16px] md:text-[19px] font-medium text-white/90 font-nunito leading-relaxed max-w-[400px]">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div className="mt-2 flex flex-col items-center gap-8">
@@ -445,14 +469,38 @@ export default function ServicesPage() {
 
             <div className="w-full flex flex-col gap-16">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-                <div className="flex flex-col gap-6 p-10 bg-black/5 rounded-[40px] border border-black/5 group hover:bg-[#0F9393] transition-all duration-500">
-                  <h3 className="text-[24px] font-bold text-black font-georgia group-hover:text-white transition-colors">Executive Coaching</h3>
-                  <p className="text-gray-500 font-bold group-hover:text-white/80 transition-colors">Decoding behavioral blocks and decision patterns for leaders at the peak.</p>
-                </div>
-                <div className="flex flex-col gap-6 p-10 bg-black/5 rounded-[40px] border border-black/5 group hover:bg-black transition-all duration-500">
-                  <h3 className="text-[24px] font-bold text-black font-georgia group-hover:text-[#0F9393] transition-colors">Culture Transformation</h3>
-                  <p className="text-gray-500 font-bold group-hover:text-white/60 transition-colors">Building structural safety that enables creative friction and sustainable growth.</p>
-                </div>
+                {[
+                  {
+                    title: 'Executive Coaching',
+                    desc: 'Decoding behavioral blocks and decision patterns for leaders at the peak. We work with executives to refine cognitive agility, emotional regulation, and high-stakes decision-making frameworks for sustained pressure environments.',
+                    img: '/assets/service/10.webp'
+                  },
+                  {
+                    title: 'Culture Transformation',
+                    desc: 'Building structural safety that enables creative friction and sustainable growth. We restructure organizational dynamics to prioritize psychological safety as the primary driver for high-performance innovation and team velocity.',
+                    img: '/assets/service/9.webp'
+                  }
+                ].map((item, i) => (
+                  <div key={i} className="relative p-10 rounded-[40px] overflow-hidden group shadow-xl transition-all h-full min-h-[600px] flex flex-col justify-end border border-black/5">
+                    {/* Background Image & Overlay */}
+                    <div className="absolute inset-0 z-0">
+                      <Image
+                        src={item.img}
+                        alt={item.title}
+                        fill
+                        className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/40 to-transparent"></div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="relative z-10 flex flex-col items-start text-left gap-4">
+                      <h3 className="text-[26px] md:text-[32px] font-bold font-georgia text-white leading-tight">{item.title}</h3>
+                      <div className="h-[2px] w-12 bg-[#0F9393] group-hover:w-20 transition-all duration-500"></div>
+                      <p className="text-[17px] md:text-[20px] font-medium text-white/90 font-nunito leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="flex flex-col items-center gap-12 mt-10">
@@ -461,13 +509,15 @@ export default function ServicesPage() {
                   <p className="text-gray-500 font-bold text-[18px] md:text-[24px] font-nunito italic text-center">Unleash the cognitive potential of your organization.</p>
                 </div>
 
-                <div ref={target5Ref} className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-                  <div className="flex flex-row items-center gap-4 md:gap-6">
+                <div ref={target5Ref} className="flex flex-col items-center gap-6 md:flex-row md:gap-12">
+                  <div className="relative flex flex-row items-center gap-4 md:gap-6">
                     <Button variant="black" className="w-[280px] md:w-[350px] h-[54px] md:h-[72px] flex items-center justify-center rounded-full text-[16px] md:text-[20px] font-extrabold shadow-2xl transition-transform hover:-translate-y-1" onClick={openBookingModal}>Book for Organization</Button>
-                    <img src="/assets/Group 54.svg" alt="Arrow" className="h-[35px] md:h-[50px] w-auto brightness-0 invert -mt-2" />
+                    <div className="absolute left-full ml-4 md:relative md:ml-0">
+                      <img src="/assets/Group 54.svg" alt="Arrow" className="h-[35px] md:h-[50px] w-auto brightness-0 invert -mt-1" />
+                    </div>
                   </div>
                   <Link href="/contact">
-                    <button className="w-[280px] md:w-[300px] h-[54px] md:h-[72px] flex items-center justify-center rounded-full border-[3px] border-black text-black font-black text-[16px] md:text-[20px] hover:bg-black hover:text-white transition-all text-center">Contact Sales</button>
+                    <Button variant="white" className="w-[280px] md:w-[320px] h-[54px] md:h-[72px] flex items-center justify-center rounded-full border-[3px] border-black text-black font-black text-[16px] md:text-[20px] hover:bg-black hover:text-white transition-all shadow-xl">Contact Sales</Button>
                   </Link>
                 </div>
               </div>
