@@ -38,7 +38,7 @@ export const blogData = [
     author: "Dr. Ananya Iyer",
     date: "Dec 12, 2023",
     readTime: "5 min read",
-    image: "/assets/section_2_1.png",
+    image: "/assets/section_2_1.webp",
     keywords: ["Self-Awareness", "Cognitive Health"]
   },
   {
@@ -46,7 +46,7 @@ export const blogData = [
     author: "Dr. Vikram Seth",
     date: "Dec 14, 2023",
     readTime: "7 min read",
-    image: "/assets/section_2_2.png",
+    image: "/assets/section_2_2.webp",
     keywords: ["Mental Health", "Neuroscience"]
   },
   {
@@ -54,7 +54,7 @@ export const blogData = [
     author: "Sarah Jenkins, Clinical Lead",
     date: "Dec 16, 2023",
     readTime: "4 min read",
-    image: "/assets/section_2_3.png",
+    image: "/assets/section_2_3.webp",
     keywords: ["Growth", "Clarity"]
   }
 ];
@@ -62,15 +62,15 @@ export const blogData = [
 export const understandingContent = [
   {
     images: [
-      { src: "/assets/section_2_1.png", label: "Individual Psychological Work" },
-      { src: "/assets/section_2_2.png", label: "Relationship & Couple Dynamics" }
+      { src: "/assets/section_2_1.webp", label: "Individual Psychological Work" },
+      { src: "/assets/section_2_2.webp", label: "Relationship & Couple Dynamics" }
     ],
     text: "At unHeard., psychological work is not limited to conversation. It is a structured process of decoding patterns, refining awareness, and enabling change that sustains.\n\nWe offer structured, professional counseling for individuals who are functioning in their daily lives yet feel mentally overwhelmed, emotionally unsettled or internally unclear."
   },
   {
     images: [
-      { src: "/assets/section_2_3.png", label: "Adolescent Development Support" },
-      { src: "/assets/section_2_4.png", label: "Institutional Programs (Schools & Colleges)" }
+      { src: "/assets/section_2_3.webp", label: "Adolescent Development Support" },
+      { src: "/assets/section_2_4.webp", label: "Institutional Programs (Schools & Colleges)" }
     ],
     text: "This is where thought, emotion, and behavior are understood in relation, not isolation.\n\nYou do not have to simplify your experience to be understood."
   }

@@ -13,7 +13,7 @@ def optimize_assets():
         return
 
     # Supported extensions to convert
-    EXTENSIONS = ('.png', '.jpg', '.jpeg', '.tiff', '.bmp')
+    EXTENSIONS = ('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.avif')
 
     print(f"Starting asset optimization in {ASSET_DIR}...")
     
@@ -48,9 +48,8 @@ def optimize_assets():
                         reduction = (original_size - new_size) / original_size * 100
                         print(f"  Success! Size reduced from {original_size/1024:.1f}KB to {new_size/1024:.1f}KB ({reduction:.1f}% reduction)")
                         
-                        # Note: We are keeping the original for safety unless the user specifically wants to delete it.
-                        # To delete original, uncomment:
-                        # os.remove(path)
+                        # Deleting original for cleanup as requested
+                        os.remove(path)
                     else:
                         print(f"  Failed: {result.stderr.strip()}")
                 except Exception as e:

@@ -38,21 +38,24 @@ export default function ServicesPage() {
       const getOffset = (card: HTMLElement | null, target: HTMLElement | null) => {
         if (!card || !target) return 0;
 
-        // Calculate vertical distance from card top to target's center using offsetTop loop
-        let targetCenterOffset = target.offsetHeight / 2;
-        let curr: HTMLElement | null = target;
-        while (curr && curr !== card) {
-          targetCenterOffset += curr.offsetTop;
-          const parent = curr.offsetParent as HTMLElement;
-          if (!parent) break;
-          curr = parent;
-        }
+        // Get absolute positions relative to the document
+        const cardRect = card.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const scrollY = window.scrollY;
 
-        // Pin when the target reaches ~45% of the viewport height for a modern look
-        const targetViewportY = window.innerHeight * 0.45;
+        const cardTop = cardRect.top + scrollY;
+        const targetTop = targetRect.top + scrollY;
 
-        // Allow positive offsets to ensure pinning happens at the viewport center
-        return targetViewportY - targetCenterOffset;
+        // Offset from the card top to the target
+        const targetOffsetInCard = targetTop - cardTop;
+        const targetHeight = target.offsetHeight;
+
+        // Pin when the target reaches ~40% of the viewport height (consistent with Landing)
+        const targetViewportY = window.innerHeight * 0.4;
+        const targetCenterOffset = targetOffsetInCard + (targetHeight / 2);
+
+        // Limit to 0 to prevent positive offsets which cause "jumping"
+        return Math.min(targetViewportY - targetCenterOffset, 0);
       };
 
       setStickyTop1(getOffset(card1Ref.current, target1Ref.current));
@@ -107,7 +110,7 @@ export default function ServicesPage() {
           <div className="relative h-screen max-h-[1000px] w-full max-w-[2560px] flex items-center px-[5vw] lg:px-[10vw]">
             <div className="absolute inset-0 z-0 text-white" style={{ position: 'absolute' }}>
               <Image
-                src="/assets/servicesland.avif"
+                src="/assets/servicesland.webp"
                 alt="Services Background"
                 fill
                 sizes="100vw"

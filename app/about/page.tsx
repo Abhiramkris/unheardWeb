@@ -89,7 +89,7 @@ export default function AboutPage() {
       */}
       <section 
         ref={card1Ref}
-        className="sticky z-10 w-full flex flex-col items-center"
+        className="sticky top-0 z-10 w-full flex flex-col items-center"
         style={{ top: `${stickyTop1}px` }}
       >
         <div className="w-full flex flex-col items-center">
@@ -174,7 +174,7 @@ export default function AboutPage() {
       */}
       <section 
         ref={card2Ref}
-        className="sticky z-20 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
+        className="sticky top-0 z-20 w-full flex justify-center pb-20 -mt-[150px] pointer-events-auto"
         style={{ top: `${stickyTop2}px` }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#171612] rounded-[40px] md:rounded-[60px] shadow-[0_40px_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 pointer-events-auto">
@@ -239,7 +239,7 @@ export default function AboutPage() {
       */}
       <section 
         ref={card3Ref}
-        className="sticky z-[30] w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
+        className="sticky top-0 z-30 w-full flex justify-center pb-40 -mt-[150px] pointer-events-auto"
         style={{ top: `${stickyTop3}px` }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-[40px] md:rounded-[60px] shadow-[0_[-40px]_100px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 pointer-events-auto">
@@ -306,7 +306,7 @@ export default function AboutPage() {
       {/* 
         FOOTER BANNER: Unheard Truth (Mirrored from Landing)
       */}
-      <section className="-mt-[130px] relative z-[40] w-[97vw] mx-auto bg-black rounded-t-[60px] md:rounded-t-[80px] pt-32 pb-40 flex flex-col items-center border-t border-white/5 overflow-hidden">
+      <section className="-mt-[130px] relative z-40 w-[97vw] mx-auto bg-black rounded-t-[60px] md:rounded-t-[80px] pt-32 pb-40 flex flex-col items-center border-t border-white/5 overflow-hidden">
         <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-[#0F9393]/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
         <div className="relative z-10 w-full max-w-[1440px] flex flex-col items-center px-6">
           <div className="text-center mb-20 text-white">
