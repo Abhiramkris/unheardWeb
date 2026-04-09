@@ -104,7 +104,13 @@ export default function ServicesPage() {
       <section
         ref={card1Ref}
         className="sticky z-10 w-full flex flex-col items-center"
-        style={{ top: `${stickyTop1}px` }}
+        style={{ 
+          top: `${stickyTop1}px`,
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          willChange: 'transform',
+          isolation: 'isolate'
+        }}
       >
         <div className="w-full flex flex-col items-center">
           <div className="relative h-screen max-h-[1000px] w-full max-w-[2560px] flex items-center px-[5vw] lg:px-[10vw]">
@@ -202,7 +208,13 @@ export default function ServicesPage() {
       <section
         ref={card2Ref}
         className="sticky z-20 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
-        style={{ top: `${stickyTop2}px` }}
+        style={{ 
+          top: `${stickyTop2}px`,
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          willChange: 'transform',
+          isolation: 'isolate'
+        }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#171612] rounded-[40px] md:rounded-[60px] shadow-[0_40px_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 pointer-events-auto">
 
@@ -288,7 +300,13 @@ export default function ServicesPage() {
       <section
         ref={card3Ref}
         className="sticky z-30 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
-        style={{ top: `${stickyTop3}px` }}
+        style={{ 
+          top: `${stickyTop3}px`,
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          willChange: 'transform',
+          isolation: 'isolate'
+        }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-[40px] md:rounded-[60px] shadow-[0_[-40px]_100px_rgba(0,0,0,0.2)] overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 pointer-events-auto">
 
@@ -382,7 +400,13 @@ export default function ServicesPage() {
       <section
         ref={card4Ref}
         className="sticky z-40 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
-        style={{ top: `${stickyTop4}px` }}
+        style={{ 
+          top: `${stickyTop4}px`,
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          willChange: 'transform',
+          isolation: 'isolate'
+        }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#1a1a1a] rounded-[40px] md:rounded-[60px] shadow-[0_[-40px]_100px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 text-white pointer-events-auto">
 
@@ -452,7 +476,13 @@ export default function ServicesPage() {
       <section
         ref={card5Ref}
         className="sticky z-50 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
-        style={{ top: `${stickyTop5}px` }}
+        style={{ 
+          top: `${stickyTop5}px`,
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden',
+          willChange: 'transform',
+          isolation: 'isolate'
+        }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-white rounded-[40px] md:rounded-[60px] shadow-[0_[-60px]_120px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 pointer-events-auto">
 
