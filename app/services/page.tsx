@@ -6,8 +6,6 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import { useBooking } from '@/components/BookingContext';
-import { blogData } from '@/lib/data/landing';
-import { BlogCard } from '@/components/landing/BlogCard';
 
 export default function ServicesPage() {
   const { openBookingModal } = useBooking();
@@ -31,9 +29,29 @@ export default function ServicesPage() {
   const [stickyTop4, setStickyTop4] = useState(0);
   const [stickyTop5, setStickyTop5] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [vh, setVh] = useState(0);
+  const [sectionHeights, setSectionHeights] = useState<Record<string, number>>({});
 
   useEffect(() => {
     setMounted(true);
+    setVh(window.innerHeight);
+
+    // HEIGHT STABILIZATION
+    const observer = new ResizeObserver((entries) => {
+      setSectionHeights(prev => {
+        const next = { ...prev };
+        entries.forEach(entry => {
+          const id = entry.target.getAttribute('data-section-id');
+          if (id) next[id] = entry.contentRect.height;
+        });
+        return next;
+      });
+    });
+
+    [card1Ref, card2Ref, card3Ref, card4Ref, card5Ref].forEach(ref => {
+      if (ref.current) observer.observe(ref.current);
+    });
+
     const calculatePinOffset = () => {
       const getOffset = (card: HTMLElement | null, target: HTMLElement | null) => {
         if (!card || !target) return 0;
@@ -51,7 +69,7 @@ export default function ServicesPage() {
         const targetHeight = target.offsetHeight;
 
         // Pin when the target reaches ~40% of the viewport height (consistent with Landing)
-        const targetViewportY = window.innerHeight * 0.4;
+        const targetViewportY = (vh || window.innerHeight) * 0.4;
         const targetCenterOffset = targetOffsetInCard + (targetHeight / 2);
 
         // Limit to 0 to prevent positive offsets which cause "jumping"
@@ -88,6 +106,7 @@ export default function ServicesPage() {
       window.removeEventListener('popstate', calculatePinOffset);
       timers.forEach(clearTimeout);
       clearTimeout(resizeTimer);
+      observer.disconnect();
     };
   }, []);
 
@@ -103,8 +122,12 @@ export default function ServicesPage() {
       */}
       <section
         ref={card1Ref}
-        className="sticky z-10 w-full flex flex-col items-center"
-        style={{ top: `${stickyTop1}px` }}
+        data-section-id="1"
+        className="sticky z-10 w-full flex flex-col items-center will-change-[top,transform] transform-gpu contain-paint"
+        style={{ 
+          top: `${stickyTop1}px`,
+          minHeight: sectionHeights['1'] ? `${sectionHeights['1']}px` : 'auto'
+        }}
       >
         <div className="w-full flex flex-col items-center">
           <div className="relative h-screen max-h-[1000px] w-full max-w-[2560px] flex items-center px-[5vw] lg:px-[10vw]">
@@ -114,9 +137,10 @@ export default function ServicesPage() {
                 alt="Services Background"
                 fill
                 sizes="100vw"
-                className="object-cover opacity-60"
+                className="object-cover opacity-60 transition-opacity duration-500"
                 priority
                 quality={90}
+                onLoad={(e) => (e.currentTarget.style.opacity = "0.6")}
               />
             </div>
             <div className="relative z-10 max-w-[800px] flex flex-col gap-8 -mt-[100px]">
@@ -163,8 +187,7 @@ export default function ServicesPage() {
                   }
                 ].map((item, i) => (
                   <div key={i} className="relative p-8 md:p-10 rounded-[40px] overflow-hidden group transition-all h-full min-h-[480px] md:min-h-[520px] flex flex-col justify-end border border-black/5">
-                    {/* Background Image */}
-                    <div className="absolute inset-0 z-0">
+                    <div className="absolute inset-0 z-0 bg-gray-200">
                       <Image
                         src={item.img}
                         alt={item.title}
@@ -191,7 +214,7 @@ export default function ServicesPage() {
                 <img src="/assets/Group 54.svg" alt="Arrow" className="h-[35px] md:h-[50px] w-auto brightness-0 -mt-2" />
               </div>
             </div>
-            <div className="h-[120px] md:h-[180px] w-full shrink-0" />
+            <div className="h-[200px] md:h-[250px] w-full shrink-0" />
           </div>
         </div>
       </section>
@@ -201,8 +224,12 @@ export default function ServicesPage() {
       */}
       <section
         ref={card2Ref}
-        className="sticky z-20 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
-        style={{ top: `${stickyTop2}px` }}
+        data-section-id="2"
+        className="sticky z-20 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none will-change-[top,transform] transform-gpu contain-paint"
+        style={{ 
+          top: `${stickyTop2}px`,
+          minHeight: sectionHeights['2'] ? `${sectionHeights['2']}px` : 'auto'
+        }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#171612] rounded-[40px] md:rounded-[60px] border border-white/5 overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 pointer-events-auto">
           <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#0F9393]/5 rounded-full blur-[80px] pointer-events-none"></div>
@@ -233,8 +260,7 @@ export default function ServicesPage() {
                 }
               ].map((item, i) => (
                   <div key={i} className="relative p-8 md:p-10 rounded-[40px] overflow-hidden group transition-all h-full min-h-[480px] md:min-h-[540px] flex flex-col justify-end border border-white/5">
-                  {/* Background Image */}
-                  <div className="absolute inset-0 z-0">
+                  <div className="absolute inset-0 z-0 bg-[#0a0a0a]">
                     <Image
                       src={item.img}
                       alt={item.title}
@@ -257,8 +283,7 @@ export default function ServicesPage() {
             </div>
 
             <div className="relative overflow-hidden p-12 md:p-20 lg:p-24 rounded-[50px] md:rounded-[70px] border border-white/5 w-full flex flex-col md:flex-row items-center justify-between gap-12 mt-12 group transition-all duration-500">
-              {/* Background Image & Overlay */}
-              <div className="absolute inset-0 z-0">
+              <div className="absolute inset-0 z-0 bg-[#0a0a0a]">
                 <Image
                   src="/assets/service/6.webp"
                   alt="Beyond Conversation"
@@ -274,22 +299,27 @@ export default function ServicesPage() {
                 <p className="text-gray-300 font-bold font-nunito text-[16px] md:text-[19px] max-w-[500px]">Our approach to relationships is analytical and solution-focused, designed for long-term psychological sync.</p>
               </div>
               <div className="relative z-10 flex flex-row items-center gap-4 md:gap-6">
-                <Button ref={target2Ref} variant="black" className="bg-white text-black hover:bg-gray-100 rounded-full w-[260px] md:w-[350px] h-[54px] md:h-[72px] flex items-center justify-center font-bold text-[16px] md:text-[20px] shrink-0 transition-transform hover:-translate-y-1" onClick={openBookingModal}>Optimize Relationship</Button>
-                <img src="/assets/Group 54.svg" alt="Arrow" className="h-[35px] md:h-[50px] w-auto brightness-0 invert -mt-2" />
+                  <Button ref={target2Ref} variant="black" className="bg-white text-black hover:bg-gray-100 rounded-full w-[260px] md:w-[350px] h-[54px] md:h-[72px] flex items-center justify-center font-bold text-[16px] md:text-[20px] shrink-0 transition-transform hover:-translate-y-1" onClick={openBookingModal}>Optimize Relationship</Button>
+                  <img src="/assets/Group 54.svg" alt="Arrow" className="h-[35px] md:h-[50px] w-auto brightness-0 invert -mt-2" />
+                </div>
               </div>
+              <div className="h-[200px] md:h-[250px] w-full shrink-0" />
             </div>
-          </div>
 
-        </div>
-      </section>
+          </div>
+        </section>
 
       {/* 
         SECTION 3: ADOLESCENT DEVELOPMENT SUPPORT (Off-white Card)
       */}
       <section
         ref={card3Ref}
-        className="sticky z-30 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
-        style={{ top: `${stickyTop3}px` }}
+        data-section-id="3"
+        className="sticky z-30 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none will-change-[top,transform] transform-gpu contain-paint"
+        style={{ 
+          top: `${stickyTop3}px`,
+          minHeight: sectionHeights['3'] ? `${sectionHeights['3']}px` : 'auto'
+        }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-[40px] md:rounded-[60px] border border-black/5 overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 pointer-events-auto">
           <div className="absolute top-[20%] left-[-10%] w-[600px] h-[600px] bg-[#0F9393]/5 rounded-full blur-[80px] pointer-events-none"></div>
@@ -371,6 +401,7 @@ export default function ServicesPage() {
                 <img src="/assets/Group 54.svg" alt="Arrow" className="h-[35px] md:h-[50px] w-auto brightness-0 -mt-2" />
               </div>
             </div>
+            <div className="h-[200px] md:h-[250px] w-full shrink-0" />
           </div>
 
         </div>
@@ -381,8 +412,12 @@ export default function ServicesPage() {
       */}
       <section
         ref={card4Ref}
-        className="sticky z-40 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
-        style={{ top: `${stickyTop4}px` }}
+        data-section-id="4"
+        className="sticky z-40 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none will-change-[top,transform] transform-gpu contain-paint"
+        style={{ 
+          top: `${stickyTop4}px`,
+          minHeight: sectionHeights['4'] ? `${sectionHeights['4']}px` : 'auto'
+        }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#1a1a1a] rounded-[40px] md:rounded-[60px] border border-white/5 overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 text-white pointer-events-auto">
           <div className="absolute center-0 w-[800px] h-[800px] bg-white/5 rounded-full blur-[100px] pointer-events-none"></div>
@@ -413,8 +448,7 @@ export default function ServicesPage() {
                 }
               ].map((item, i) => (
                 <div key={i} className="relative p-10 md:p-12 rounded-[40px] md:rounded-[50px] overflow-hidden group transition-all h-full min-h-[500px] flex flex-col justify-end border border-white/10">
-                  {/* Background Image & Overlay */}
-                  <div className="absolute inset-0 z-0">
+                  <div className="absolute inset-0 z-0 bg-[#0a0a0a]">
                     <Image
                       src={item.img}
                       alt={item.title}
@@ -441,6 +475,7 @@ export default function ServicesPage() {
                 <img src="/assets/Group 54.svg" alt="Arrow" className="h-[35px] md:h-[50px] w-auto brightness-0 invert -mt-2" />
               </div>
             </div>
+            <div className="h-[200px] md:h-[250px] w-full shrink-0" />
           </div>
 
         </div>
@@ -451,8 +486,12 @@ export default function ServicesPage() {
       */}
       <section
         ref={card5Ref}
-        className="sticky z-50 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none"
-        style={{ top: `${stickyTop5}px` }}
+        data-section-id="5"
+        className="sticky z-50 w-full flex justify-center pb-20 -mt-[150px] pointer-events-none will-change-[top,transform] transform-gpu contain-paint"
+        style={{ 
+          top: `${stickyTop5}px`,
+          minHeight: sectionHeights['5'] ? `${sectionHeights['5']}px` : 'auto'
+        }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-white rounded-[40px] md:rounded-[60px] border border-black/5 overflow-hidden flex flex-col items-center pt-32 pb-40 px-6 md:px-12 lg:px-24 pointer-events-auto">
 
@@ -485,8 +524,7 @@ export default function ServicesPage() {
                   }
                 ].map((item, i) => (
                   <div key={i} className="relative p-8 md:p-10 rounded-[40px] overflow-hidden group transition-all h-full min-h-[480px] md:min-h-[540px] flex flex-col justify-end border border-black/5">
-                    {/* Background Image & Overlay */}
-                    <div className="absolute inset-0 z-0">
+                    <div className="absolute inset-0 z-0 bg-gray-200">
                       <Image
                         src={item.img}
                         alt={item.title}
@@ -530,31 +568,6 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* 
-        FOOTER BANNER: Unheard Truth (Mirrored from Landing)
-      */}
-      <section className="-mt-[130px] relative z-[60] w-[97vw] mx-auto bg-black rounded-t-[60px] md:rounded-t-[80px] pt-32 pb-40 flex flex-col items-center border-t border-white/5 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-[#0F9393]/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="relative z-10 w-full max-w-[1440px] flex flex-col items-center px-6">
-          <div className="text-center mb-20 text-white">
-            <h2 className="font-georgia text-[40px] md:text-[64px] font-bold leading-tight flex flex-col items-center text-center">
-              <span className="text-[#0F9393]">Unheard Truth:</span>
-              <span>Discover, Reflect, and Grow</span>
-            </h2>
-          </div>
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-            {blogData.map((blog, idx) => <BlogCard key={idx} blog={blog} />)}
-          </div>
-          <div className="mt-20">
-            <button className="group flex items-center gap-4 bg-white p-1.5 pl-8 pr-2 rounded-full border-2 border-white hover:bg-gray-100 transition-all">
-              <span className="text-black font-nunito font-black text-[18px]">View all</span>
-              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center transition-transform group-hover:translate-x-1">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
-              </div>
-            </button>
-          </div>
-        </div>
-      </section>
 
 
     </div>

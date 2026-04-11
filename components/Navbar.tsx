@@ -118,7 +118,7 @@ const Navbar = () => {
         </Link>
 
         {/* CENTER: Navigation Links (Visible on tablets and up) */}
-        <div className="hidden md:flex items-center justify-center gap-4 lg:gap-8 xl:gap-[50px] z-10 bg-black/5 dark:bg-white/5 py-2 px-6 rounded-full transition-all">
+        <div className="hidden md:flex items-center justify-center gap-4 lg:gap-8 xl:gap-[50px] z-10 py-2 px-6 rounded-full transition-all">
           {navLinks.map((link) => (
             <Link
               key={link.name}

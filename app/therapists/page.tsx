@@ -6,8 +6,6 @@ import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 import { useBooking } from '@/components/BookingContext';
 import Button from '@/components/ui/Button';
-import { blogData } from '@/lib/data/landing';
-import { BlogCard } from '@/components/landing/BlogCard';
 
 // ----------------------------------------------------------------------
 // THERAPIST CARD COMPONENT (WIDE DESIGN)
@@ -226,31 +224,6 @@ export default function TherapistListing() {
 
       </div>
 
-      {/* 
-        FOOTER BANNER: Unheard Truth (Mirrored from Landing)
-      */}
-      <section className="-mt-[130px] relative z-[20] w-[97vw] mx-auto bg-black rounded-t-[60px] md:rounded-t-[80px] pt-32 pb-40 flex flex-col items-center border-t border-white/5 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[40vw] h-[40vw] bg-[#0F9393]/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="relative z-10 w-full max-w-[1440px] flex flex-col items-center px-6">
-          <div className="text-center mb-20 text-white">
-            <h2 className="font-georgia text-[40px] md:text-[64px] font-bold leading-tight flex flex-col items-center text-center">
-              <span className="text-[#0F9393]">Unheard Truth:</span>
-              <span>Discover, Reflect, and Grow</span>
-            </h2>
-          </div>
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-            {blogData.map((blog, idx) => <BlogCard key={idx} blog={blog} />)}
-          </div>
-          <div className="mt-20">
-            <button className="group flex items-center gap-4 bg-white p-1.5 pl-8 pr-2 rounded-full border-2 border-white hover:bg-gray-100 transition-all shadow-xl">
-              <span className="text-black font-nunito font-black text-[18px]">View all</span>
-              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center transition-transform group-hover:translate-x-1">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
-              </div>
-            </button>
-          </div>
-        </div>
-      </section>
 
     </div>
   );
