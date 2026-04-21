@@ -120,7 +120,7 @@ export default function ServicesPage() {
       {/* HERO SECTION */}
       <div className="relative h-[80vh] max-h-[1000px] w-full flex items-center px-[5vw] lg:px-[10vw]">
         <div className="absolute inset-0 z-0">
-          <Image src="/assets/servicesland.webp" alt="Services Hero" fill className="object-cover opacity-60" priority />
+          <Image src="/assets/servicesland.webp" alt="Services Hero" fill className="object-cover" priority />
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#111111]" />
         </div>
         <div className="relative z-10 max-w-[800px] -mt-[100px]">
@@ -182,17 +182,16 @@ export default function ServicesPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full auto-rows-[300px]">
               {INDIVIDUAL_CARDS.map((card, idx) => (
                 <div key={card.id} className={`relative rounded-[30px] md:rounded-[40px] overflow-hidden group border border-black/5 ${card.size === 'lg' ? 'md:col-span-2' : 'md:col-span-1'}`}>
-                  <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-70 group-hover:opacity-100" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+                  <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-105" />
                   <div className="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 transition-all group-hover:bg-[#0F9393]">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="rotate-[-45deg] group-hover:rotate-0 transition-transform">
                       <line x1="5" y1="12" x2="19" y2="12"></line>
                       <polyline points="12 5 19 12 12 19"></polyline>
                     </svg>
                   </div>
-                  <div className="absolute bottom-6 left-6 right-6 z-20">
-                    <div className="p-5 rounded-[24px] backdrop-blur-xl bg-white/10 border border-white/10">
-                      <h3 className="text-[18px] md:text-[22px] font-bold font-georgia text-white">{card.title}</h3>
+                  <div className="absolute bottom-6 left-6 z-20">
+                    <div className="px-6 py-4 pt-8 rounded-[24px] backdrop-blur-xl bg-black/40 border border-white/10">
+                      <h3 className="text-[17px] md:text-[20px] font-bold font-georgia text-white leading-tight">{card.title}</h3>
                     </div>
                   </div>
                 </div>
@@ -255,11 +254,10 @@ export default function ServicesPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full auto-rows-[320px]">
               {RELATIONSHIP_CARDS.map((card, idx) => (
                 <div key={card.id} className={`relative rounded-[30px] md:rounded-[40px] overflow-hidden group border border-white/5 ${card.size === 'lg' ? 'md:col-span-2' : 'md:col-span-1'}`}>
-                  <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-50 group-hover:opacity-80" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-10" />
-                  <div className="absolute bottom-6 left-6 right-6 z-20">
-                    <div className="p-5 rounded-[24px] backdrop-blur-xl bg-white/5 border border-white/10">
-                      <h3 className="text-[18px] md:text-[22px] font-bold font-georgia text-white leading-tight">{card.title}</h3>
+                  <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-105" />
+                  <div className="absolute bottom-6 left-6 z-20">
+                    <div className="px-6 py-4 pt-8 rounded-[24px] backdrop-blur-xl bg-black/60 border border-white/5">
+                      <h3 className="text-[17px] md:text-[20px] font-bold font-georgia text-white leading-tight">{card.title}</h3>
                     </div>
                   </div>
                 </div>
@@ -357,12 +355,13 @@ export default function ServicesPage() {
                 src="/assets/service/bento_anxiety.png"
                 alt="Anxiety Therapy Focus"
                 fill
-                className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90 group-hover:opacity-100"
+                className="object-cover transition-transform duration-1000 group-hover:scale-105"
                 sizes="(max-width: 1024px) 100vw, 800px"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
-              <div className="absolute bottom-10 left-10 right-10">
-                <p className="text-white font-georgia italic text-[18px] md:text-[24px] leading-tight">Clarity through understanding.</p>
+              <div className="absolute bottom-10 left-10">
+                <div className="px-8 py-4 pt-10 rounded-[24px] backdrop-blur-xl bg-black/40 border border-white/10">
+                  <p className="text-white font-georgia italic text-[18px] md:text-[24px] leading-tight">Clarity through understanding.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -413,11 +412,10 @@ export default function ServicesPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full auto-rows-[320px]">
               {ADOLESCENT_CARDS.map((card, idx) => (
                 <div key={card.id} className={`relative rounded-[30px] md:rounded-[40px] overflow-hidden group border border-black/5 ${card.size === 'lg' ? 'md:col-span-2' : 'md:col-span-1'}`}>
-                  <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-70 group-hover:opacity-100" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
-                  <div className="absolute bottom-6 left-6 right-6 z-20">
-                    <div className="p-5 rounded-[24px] backdrop-blur-xl bg-white/10 border border-white/10">
-                      <h3 className="text-[18px] md:text-[22px] font-bold font-georgia text-white leading-tight">{card.title}</h3>
+                  <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-105" />
+                  <div className="absolute bottom-6 left-6 z-20">
+                    <div className="px-6 py-4 pt-8 rounded-[24px] backdrop-blur-xl bg-black/40 border border-white/10">
+                      <h3 className="text-[17px] md:text-[20px] font-bold font-georgia text-white leading-tight">{card.title}</h3>
                     </div>
                   </div>
                 </div>
@@ -478,11 +476,10 @@ export default function ServicesPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full auto-rows-[320px]">
               {FAMILY_CARDS.map((card, idx) => (
                 <div key={card.id} className={`relative rounded-[30px] md:rounded-[40px] overflow-hidden group border border-white/5 ${card.size === 'lg' ? 'md:col-span-2' : 'md:col-span-1'}`}>
-                  <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-50 group-hover:opacity-80" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-10" />
-                  <div className="absolute bottom-6 left-6 right-6 z-20">
-                    <div className="p-5 rounded-[24px] backdrop-blur-xl bg-white/5 border border-white/10">
-                      <h3 className="text-[18px] md:text-[22px] font-bold font-georgia text-white leading-tight">{card.title}</h3>
+                  <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-105" />
+                  <div className="absolute bottom-6 left-6 z-20">
+                    <div className="px-6 py-4 pt-8 rounded-[24px] backdrop-blur-xl bg-black/60 border border-white/5">
+                      <h3 className="text-[17px] md:text-[20px] font-bold font-georgia text-white leading-tight">{card.title}</h3>
                     </div>
                   </div>
                 </div>
