@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "whatsapp-reauth": "curl -X GET http://localhost:3001/api/whatsapp/keep-alive"
   },
   "dependencies": {
     "@supabase/auth-ui-react": "^0.4.7",

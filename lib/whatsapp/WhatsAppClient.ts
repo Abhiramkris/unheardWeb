@@ -2,7 +2,7 @@ import { makeWASocket, DisconnectReason, fetchLatestBaileysVersion } from '@whis
 import QRCode from 'qrcode';
 import pino from 'pino';
 import { NotificationController } from '../notifications/NotificationController';
-import { useSupabaseAuthState } from './useSupabaseAuthState';
+import { getSupabaseAuthState } from './getSupabaseAuthState';
 import { createAdminClient } from '../supabase/admin';
 
 // Global state container to prevent hot-reloads from spawning multiple connections
@@ -79,7 +79,7 @@ export class WhatsAppManager {
       globalForWhatsApp.socket = null;
     }
 
-    const { state, saveCreds } = await useSupabaseAuthState();
+    const { state, saveCreds } = await getSupabaseAuthState();
 
     try {
       // Fetch latest version to avoid protocol mismatches (Status 405)
@@ -113,8 +113,8 @@ export class WhatsAppManager {
         }
 
         if (connection === 'close') {
-          const errorStruct = (lastDisconnect?.error as any)?.output;
-          const statusCode = errorStruct?.statusCode;
+          const lastDisconnectError = lastDisconnect?.error as any;
+          const statusCode = lastDisconnectError?.output?.statusCode;
           
           const isFatal = statusCode === DisconnectReason.loggedOut || statusCode === 405;
           const shouldReconnect = !isFatal;
@@ -174,5 +174,24 @@ export class WhatsAppManager {
       console.error('Failed to send WhatsApp message via Baileys:', error);
       return { success: false, error };
     }
+  }
+
+  static async waitForAuthenticated(timeoutMs = 30000): Promise<{ status: string }> {
+    // 1. Trigger connection if not already in progress or connected
+    await this.connectToWhatsApp();
+
+    // 2. Poll for status change (fast polling for short-lived functions)
+    const startTime = Date.now();
+    return new Promise((resolve) => {
+      const interval = setInterval(() => {
+        const currentStatus = globalForWhatsApp.status;
+        const elapsed = Date.now() - startTime;
+
+        if (currentStatus === 'authenticated' || currentStatus === 'pending_qr' || currentStatus === 'error' || elapsed >= timeoutMs) {
+          clearInterval(interval);
+          resolve({ status: currentStatus });
+        }
+      }, 500);
+    });
   }
 }

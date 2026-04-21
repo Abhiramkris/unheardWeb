@@ -155,7 +155,7 @@ export const LandingStack = () => {
               </div>
               <div className="flex flex-row items-center gap-4 md:gap-6 mt-4">
                 <Button variant="gray" className="w-[180px] sm:w-[200px] md:w-[240px] h-[48px] md:h-[56px] text-[13px] sm:text-[14px] md:text-[17px] px-4 sm:px-6 md:px-8 whitespace-nowrap" onClick={openBookingModal}>Begin with understanding.</Button>
-                <img src="/assets/Group 54.svg" alt="Try now!" className="h-[40px] md:h-[60px] w-auto -mt-4" />
+                <Image src="/assets/Group 54.svg" alt="Try now!" width={60} height={60} className="h-[40px] md:h-[60px] w-auto -mt-4" />
               </div>
             </div>
           </div>
@@ -176,7 +176,7 @@ export const LandingStack = () => {
                 <div className="lg:col-span-2 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Card 1a: Image */}
                   <div className="relative rounded-[30px] overflow-hidden border border-black/10 aspect-square group">
-                    <img src="/assets/section_2_1.webp" alt="Philosophy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <Image src="/assets/section_2_1.webp" alt="Philosophy" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-black/20 flex items-end p-8">
                       <span className="text-white font-nunito text-[14px] font-bold tracking-widest uppercase border border-white/20 px-4 py-2 rounded-full backdrop-blur-sm">Philosophy</span>
                     </div>
@@ -186,7 +186,7 @@ export const LandingStack = () => {
                   <div className="rounded-[30px] border border-black/10 p-8 md:p-10 flex flex-col justify-between bg-white hover:shadow-lg transition-all aspect-square">
                     <span className="text-[20px] font-bold text-black/20 font-nunito">01</span>
                     <p className="font-nunito text-[18px] xl:text-[20px] font-bold text-black/80 leading-relaxed">
-                      unHeard., isn’t built on quick fixes or motivational language.
+                      unHeard., isn&apos;t built on quick fixes or motivational language.
                     </p>
                   </div>
 
@@ -205,10 +205,10 @@ export const LandingStack = () => {
 
                   {/* Card 4: Observation Image */}
                   <div className="relative rounded-[30px] overflow-hidden border border-black/10 aspect-square group">
-                    <img src="/assets/section_2_2.webp" alt="Observation" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <Image src="/assets/section_2_2.webp" alt="Observation" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-black/40 flex flex-col justify-end p-8">
                       <p className="text-white font-nunito text-[16px] md:text-[18px] font-bold leading-relaxed">
-                        We pay attention to what’s said. And also to what’s avoided, repeated, or left unfinished.
+                        We pay attention to what&apos;s said. And also to what&apos;s avoided, repeated, or left unfinished.
                       </p>
                     </div>
                   </div>
@@ -223,7 +223,7 @@ export const LandingStack = () => {
                         Our work is guided by qualified psychologists and trained therapists offering online mental health support that is confidential, ethical, structural, culturally aware, and grounded in evidence-based care.
                       </p>
                       <p className="font-nunito text-[18px] xl:text-[20px] font-bold text-[#0F9393] leading-relaxed italic border-l-4 border-[#0F9393]/30 pl-6">
-                        This is not advice. It’s not venting. It’s therapy that actually engages with how your mind works.
+                        This is not advice. It&apos;s not venting. It&apos;s therapy that actually engages with how your mind works.
                       </p>
                     </div>
                   </div>
@@ -247,7 +247,7 @@ export const LandingStack = () => {
               <div className="mt-20 w-full flex flex-col items-center">
                 <div ref={cta1Ref} className="flex flex-row items-center justify-center gap-4 md:gap-6">
                   <Button variant="black" className="w-[200px] md:w-[240px] h-[52px] md:h-[58px] text-[14px] md:text-[18px] px-4 md:px-8 whitespace-nowrap" onClick={openBookingModal}>Begin with understanding.</Button>
-                  <img src="/assets/Group 54.svg" alt="Try now!" className="h-[40px] md:h-[55px] w-auto invert -mt-3" />
+                  <Image src="/assets/Group 54.svg" alt="Try now!" width={55} height={55} className="h-[40px] md:h-[55px] w-auto invert -mt-3" />
                 </div>
               </div>
             </div>
@@ -298,7 +298,7 @@ export const LandingStack = () => {
                 {/* Left Content */}
                 <div className="flex flex-col items-start text-left z-10 max-w-[650px]">
                   <h3 className="font-georgia font-bold text-[36px] leading-[1.1] text-black tracking-[-0.02em] mb-4">
-                    Therapy for when your mind doesn’t switch off.
+                    Therapy for when your mind doesn&apos;t switch off.
                   </h3>
                   <div className="space-y-4">
                     <p className="font-nunito text-[18px] md:text-[20px] text-black/80 leading-relaxed">
@@ -331,7 +331,7 @@ export const LandingStack = () => {
                           'Health anxiety',
                           'Stress overload',
                           'Sleep issues linked to anxiety'
-                        ].map((item, i) => (
+                        ].map((item: string, i: number) => (
                           <div key={i} className="flex items-center gap-3">
                             <div className="w-1.5 h-1.5 rounded-full bg-[#0F9393]" />
                             <span className="text-black/80 font-nunito text-[16px] md:text-[18px]">{item}</span>
@@ -510,11 +510,11 @@ export const LandingStack = () => {
 
             {/* CTA Content */}
             <div ref={lastRef4} className="text-center mb-32 px-6 max-w-[600px] lg:max-w-[520px] lg:-mt-[340px] relative z-20">
-              <p className="font-georgia italic text-[22px] md:text-[32px] text-[#0F9393] mb-6 tracking-tight">Therapy for when your mind doesn’t switch off.</p>
+              <p className="font-georgia italic text-[22px] md:text-[32px] text-[#0F9393] mb-6 tracking-tight">Therapy for when your mind doesn&apos;t switch off.</p>
               <p className="font-nunito text-[18px] md:text-[24px] text-white/40 mb-12 mx-auto leading-relaxed">Professional care tailored to identify, understand, and restructure thought, emotion, and behavior.</p>
               <div className="flex flex-row items-center justify-center gap-4 md:gap-6 mt-4">
                 <Button variant="white" className="w-[180px] md:w-[240px] h-[52px] md:h-[58px] text-[14px] md:text-[17px] px-4 md:px-8 whitespace-nowrap shadow-xl" onClick={openBookingModal}>Begin with understanding.</Button>
-                <img src="/assets/Group 54.svg" alt="Try now!" className="h-[40px] md:h-[55px] w-auto -mt-3" />
+                <Image src="/assets/Group 54.svg" alt="Try now!" width={55} height={55} className="h-[40px] md:h-[55px] w-auto -mt-3" />
               </div>
             </div>
           </div>

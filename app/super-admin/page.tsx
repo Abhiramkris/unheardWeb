@@ -6,62 +6,73 @@ import Button from '@/components/ui/Button'
 import { Newspaper, Trash2, Layout } from 'lucide-react'
 import BlogEditor from '@/components/BlogEditor'
 
+import { useCallback } from 'react'
+
+interface AdminRole {
+  id: string;
+  user_id: string;
+  role: string;
+  is_blogger: boolean;
+  full_name?: string;
+  qualification?: string;
+}
+
+interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  content: any[];
+  published: boolean;
+  created_at: string;
+  author_id: { id: string } | string;
+}
+
+interface WhatsappStatus {
+  status: 'disconnected' | 'initializing' | 'pending_qr' | 'authenticated' | 'error';
+  qrDataUrl: string | null;
+}
+
 export default function SuperAdminDashboard() {
   const [supabase] = useState(() => createClient())
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const [admins, setAdmins] = useState<any[]>([])
+  const [admins, setAdmins] = useState<AdminRole[]>([])
   const [isTherapist, setIsTherapist] = useState(false)
   const [activeTab, setActiveTab] = useState('invite')
-  const [blogs, setBlogs] = useState<any[]>([])
-  const [editingBlog, setEditingBlog] = useState<any>(null)
-  const [whatsappStatus, setWhatsappStatus] = useState<any>({ status: 'disconnected', qrDataUrl: null })
+  const [blogs, setBlogs] = useState<Blog[]>([])
+  const [editingBlog, setEditingBlog] = useState<Blog | null>(null)
+  const [whatsappStatus, setWhatsappStatus] = useState<WhatsappStatus>({ status: 'disconnected', qrDataUrl: null })
+
+  const fetchStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/whatsapp/status');
+      const data = await res.json();
+      if (data.success) {
+        setWhatsappStatus(data.data);
+      }
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
-    let interval: any;
+    let interval: NodeJS.Timeout;
     if (activeTab === 'whatsapp') {
-      const fetchStatus = async () => {
-        try {
-          const res = await fetch('/api/whatsapp/status');
-          const data = await res.json();
-          if (data.success) {
-            setWhatsappStatus(data.data);
-          }
-        } catch (e) {}
-      };
       // Fetch immediately, then poll
       fetchStatus();
       interval = setInterval(fetchStatus, 3000);
     }
-    return () => clearInterval(interval);
-  }, [activeTab]);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [activeTab, fetchStatus]);
 
   const handleWhatsappReconnect = async () => {
     setWhatsappStatus({ status: 'initializing', qrDataUrl: null });
     await fetch('/api/whatsapp/reconnect', { method: 'POST' });
   };
 
-  useEffect(() => {
-    async function init() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        // Run dependent checks after we have the session
-        fetchAdmins();
-        
-        const { data } = await supabase
-          .from('user_roles')
-          .select('is_therapist')
-          .eq('user_id', session.user.id)
-          .single();
-        if (data) setIsTherapist(data.is_therapist);
-      }
-    }
-    init();
-  }, [supabase]);
-
-  const fetchAdmins = async () => {
+  const fetchAdmins = useCallback(async () => {
     // Fetch roles
     const { data: roles } = await supabase
       .from('user_roles')
@@ -83,21 +94,39 @@ export default function SuperAdminDashboard() {
         }
       }))
     }
-  }
+  }, [supabase]);
 
-  const fetchBlogs = async () => {
+  const fetchBlogs = useCallback(async () => {
     const { data } = await supabase
       .from('blogs')
       .select('*, author_id(id)')
       .order('created_at', { ascending: false })
     if (data) setBlogs(data)
-  }
+  }, [supabase]);
 
-  const handleSaveBlog = async (blogData: any) => {
+  useEffect(() => {
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // Run dependent checks after we have the session
+        fetchAdmins();
+        
+        const { data } = await supabase
+          .from('user_roles')
+          .select('is_therapist')
+          .eq('user_id', session.user.id)
+          .single();
+        if (data) setIsTherapist(data.is_therapist);
+      }
+    }
+    init();
+  }, [supabase, fetchAdmins]);
+
+  const handleSaveBlog = async (blogData: Partial<Blog>) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const slug = blogData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+    const slug = (blogData.title || '').toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
 
     const { error } = await supabase
       .from('blogs')
@@ -208,7 +237,7 @@ export default function SuperAdminDashboard() {
               <h2 className="text-[24px] font-bold font-georgia text-gray-900">Invite a New Therapist</h2>
               <form onSubmit={handleInvite} className="flex flex-col gap-6">
                 <label className="flex flex-col font-bold text-[14px] text-gray-700">
-                  Therapist's Name
+                  Therapist&apos;s Name
                   <input 
                     type="text" 
                     value={name}
@@ -288,14 +317,14 @@ export default function SuperAdminDashboard() {
                 )}
              </div>
 
-             {editingBlog ? (
+              {editingBlog ? (
                <BlogEditor 
                  onSave={handleSaveBlog}
                  initialData={editingBlog.id ? editingBlog : undefined}
                />
              ) : (
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                 {blogs.map((blog: any) => (
+                 {blogs.map((blog: Blog) => (
                     <div key={blog.id} className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6 hover:shadow-md transition-all">
                        <div className="flex justify-between items-start">
                           <span className={`text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest ${blog.published ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>
@@ -305,11 +334,13 @@ export default function SuperAdminDashboard() {
                        <h3 className="font-bold text-[20px] font-georgia leading-tight">{blog.title}</h3>
                        <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-[#0F9393]/10 flex items-center justify-center text-[#0F9393] font-black text-[12px]">
-                            {blog.author_id?.id ? 'A' : 'T'}
+                            {typeof blog.author_id !== 'string' && blog.author_id?.id ? 'A' : 'T'}
                           </div>
                           <div>
                             <p className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">Author ID</p>
-                            <p className="text-[14px] font-bold text-black truncate w-40">{blog.author_id?.id || 'Platform'}</p>
+                            <p className="text-[14px] font-bold text-black truncate w-40">
+                              {typeof blog.author_id === 'string' ? blog.author_id : (blog.author_id?.id || 'Platform')}
+                            </p>
                           </div>
                        </div>
                        <div className="flex gap-3 pt-4 border-t border-gray-50">
@@ -365,7 +396,7 @@ export default function SuperAdminDashboard() {
             {whatsappStatus.status === 'pending_qr' && whatsappStatus.qrDataUrl && (
               <div className="flex flex-col items-center gap-6">
                  <div className="p-4 border border-gray-200 rounded-3xl bg-white shadow-xl shadow-black/5">
-                   <img src={whatsappStatus.qrDataUrl} alt="WhatsApp QR Code" className="w-[280px] h-[280px] rounded-xl" />
+                   <Image src={whatsappStatus.qrDataUrl} alt="WhatsApp QR Code" width={280} height={280} className="rounded-xl" />
                  </div>
                  <div className="flex flex-col gap-2 bg-gray-50 p-6 rounded-2xl w-full">
                    <p className="text-gray-700 font-bold text-[14px]">1. Open WhatsApp on your phone</p>

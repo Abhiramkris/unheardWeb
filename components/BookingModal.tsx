@@ -17,14 +17,26 @@ interface BookingModalProps {
   };
 }
 
+interface Therapist {
+  user_id: string;
+  full_name: string;
+  qualification: string;
+  avatar_url: string;
+  bio?: string;
+  specialties?: string[];
+  pricing?: Record<string, number>;
+}
+
 export default function BookingModal({ isOpen, onClose, initialConfig }: BookingModalProps) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [direction, setDirection] = useState(1);
   const [supabase] = useState(() => createClient());
-  const [therapists, setTherapists] = useState<any[]>([]);
+  const [therapists, setTherapists] = useState<Therapist[]>([]);
 
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(null); // Supabase user type is complex, leaving any for now or using User from @supabase/supabase-js if available. 
+  // Actually I can just use 'any' for the user object from supabase for now or specify 'any' to avoid the 'any' error if it's strict.
+  // The error was on line 27.
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -41,7 +53,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   });
 
   const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const [previewTherapist, setPreviewTherapist] = useState<any>(null);
+  const [previewTherapist, setPreviewTherapist] = useState<Therapist | null>(null);
 
   useEffect(() => {
     async function fetchTherapists() {
@@ -186,7 +198,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     }
   };
 
-  const handlePressStart = (t: any) => {
+  const handlePressStart = (t: Therapist) => {
     const timer = setTimeout(() => {
       setPreviewTherapist(t);
     }, 500);
@@ -246,7 +258,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
               <div className="absolute top-[-10%] right-[-10%] w-[300px] h-[300px] bg-[#0F9393]/20 blur-[100px] rounded-full" />
               <div className="absolute bottom-[-10%] left-[-10%] w-[300px] h-[300px] bg-[#0F9393]/10 blur-[100px] rounded-full" />
               <div className="relative z-10">
-                <img src="/assets/logo unherd white.svg" alt="unHeard" className="h-[40px] mb-12" />
+                <Image src="/assets/logo unherd white.svg" alt="unHeard" width={120} height={40} className="h-[40px] w-auto mb-12" priority />
                 <h2 className="font-georgia text-[36px] font-bold text-white leading-tight mb-6">
                   Begin Your <br /><span className="text-[#0F9393]">Journey to</span> <br />Better Mental Health
                 </h2>
@@ -255,27 +267,25 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                 </p>
               </div>
               <div className="relative z-10 flex items-center gap-4">
-                <div className="flex -space-x-3">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="w-10 h-10 rounded-full border-2 border-[#111111] bg-gray-600 overflow-hidden">
-                       <img src={`/assets/section_2_${i}.webp`} alt="User" className="w-full h-full object-cover" />
+                    <div key={i} className="w-10 h-10 rounded-full border-2 border-[#111111] bg-gray-600 overflow-hidden relative">
+                       <Image src={`/assets/section_2_${i}.webp`} alt="User" fill className="object-cover" />
                     </div>
                   ))}
-                </div>
                 <p className="font-nunito text-white/60 text-[14px]">Join 1,500+ happy <br /> members</p>
               </div>
               <div className="absolute bottom-[-50px] right-[-50px] opacity-20 rotate-12">
-                 <img src="/assets/landingimage.webp" alt="" className="w-[400px] grayscale" />
+                 <Image src="/assets/landingimage.webp" alt="" width={400} height={400} className="grayscale" />
               </div>
             </div>
 
             {/* Mobile Header */}
             <div className="md:hidden w-full h-[200px] bg-[#111111] relative p-8 flex flex-col justify-end overflow-hidden">
-               <div className="absolute inset-0 opacity-40"><img src="/assets/landingimage.webp" alt="" className="w-full h-full object-cover grayscale" /></div>
+               <div className="absolute inset-0 opacity-40"><Image src="/assets/landingimage.webp" alt="" fill className="object-cover grayscale" /></div>
                <div className="absolute inset-0 bg-gradient-to-t from-[#111111] via-transparent" />
                <button onClick={closeAndReset} className="absolute top-6 right-6 z-20 text-white/70 hover:text-white"><X size={24} /></button>
                <div className="relative z-10">
-                 <img src="/assets/logo unherd white.svg" alt="unHeard" className="h-[24px] mb-4" />
+                 <Image src="/assets/logo unherd white.svg" alt="unHeard" width={100} height={24} className="h-[24px] w-auto mb-4" />
                  <h2 className="font-georgia text-[24px] font-bold text-white">Book Your Session</h2>
                </div>
             </div>
@@ -353,7 +363,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                       <div className="flex flex-col gap-6">
                         <div className="mb-2">
                           <h3 className="font-georgia font-bold text-[28px] text-black mb-2">How can we help?</h3>
-                          <p className="font-nunito text-gray-500">Select the type of care you're looking for.</p>
+                          <p className="font-nunito text-gray-500">Select the type of care you&apos;re looking for.</p>
                         </div>
                         <div className="flex flex-col gap-5">
                           <div className="flex flex-col gap-2">
@@ -387,12 +397,12 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                           <p className="font-nunito text-gray-500">Long press to preview therapist details.</p>
                         </div>
                         <div className="grid grid-cols-2 gap-4 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
-                          {therapists.map((t) => (
+                          {therapists.map((t: Therapist) => (
                             <div 
                               key={t.user_id} 
                               onPointerDown={() => handlePressStart(t)} onPointerUp={handlePressEnd} onPointerLeave={handlePressEnd}
                               onClick={() => setFormData({...formData, therapist_id: t.user_id})}
-                              className={`group border-2 ${formData.therapist_id === t.user_id ? 'border-[#0F9393] bg-[#0F9393]/5' : 'border-gray-100 hover:border-gray-200'} rounded-2xl p-4 cursor-pointer transition-all duration-300`}
+                              className={`group border-2 ${formData.therapist_id === t.user_id ? 'border-[#0F9393] bg-[#0F9393]/5 transform scale-[1.02]' : 'border-gray-100 hover:border-gray-200'} rounded-2xl p-4 cursor-pointer transition-all duration-300`}
                             >
                               <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 rounded-xl bg-gray-200 overflow-hidden shrink-0">

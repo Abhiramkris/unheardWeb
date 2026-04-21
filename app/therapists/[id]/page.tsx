@@ -7,11 +7,23 @@ import { createClient } from '@/utils/supabase/client';
 import { useBooking } from '@/components/BookingContext';
 import Button from '@/components/ui/Button';
 
+interface TherapistProfileData {
+  user_id: string;
+  full_name: string;
+  bio: string;
+  qualification: string;
+  display_hours: string;
+  display_rating: string;
+  specialties: string[];
+  note: string;
+  avatar_url: string;
+}
+
 export default function TherapistProfile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { openBookingModal } = useBooking();
   const [supabase] = useState(() => createClient());
-  const [therapist, setTherapist] = useState<any>(null);
+  const [therapist, setTherapist] = useState<TherapistProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // SECTION PINNING REFS
@@ -42,14 +54,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
       if (data) {
         setTherapist(data);
       }
-
-      const scrolled = false; // Placeholder: Replace with actual state or prop
-      const setIsDark = (value: boolean) => {}; // Placeholder: Replace with actual state setter
-      if (scrolled) {
-        setIsDark(false);
-      } else {
-        setIsDark(true);
-      }
+      
       setLoading(false);
     }
     getTherapist();
@@ -305,7 +310,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
             <div className="flex flex-col gap-6 md:gap-8">
               <h2 className="text-[24px] md:text-[56px] font-bold font-georgia text-white flex items-center gap-4 md:gap-6">
                  <span className="w-8 md:w-16 h-1 bg-[#0F9393]"></span>
-                 Therapist's Note
+                 Therapist&apos;s Note
               </h2>
               <div className="max-w-[1100px]">
                 <p className="text-[18px] md:text-[36px] font-bold text-white leading-relaxed font-nunito opacity-95">

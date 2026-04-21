@@ -3,14 +3,46 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Button from '@/components/ui/Button'
-import { Calendar, User, Clock, FileText, Plus, UserCircle, Save, Newspaper, Trash2 } from 'lucide-react'
+import { Calendar, User, Clock, Plus, UserCircle, Save, Trash2 } from 'lucide-react'
 import BlogEditor from '@/components/BlogEditor'
+import { useCallback } from 'react'
+
+interface Appointment {
+  id: string;
+  start_time: string;
+  is_trial: boolean;
+  patient_id: string;
+  profiles: { full_name: string };
+}
+
+interface TherapistProfile {
+  full_name: string;
+  bio: string;
+  qualification: string;
+  qualification_desc: string;
+  display_hours: string;
+  display_rating: string;
+  specialties: string;
+  note: string;
+  next_available_at: string;
+  avatar_url: string;
+}
+
+interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  content: any[];
+  published: boolean;
+  created_at: string;
+  author_id: string;
+}
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('appointments')
   const [supabase] = useState(() => createClient())
-  const [appointments, setAppointments] = useState<any[]>([])
-  const [profile, setProfile] = useState<any>({
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [profile, setProfile] = useState<TherapistProfile>({
     full_name: '',
     bio: '',
     qualification: '',
@@ -23,19 +55,12 @@ export default function AdminDashboard() {
     avatar_url: ''
   })
   const [saving, setSaving] = useState(false)
-  const [blogs, setBlogs] = useState<any[]>([])
-  const [editingBlog, setEditingBlog] = useState<any>(null)
+  const [blogs, setBlogs] = useState<Blog[]>([])
+  const [editingBlog, setEditingBlog] = useState<Blog | null>(null)
   const [isBlogger, setIsBlogger] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   
-  useEffect(() => {
-    fetchAppointments()
-    fetchProfile()
-    fetchBlogs()
-    checkUserPermissions()
-  }, [])
-
-  const checkUserPermissions = async () => {
+  const checkUserPermissions = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -49,9 +74,9 @@ export default function AdminDashboard() {
       setIsBlogger(data.is_blogger)
       setIsAdmin(['admin', 'super_admin'].includes(data.role))
     }
-  }
+  }, [supabase])
 
-  const fetchBlogs = async () => {
+  const fetchBlogs = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -62,13 +87,46 @@ export default function AdminDashboard() {
       .order('created_at', { ascending: false })
     
     if (data) setBlogs(data)
-  }
+  }, [supabase])
 
-  const handleSaveBlog = async (blogData: any) => {
+  const fetchProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const slug = blogData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+    const { data } = await supabase
+      .from('therapist_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+    
+    if (data) {
+      setProfile({
+        ...data,
+        specialties: data.specialties?.join(', ') || ''
+      })
+    }
+  }, [supabase])
+
+  const fetchAppointments = useCallback(async () => {
+    const { data } = await supabase
+      .from('appointments')
+      .select('*, patient_history(notes), profiles:patient_id(full_name)')
+      .order('start_time', { ascending: true })
+    if (data) setAppointments(data)
+  }, [supabase])
+
+  useEffect(() => {
+    fetchAppointments()
+    fetchProfile()
+    fetchBlogs()
+    checkUserPermissions()
+  }, [fetchAppointments, fetchProfile, fetchBlogs, checkUserPermissions])
+
+  const handleSaveBlog = async (blogData: Partial<Blog>) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const slug = (blogData.title || '').toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
 
     const { error } = await supabase
       .from('blogs')
@@ -89,24 +147,6 @@ export default function AdminDashboard() {
       setEditingBlog(null)
       fetchBlogs()
       localStorage.removeItem('blog_draft')
-    }
-  }
-
-  const fetchProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data } = await supabase
-      .from('therapist_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-    
-    if (data) {
-      setProfile({
-        ...data,
-        specialties: data.specialties?.join(', ') || ''
-      })
     }
   }
 
@@ -414,10 +454,10 @@ export default function AdminDashboard() {
                 {blogs.length === 0 ? (
                   <div className="col-span-full bg-white p-20 rounded-[24px] border border-dashed border-gray-200 text-center flex flex-col items-center gap-4">
                     <Newspaper size={48} className="text-gray-200" />
-                    <p className="text-gray-400 italic">You haven't written any blogs yet.</p>
+                    <p className="text-gray-400 italic">You haven&apos;t written any blogs yet.</p>
                   </div>
                 ) : (
-                  blogs.map((blog: any) => (
+                  blogs.map((blog: Blog) => (
                     <div key={blog.id} className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 flex flex-col gap-4 hover:shadow-md transition-all">
                        <div className="flex justify-between items-start">
                           <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${blog.published ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>

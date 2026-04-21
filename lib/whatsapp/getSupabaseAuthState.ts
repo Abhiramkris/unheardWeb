@@ -1,7 +1,7 @@
 import { proto, initAuthCreds, BufferJSON, AuthenticationState } from '@whiskeysockets/baileys';
 import { createAdminClient } from '../supabase/admin';
 
-export const useSupabaseAuthState = async (): Promise<{ state: AuthenticationState, saveCreds: () => Promise<void> }> => {
+export const getSupabaseAuthState = async (): Promise<{ state: AuthenticationState, saveCreds: () => Promise<void> }> => {
   const supabase = await createAdminClient();
 
   // Helper to read data from the DB

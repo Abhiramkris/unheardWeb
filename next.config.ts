@@ -3,10 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: 'standalone',
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   serverExternalPackages: ['@whiskeysockets/baileys', 'pino', 'bufferutil', 'utf-8-validate'],
   images: {

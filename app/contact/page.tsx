@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { submitContactInquiry } from '@/lib/actions'
 import Button from '@/components/ui/Button'
-import { Mail, Phone, MapPin, Send } from 'lucide-react'
+import { Mail, Phone, Send } from 'lucide-react'
 
 export default function ContactPage() {
   const [loading, setLoading] = useState(false)
@@ -36,7 +36,7 @@ export default function ContactPage() {
         {/* Left Side: Info */}
         <div className="flex flex-col gap-10">
           <div>
-            <h1 className="text-[40px] font-georgia font-bold leading-tight mb-6">Let's start a <span className="text-[#0F9393]">conversation.</span></h1>
+            <h1 className="text-[40px] font-georgia font-bold leading-tight mb-6">Let&apos;s start a <span className="text-[#0F9393]">conversation.</span></h1>
             <p className="text-gray-400 text-lg max-w-md">Whether you have a question about our therapy sessions, pricing, or anything else, our team is ready to answer all your questions.</p>
           </div>
 
@@ -70,7 +70,7 @@ export default function ContactPage() {
                 <Send size={40} />
               </div>
               <h2 className="text-3xl font-georgia font-bold text-white">Message Sent!</h2>
-              <p className="text-gray-400">Thank you for reaching out. We'll get back to you within 24 hours.</p>
+              <p className="text-gray-400">Thank you for reaching out. We&apos;ll get back to you within 24 hours.</p>
               <Button onClick={() => setSuccess(false)} variant="white" className="mt-4">Send another</Button>
             </div>
           ) : (
