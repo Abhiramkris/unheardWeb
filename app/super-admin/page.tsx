@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Button from '@/components/ui/Button'
-import { Newspaper, Trash2, Layout } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
+import Image from 'next/image'
 import BlogEditor from '@/components/BlogEditor'
 
 import { useCallback } from 'react'
@@ -42,7 +43,7 @@ export default function SuperAdminDashboard() {
   const [isTherapist, setIsTherapist] = useState(false)
   const [activeTab, setActiveTab] = useState('invite')
   const [blogs, setBlogs] = useState<Blog[]>([])
-  const [editingBlog, setEditingBlog] = useState<Blog | null>(null)
+  const [editingBlog, setEditingBlog] = useState<Partial<Blog> | null>(null)
   const [whatsappStatus, setWhatsappStatus] = useState<WhatsappStatus>({ status: 'disconnected', qrDataUrl: null })
 
   const fetchStatus = useCallback(async () => {
@@ -320,7 +321,7 @@ export default function SuperAdminDashboard() {
               {editingBlog ? (
                <BlogEditor 
                  onSave={handleSaveBlog}
-                 initialData={editingBlog.id ? editingBlog : undefined}
+                 initialData={(editingBlog || undefined) as any}
                />
              ) : (
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

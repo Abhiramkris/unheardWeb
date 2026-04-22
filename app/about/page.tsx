@@ -98,7 +98,7 @@ export default function AboutPage() {
       clearTimeout(resizeTimer);
       observer.disconnect();
     };
-    }, [vh]);
+  }, [vh]);
 
   if (!mounted) return null;
 
@@ -317,7 +317,6 @@ export default function AboutPage() {
                   <h3 className="text-[36px] font-bold font-georgia text-black tracking-tight">Ready to Align?</h3>
                   <p className="text-gray-500 font-bold text-[18px] md:text-[24px] font-nunito italic text-center">Let your inner world finally make sense.</p>
                </div>
-iv>
                
                <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-8">
                   <Button variant="black" className="w-[280px] md:w-[350px] h-[54px] md:h-[72px] flex items-center justify-center rounded-full text-[16px] md:text-[20px] font-extrabold shadow-2xl transition-transform hover:-translate-y-1" onClick={openBookingModal}>Start Your Transformation</Button>

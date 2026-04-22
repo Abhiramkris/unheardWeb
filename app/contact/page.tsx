@@ -22,7 +22,7 @@ export default function ContactPage() {
       await submitContactInquiry(formData)
       setSuccess(true)
       setFormData({ name: '', email: '', phone: '', message: '' })
-    } catch (err) {
+    } catch {
       alert('Failed to send message. Please try again.')
     } finally {
       setLoading(false)

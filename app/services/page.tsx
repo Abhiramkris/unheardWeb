@@ -193,7 +193,7 @@ export default function ServicesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-10 w-full auto-rows-[300px] mt-20 md:mt-32">
-              {INDIVIDUAL_CARDS.map((card, idx) => (
+              {INDIVIDUAL_CARDS.map((card) => (
                 <div key={card.id} className={`relative rounded-[40px] md:rounded-[60px] overflow-hidden group border border-black/5 ${card.size === 'lg' ? 'md:col-span-2' : 'md:col-span-1'}`}>
                   <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-105" />
                   <div className="absolute top-6 right-6 z-20 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 transition-all group-hover:bg-[#0F9393]">
@@ -265,7 +265,7 @@ export default function ServicesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 w-full auto-rows-[320px] mt-20 md:mt-32">
-              {RELATIONSHIP_CARDS.map((card, idx) => (
+              {RELATIONSHIP_CARDS.map((card) => (
                 <div key={card.id} className={`relative rounded-[40px] md:rounded-[60px] overflow-hidden group border border-white/5 ${card.size === 'lg' ? 'md:col-span-2' : 'md:col-span-1'}`}>
                   <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-105" />
                   <div className="absolute bottom-6 left-6 z-20">
@@ -330,7 +330,7 @@ export default function ServicesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 w-full auto-rows-[320px] mt-20 md:mt-32">
-              {ANXIETY_CARDS.map((card, idx) => (
+              {ANXIETY_CARDS.map((card) => (
                 <div key={card.id} className={`relative rounded-[40px] md:rounded-[60px] overflow-hidden group border border-black/5 ${card.size === 'lg' ? 'md:col-span-2' : 'md:col-span-1'}`}>
                   <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-105" />
                   <div className="absolute bottom-6 left-6 z-20">
@@ -393,7 +393,7 @@ export default function ServicesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 w-full auto-rows-[320px] mt-20 md:mt-32">
-              {ADOLESCENT_CARDS.map((card, idx) => (
+              {ADOLESCENT_CARDS.map((card) => (
                 <div key={card.id} className={`relative rounded-[40px] md:rounded-[60px] overflow-hidden group border border-white/5 ${card.size === 'lg' ? 'md:col-span-2' : 'md:col-span-1'}`}>
                   <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-1000 group-hover:scale-105" />
                   <div className="absolute bottom-6 left-6 z-20">
