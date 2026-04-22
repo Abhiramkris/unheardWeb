@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Button from '@/components/ui/Button'
-import { Calendar, User, Clock, Plus, UserCircle, Save, Trash2 } from 'lucide-react'
+import { Calendar, User, Clock, Plus, UserCircle, Save, Trash2, Newspaper } from 'lucide-react'
 import BlogEditor from '@/components/BlogEditor'
 import { useCallback } from 'react'
 
@@ -56,7 +56,7 @@ export default function AdminDashboard() {
   })
   const [saving, setSaving] = useState(false)
   const [blogs, setBlogs] = useState<Blog[]>([])
-  const [editingBlog, setEditingBlog] = useState<Blog | null>(null)
+  const [editingBlog, setEditingBlog] = useState<Partial<Blog> | null>(null)
   const [isBlogger, setIsBlogger] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   
@@ -172,13 +172,6 @@ export default function AdminDashboard() {
     setSaving(false)
   }
 
-  const fetchAppointments = async () => {
-    const { data } = await supabase
-      .from('appointments')
-      .select('*, patient_history(notes), profiles:patient_id(full_name)')
-      .order('start_time', { ascending: true })
-    if (data) setAppointments(data)
-  }
 
   return (
     <div className="min-h-screen bg-[#FEFEFC] font-nunito flex">
@@ -447,7 +440,7 @@ export default function AdminDashboard() {
             {editingBlog ? (
               <BlogEditor 
                 onSave={handleSaveBlog}
-                initialData={editingBlog.id ? editingBlog : undefined}
+                initialData={(editingBlog || undefined) as any}
               />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

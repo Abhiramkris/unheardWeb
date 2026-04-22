@@ -16,7 +16,7 @@ interface ContentBlock {
 
 interface BlogEditorProps {
   onSave: (blog: { title: string; content: ContentBlock[]; published: boolean }) => void
-  initialData?: { title: string; content: ContentBlock[]; published: boolean }
+  initialData?: Partial<{ title: string; content: ContentBlock[]; published: boolean }>
 }
 
 export default function BlogEditor({ onSave, initialData }: BlogEditorProps) {
