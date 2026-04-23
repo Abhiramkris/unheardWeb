@@ -562,11 +562,6 @@ export const LandingStack = () => {
           </div>
         </div>
       </section>
-
-      {/* Final Footer Spacer */}
-      <section className="relative z-[60] w-full bg-[#111111] pt-40 pb-20">
-        <div className="w-full h-px bg-white/5 mb-20" />
-      </section>
     </div>
   );
 };

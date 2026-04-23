@@ -559,7 +559,6 @@ export default function ServicesPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start w-full max-w-[1400px]">
                 {/* Left Column: Heading & Primary Subtext */}
                 <div className="flex flex-col gap-6 text-left">
-                  <span className="text-[#0F9393] font-bold uppercase tracking-[0.2em] text-[14px]">PILLAR 05</span>
                   <h2 className="text-[36px] md:text-[64px] font-bold font-georgia text-white leading-[1] tracking-tight text-balance">
                     Family & <br />
                     <span className="text-[#0F9393]">Interpersonal.</span>
@@ -630,7 +629,7 @@ export default function ServicesPage() {
                     <div className="absolute bottom-4 md:bottom-6 left-4 md:left-6 right-4 md:right-6 h-[140px] md:h-[180px] rounded-[28px] overflow-hidden">
                       <Image src={card.image} alt={card.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                       <div className="absolute bottom-3 left-3">
-                        <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 cursor-pointer hover:bg-white/20 transition-all shadow-lg">
+                        <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/20 cursor-pointer hover:bg-white/20 transition-all shadow-lg">
                           <span className="text-[9px] md:text-[11px] font-bold text-white uppercase tracking-wider">Start Here</span>
                         </div>
                       </div>
