@@ -16,13 +16,14 @@ const globalForWhatsApp = global as unknown as {
 if (!globalForWhatsApp.status) globalForWhatsApp.status = 'disconnected';
 if (!globalForWhatsApp.qrDataUrl) globalForWhatsApp.qrDataUrl = null;
 
+// Reusable Logger Singleton to save RAM
+const logger = pino({ level: 'silent' });
+
 export class WhatsAppManager {
   static getStatus() {
     return {
       status: globalForWhatsApp.status,
       qrDataUrl: globalForWhatsApp.qrDataUrl,
-      // We don't need a DB count check here anymore; 
-      // Baileys will transition to pending_qr if it finds no creds.
     };
   }
 
@@ -64,6 +65,7 @@ export class WhatsAppManager {
     
     if (globalForWhatsApp.socket) {
       try {
+        // Aggressively clear ALL listeners to prevent memory leaks
         globalForWhatsApp.socket.ev.removeAllListeners('connection.update');
         globalForWhatsApp.socket.ev.removeAllListeners('creds.update');
         globalForWhatsApp.socket.end(undefined);
@@ -94,6 +96,7 @@ export class WhatsAppManager {
     if (globalForWhatsApp.socket) {
       try {
         globalForWhatsApp.socket.ev.removeAllListeners('connection.update');
+        globalForWhatsApp.socket.ev.removeAllListeners('creds.update');
         globalForWhatsApp.socket.end(undefined);
       } catch { }
       globalForWhatsApp.socket = null;
@@ -109,7 +112,7 @@ export class WhatsAppManager {
         auth: state,
         printQRInTerminal: false,
         browser: ['unHeard', 'Chrome', '1.0.0'], 
-        logger: pino({ level: 'silent' }),
+        logger, 
         connectTimeoutMs: 60000,
         keepAliveIntervalMs: 15000,
       });
