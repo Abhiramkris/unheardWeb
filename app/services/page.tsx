@@ -26,30 +26,27 @@ const RELATIONSHIP_CARDS = [
 ];
 
 const ADOLESCENT_CARDS = [
-  { id: 1, title: 'Academic stress & Pressure', image: '/assets/service/bento_stress.webp', size: 'lg' },
+  { id: 1, title: 'Academic stress', image: '/assets/service/bento_stress.webp', size: 'lg' },
   { id: 2, title: 'Career confusion', image: '/assets/service/bento_overthinking.webp', size: 'md' },
   { id: 3, title: 'Social anxiety', image: '/assets/service/bento_anxiety.webp', size: 'md' },
-  { id: 4, title: 'Identity & Confidence', image: '/assets/service/bento_growth.webp', size: 'lg' },
-  { id: 5, title: 'Emotional sensitivity', image: '/assets/service/bento_stuck.webp', size: 'md' },
-  { id: 6, title: 'Peer Dynamics & Comparison', image: '/assets/service/bento_self_doubt.webp', size: 'md' }
+  { id: 4, title: 'Emotional sensitivity', image: '/assets/service/bento_stuck.webp', size: 'lg' },
+  { id: 5, title: 'Identity and confidence', image: '/assets/service/bento_growth.webp', size: 'md' }
 ];
 
 const FAMILY_CARDS = [
   { id: 1, title: 'Parent-child conflict', image: '/assets/service/bento_burnout.webp', size: 'lg' },
   { id: 2, title: 'Communication gaps', image: '/assets/service/bento_stuck.webp', size: 'md' },
   { id: 3, title: 'Emotional distance', image: '/assets/service/bento_anxiety.webp', size: 'md' },
-  { id: 4, title: 'Generational differences', image: '/assets/service/bento_growth.webp', size: 'lg' },
-  { id: 5, title: 'Unspoken Family Dynamics', image: '/assets/service/bento_overthinking.webp', size: 'md' },
-  { id: 6, title: 'Pattern Recognition', image: '/assets/service/bento_self_doubt.webp', size: 'md' }
+  { id: 4, title: 'Generational differences', image: '/assets/service/bento_growth.webp', size: 'lg' }
 ];
 
 const ANXIETY_CARDS = [
-  { id: 1, title: 'Generalised anxiety and constant worry', image: '/assets/service/bento_anxiety.webp', size: 'lg' },
-  { id: 2, title: 'Panic attacks and physical sensations', image: '/assets/service/bento_overthinking.webp', size: 'md' },
-  { id: 3, title: 'Social anxiety and performance pressure', image: '/assets/service/bento_stress.webp', size: 'md' },
-  { id: 4, title: 'Health anxiety and hyper-vigilance', image: '/assets/service/bento_growth.webp', size: 'lg' },
-  { id: 5, title: 'Stress overload and emotional fatigue', image: '/assets/service/bento_burnout.webp', size: 'md' },
-  { id: 6, title: 'Sleep issues linked to racing thoughts', image: '/assets/service/bento_stuck.webp', size: 'md' }
+  { id: 1, title: 'Generalised anxiety', image: '/assets/service/bento_anxiety.webp', size: 'lg' },
+  { id: 2, title: 'Panic attacks', image: '/assets/service/bento_overthinking.webp', size: 'md' },
+  { id: 3, title: 'Social anxiety', image: '/assets/service/bento_stress.webp', size: 'md' },
+  { id: 4, title: 'Health anxiety', image: '/assets/service/bento_growth.webp', size: 'lg' },
+  { id: 5, title: 'Stress overload', image: '/assets/service/bento_burnout.webp', size: 'md' },
+  { id: 6, title: 'Sleep issues linked to anxiety', image: '/assets/service/bento_stuck.webp', size: 'md' }
 ];
 
 export default function ServicesPage() {
@@ -137,11 +134,11 @@ export default function ServicesPage() {
         className="sticky z-10 w-full flex flex-col items-center will-change-[top,transform] transform-gpu contain-paint"
         style={{
           top: `${stickyTop1}px`,
-          minHeight: sectionHeights['1'] ? `${sectionHeights['1']}px` : 'auto'
         }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#1A1A1A] rounded-t-[40px] rounded-b-[40px] border border-white/10 shadow-2xl overflow-hidden flex flex-col items-center pt-36 md:pt-52 pb-24 px-6 md:px-12 lg:px-24 z-20">
           <div className="relative z-10 w-full">
+            <div className="h-12 md:h-20" />
             {/* Intro Header: 2-Column Grid (No nested card background) */}
             <div className="w-full flex flex-col items-center mb-16">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start w-full max-w-[1400px]">
@@ -161,10 +158,11 @@ export default function ServicesPage() {
 
                 {/* Right Column: Descriptions &Philosophy */}
                 <div className="flex flex-col gap-4 text-left text-[16px] md:text-[19px] text-white/70 leading-snug font-nunito font-medium pt-2 lg:pt-10">
-                  <p>Anxiety, overthinking, low mood, burnout, emotional instability, self-doubt—these don’t always look serious from the outside.</p>
+                  <p>Therapy for when your mind won&apos;t slow down. You might not call it a problem yet, but it&apos;s there.</p>
+                  <p>Anxiety, overthinking, low mood, burnout, emotional instability, self-doubt these don’t always look serious from the outside.</p>
                   <p>The constant overthinking. The anxiety that sits in the background. The feeling of being mentally exhausted without a clear reason.</p>
                   <p>At unHeard., individual therapy is not about fixing you. It’s about understanding what’s happening beneath the surface, so things won’t keep repeating in the same way.</p>
-
+                  <h4 className="text-white font-extrabold text-[18px] md:text-[20px]">How therapy works:</h4>
                   <div className="mt-4">
                     <button onClick={() => setShowFullIndividual(!showFullIndividual)} className="text-[#0F9393] font-bold flex items-center gap-2 hover:underline transition-all text-[16px]">
                       {showFullIndividual ? 'Read Less' : 'Read more'}
@@ -175,11 +173,11 @@ export default function ServicesPage() {
                       {showFullIndividual && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                           <div className="pt-6 flex flex-col gap-5 border-t border-white/10 mt-4">
-                            <h4 className="text-white font-extrabold text-[18px] md:text-[20px]">How therapy works:</h4>
+
                             <p>We offer one-on-one online therapy focused on emotional clarity, self-awareness, and sustainable change.</p>
                             <p className="font-bold text-[#0F9393]">This is where you start making sense of yourself without having to simplify it.</p>
-                            <p className="p-6 bg-white/5 rounded-[24px] border border-white/5 italic font-medium text-white/50 text-[15px] md:text-[17px]">
-                              Structured psychological counselling with trained mental health professionals. Online sessions. Confidential. At your pace.
+                            <p className="font-bold text-[#0F9393]">
+                              Structured psychological counselling with trained mental health professional. Online sessions. Confidential. At your pace.
                             </p>
                           </div>
                         </motion.div>
@@ -193,7 +191,7 @@ export default function ServicesPage() {
             {/* Moving Cards Header */}
             <div className="w-full flex flex-col items-center">
               <div className="w-full max-w-[1400px] mb-8 text-left uppercase">
-                <span className="text-[#FFFFFF] font-black tracking-[0.4em] text-[20px]">What this helps with</span>
+                <span className="text-[#FFFFFF] font-black tracking-[0.4em] text-[20px]">What we work with</span>
               </div>
             </div>
 
@@ -232,11 +230,11 @@ export default function ServicesPage() {
         className="sticky z-20 w-full flex flex-col items-center pointer-events-none will-change-[top,transform] transform-gpu contain-paint -mt-20 md:-mt-32"
         style={{
           top: `${stickyTop2}px`,
-          minHeight: sectionHeights['2'] ? `${sectionHeights['2']}px` : 'auto'
         }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] border border-black/5 shadow-2xl overflow-hidden flex flex-col items-center pt-18 pb-24 px-6 md:px-12 lg:px-24 pointer-events-auto z-20">
           <div className="relative z-10 w-full">
+            <div className="h-12 md:h-20" />
             {/* Intro Header: 2-Column Grid (No nested card background) */}
             <div className="w-full flex flex-col items-center mb-16">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start w-full max-w-[1400px] -mt-8 md:-mt-12">
@@ -258,13 +256,14 @@ export default function ServicesPage() {
 
                 {/* Right Column: Descriptions &Philosophy */}
                 <div className="flex flex-col gap-4 text-left text-[16px] md:text-[19px] text-black/60 leading-snug font-nunito font-medium pt-2 lg:pt-14">
-                  <p>Most relationships don’t break suddenly. They strain quietly. Misunderstandings repeat. Communication reduces. Small things start weighing more than they should.</p>
+                  <p>Most relationships don’t break suddenly. They strain quietly.</p>
+                  <p>Misunderstandings repeat. Communication reduces. Small things start weighing more than they should.</p>
                   <p>Couple counseling isn’t about deciding who is right. It is about understanding the dynamics between two people.</p>
-                  <p>We work with couples navigating communication gaps, recurring conflicts, trust concerns, emotional distance, and unresolved resentment.</p>
+                  <p>Not every conflict is loud. Some just repeat quietly. <strong>Learn how it works</strong></p>
 
                   <div className="mt-4">
                     <button onClick={() => setShowFullRelationship(!showFullRelationship)} className="text-[#0F9393] font-bold flex items-center gap-2 hover:underline transition-all text-[16px]">
-                      {showFullRelationship ? 'Read Less' : 'Read more about this pillar'}
+                      {showFullRelationship ? 'Read Less' : 'Read more'}
                       <span className={`transition-transform duration-300 ${showFullRelationship ? 'rotate-180' : ''}`}>↓</span>
                     </button>
 
@@ -272,11 +271,8 @@ export default function ServicesPage() {
                       {showFullRelationship && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                           <div className="pt-6 flex flex-col gap-5 border-t border-black/5 mt-4">
-                            <p>Not every conflict is loud. Some just repeat quietly.</p>
+                            <p>We work with couples and individuals navigating communication gaps and breakdowns, recurring conflicts and arguments, trust concerns, emotional distance, and unresolved resentment that builds over time.</p>
                             <p className="font-bold text-[#0F9393] text-[18px] md:text-[22px]">The goal isn’t to “fix” people. It’s to understand patterns, so something can actually shift.</p>
-                            <p className="p-6 bg-black/5 rounded-[24px] border border-black/5 italic font-medium text-black/40 text-[15px] md:text-[17px]">
-                              Strategic couple therapy focused on dynamics, intimacy, and sustainable relational growth.
-                            </p>
                           </div>
                         </motion.div>
                       )}
@@ -289,7 +285,7 @@ export default function ServicesPage() {
             {/* Moving Cards Header */}
             <div className="w-full flex flex-col items-center">
               <div className="w-full max-w-[1400px] mb-8 text-left uppercase">
-                <span className="text-[#000000] font-black tracking-[0.4em] text-[20px]">What this helps with</span>
+                <span className="text-[#000000] font-black tracking-[0.4em] text-[20px]">What we work with</span>
               </div>
             </div>
 
@@ -334,9 +330,10 @@ export default function ServicesPage() {
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#111111] rounded-t-[40px] rounded-b-[40px] border border-white/10 shadow-2xl overflow-hidden flex flex-col items-center pt-18 pb-24 px-6 md:px-12 lg:px-24 pointer-events-auto z-20">
           <div className="relative z-10 w-full">
+            <div className="h-12 md:h-20" />
             {/* Intro Header: 2-Column Grid */}
             <div className="w-full flex flex-col items-center mb-16">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start w-full max-w-[1400px]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start w-full max-w-[1400px] -mt-12 md:-mt-16">
                 {/* Left Column: Heading & Primary Subtext */}
                 <div className="flex flex-col gap-6 text-left">
                   <h2 className="text-[36px] md:text-[64px] font-bold font-georgia text-white leading-[1] tracking-tight text-balance">
@@ -355,30 +352,8 @@ export default function ServicesPage() {
 
                 {/* Right Column: Descriptions &Philosophy */}
                 <div className="flex flex-col gap-4 text-left text-[16px] md:text-[19px] text-white/70 leading-snug font-nunito font-medium pt-2 lg:pt-14">
-                  <p>Anxiety doesn’t always look dramatic. It’s just constant. Racing thoughts. Restlessness. A sense that something is wrong.</p>
-                  <p>You don’t need to calm down. You need to understand what’s happening beneath the surface.</p>
-                  <p>We help with generalised anxiety, panic attacks, social anxiety, health anxiety, and stress overload.</p>
-
-                  <div className="mt-4">
-                    <button onClick={() => setShowFullAnxiety(!showFullAnxiety)} className="text-[#0F9393] font-bold flex items-center gap-2 hover:underline transition-all text-[16px]">
-                      {showFullAnxiety ? 'Read Less' : 'Read more about this pillar'}
-                      <span className={`transition-transform duration-300 ${showFullAnxiety ? 'rotate-180' : ''}`}>↓</span>
-                    </button>
-
-                    <AnimatePresence>
-                      {showFullAnxiety && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                          <div className="pt-6 flex flex-col gap-5 border-t border-white/10 mt-4">
-                            <p>Anxiety is often just your mind trying to protect you in a way that isn&apos;t working anymore.</p>
-                            <p className="font-bold text-[#0F9393] text-[18px] md:text-[22px]">Sustainable change comes from self-awareness, not just coping mechanisms.</p>
-                            <p className="p-6 bg-white/5 rounded-[24px] border border-white/5 italic font-medium text-white/50 text-[15px] md:text-[17px]">
-                              Deep psychological work focused on root causes of stress and anxiety dynamics.
-                            </p>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  <p>Therapy for when your mind doesn’t switch off. Anxiety doesn’t always look dramatic. It’s just constant. Racing thoughts. Restlessness. A sense that something is wrong.</p>
+                  <p>You don’t need to calm down. You need to understand what’s happening.</p>
                 </div>
               </div>
             </div>
@@ -386,7 +361,7 @@ export default function ServicesPage() {
             {/* Moving Cards Header */}
             <div className="w-full flex flex-col items-center">
               <div className="w-full max-w-[1400px] mb-8 text-left uppercase">
-                <span className="text-[#FFFFFF] font-black tracking-[0.4em] text-[20px]">What this helps with</span>
+                <span className="text-[#FFFFFF] font-black tracking-[0.4em] text-[20px]">What we work with</span>
               </div>
             </div>
 
@@ -431,9 +406,10 @@ export default function ServicesPage() {
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] border border-black/5 shadow-2xl overflow-hidden flex flex-col items-center pt-18 pb-24 px-6 md:px-12 lg:px-24 pointer-events-auto z-20">
           <div className="relative z-10 w-full">
+            <div className="h-12 md:h-20" />
             {/* Intro Header: 2-Column Grid */}
             <div className="w-full flex flex-col items-center mb-16">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start w-full max-w-[1400px]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start w-full max-w-[1400px] -mt-12 md:-mt-16">
                 {/* Left Column: Heading & Primary Subtext */}
                 <div className="flex flex-col gap-6 text-left">
                   <h2 className="text-[36px] md:text-[64px] font-bold font-georgia text-black leading-[1] tracking-tight text-balance">
@@ -452,29 +428,9 @@ export default function ServicesPage() {
 
                 {/* Right Column: Descriptions &Philosophy */}
                 <div className="flex flex-col gap-4 text-left text-[16px] md:text-[19px] text-black/60 leading-snug font-nunito font-medium pt-2 lg:pt-14">
-                  <p>Academic pressure, career confusion, identity struggles, social anxiety, comparison—it’s a lot, and it shows up in ways that are often dismissed.</p>
-                  <p>This is a space where things don’t have to be filtered. A safe, structured space for adolescents and young adults to process and find steadiness.</p>
-
-                  <div className="mt-4">
-                    <button onClick={() => setShowFullAdolescent(!showFullAdolescent)} className="text-[#0F9393] font-bold flex items-center gap-2 hover:underline transition-all text-[16px]">
-                      {showFullAdolescent ? 'Read Less' : 'Read more about this pillar'}
-                      <span className={`transition-transform duration-300 ${showFullAdolescent ? 'rotate-180' : ''}`}>↓</span>
-                    </button>
-
-                    <AnimatePresence>
-                      {showFullAdolescent && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                          <div className="pt-6 flex flex-col gap-5 border-t border-black/5 mt-4">
-                            <p>Identity development isn&apos;t just about finding yourself—it&apos;s about understanding the environment you&apos;re growing up in.</p>
-                            <p className="font-bold text-[#0F9393] text-[18px] md:text-[22px]">We provide professional guidance for navigating transitions and peer dynamics.</p>
-                            <p className="p-6 bg-black/5 rounded-[24px] border border-black/5 italic font-medium text-black/40 text-[15px] md:text-[17px]">
-                              Evidence-based counseling for the internal and external challenges of young adulthood.
-                            </p>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  <p>Growing up now comes with different kinds of pressure.</p>
+                  <p>Academic pressure, career confusion, identity struggles, social anxiety, comparison, peer pressure, digital overwhelm, family expectations, it’s a lot, and it shows up in ways that are often dismissed.</p>
+                  <p>We provide a safe, structured space for adolescents and young adults to process, express, and find steadiness.</p>
                 </div>
               </div>
             </div>
@@ -482,7 +438,7 @@ export default function ServicesPage() {
             {/* Moving Cards Header */}
             <div className="w-full flex flex-col items-center">
               <div className="w-full max-w-[1400px] mb-8 text-left uppercase">
-                <span className="text-[#000000] font-black tracking-[0.4em] text-[20px]">What this helps with</span>
+                <span className="text-[#000000] font-black tracking-[0.4em] text-[20px]">What we work with</span>
               </div>
             </div>
 
@@ -521,15 +477,15 @@ export default function ServicesPage() {
         data-section-id="5"
         className="sticky z-50 w-full flex flex-col items-center pointer-events-none will-change-[top,transform] transform-gpu contain-paint -mt-20 md:-mt-32"
         style={{
-          top: `${stickyTop5}px`,
-          minHeight: sectionHeights['5'] ? `${sectionHeights['5']}px` : 'auto'
+          top: `${stickyTop5}px`
         }}
       >
         <div className="relative w-[97vw] max-w-[2440px] bg-[#111111] rounded-t-[40px] rounded-b-[40px] border border-white/10 shadow-2xl overflow-hidden flex flex-col items-center pt-18 pb-24 px-6 md:px-12 lg:px-24 pointer-events-auto z-20">
           <div className="relative z-10 w-full">
+            <div className="h-12 md:h-20" />
             {/* Intro Header: 2-Column Grid */}
             <div className="w-full flex flex-col items-center mb-16">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start w-full max-w-[1400px]">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start w-full max-w-[1400px] -mt-12 md:-mt-16">
                 {/* Left Column: Heading & Primary Subtext */}
                 <div className="flex flex-col gap-6 text-left">
                   <h2 className="text-[36px] md:text-[64px] font-bold font-georgia text-white leading-[1] tracking-tight text-balance">
@@ -548,37 +504,18 @@ export default function ServicesPage() {
 
                 {/* Right Column: Descriptions &Philosophy */}
                 <div className="flex flex-col gap-4 text-left text-[16px] md:text-[19px] text-white/70 leading-snug font-nunito font-medium pt-2 lg:pt-14">
-                  <p>Families don’t come with manuals. Just patterns. We work with families dealing with conflict, communication gaps, dependency, and generational differences.</p>
-                  <p>Family therapy helps understand patterns without blame. Rebuilding bridges and communication channels.</p>
-
-                  <div className="mt-4">
-                    <button onClick={() => setShowFullFamily(!showFullFamily)} className="text-[#0F9393] font-bold flex items-center gap-2 hover:underline transition-all text-[16px]">
-                      {showFullFamily ? 'Read Less' : 'Read more about this pillar'}
-                      <span className={`transition-transform duration-300 ${showFullFamily ? 'rotate-180' : ''}`}>↓</span>
-                    </button>
-
-                    <AnimatePresence>
-                      {showFullFamily && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                          <div className="pt-6 flex flex-col gap-5 border-t border-white/10 mt-4">
-                            <p>Interpersonal dynamics define how we feel in our most private spaces.</p>
-                            <p className="font-bold text-[#0F9393] text-[18px] md:text-[22px]">Structured support for generational healing and rebuilding broken channels.</p>
-                            <p className="p-6 bg-white/5 rounded-[24px] border border-white/5 italic font-medium text-white/50 text-[15px] md:text-[17px]">
-                              Clinical family systems therapy for sustainable relational harmony.
-                            </p>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  <p>Families don’t come with manuals. Just patterns.</p>
+                  <p>We work with families dealing with conflict, communication gaps, dependency, emotional distance, and generational differences.</p>
+                  <p>Without taking sides. Without oversimplifying.</p>
                 </div>
               </div>
             </div>
+            <div className="h-12 md:h-20" />
 
             {/* Moving Cards Header */}
             <div className="w-full flex flex-col items-center">
               <div className="w-full max-w-[1400px] mb-8 text-left uppercase">
-                <span className="text-[#FFFFFF] font-black tracking-[0.4em] text-[20px]">What this helps with</span>
+                <span className="text-[#FFFFFF] font-black tracking-[0.4em] text-[20px]">We work with</span>
               </div>
             </div>
 
