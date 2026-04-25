@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { WhatsAppManager } from '@/lib/whatsapp/WhatsAppClient';
 
 export async function POST(req: Request) {
@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60000).toISOString(); // 10 mins
 
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     
     const { error: dbError } = await supabase.from('booking_otps').insert({
       phone_number: phone,

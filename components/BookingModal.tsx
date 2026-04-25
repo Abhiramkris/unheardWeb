@@ -173,7 +173,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
          rawDateStr = new Date(combined).toISOString();
       }
 
-      await requestSession({
+      const result = await requestSession({
         therapist_id: formData.therapist_id,
         start_time: rawDateStr,
         is_trial: formData.is_trial,
@@ -189,6 +189,11 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
           service: formData.service
         }
       });
+
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
       alert('Booking Request Sent Successfully!');
       closeAndReset();
     } catch (err: any) {

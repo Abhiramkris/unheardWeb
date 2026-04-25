@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 
 export async function POST(req: Request) {
   try {
     const { phone, otp } = await req.json();
     if (!phone || !otp) return NextResponse.json({ success: false, error: 'Phone and OTP are required' }, { status: 400 });
 
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     
     const { data, error } = await supabase
       .from('booking_otps')
@@ -26,7 +26,8 @@ export async function POST(req: Request) {
        return NextResponse.json({ success: false, error: 'Incorrect OTP code.' }, { status: 400 });
     }
 
-    await supabase.from('booking_otps').update({ verified: true }).eq('id', data.id);
+    const { error: updateError } = await supabase.from('booking_otps').update({ verified: true }).eq('id', data.id);
+    if (updateError) throw updateError;
 
     return NextResponse.json({ success: true, message: 'Phone number successfully verified.' });
   } catch (error: any) {

@@ -112,8 +112,9 @@ export async function requestSession(data: {
   phone: string; 
   patient_details?: { name: string; email: string };
 }) {
-  const supabase = await createClient()
-  const adminSupabase = await createAdminClient()
+  try {
+    const supabase = await createClient()
+    const adminSupabase = await createAdminClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   // 1. FORMAT & VALIDATE DATE
@@ -135,7 +136,7 @@ export async function requestSession(data: {
       .maybeSingle()
 
     if (otpError || !otpVerified) {
-      throw new Error('Verification required. Please verify your phone number via OTP before booking.')
+      return { success: false, error: 'Verification required. Please verify your phone number via OTP before booking.' }
     }
   }
 
@@ -158,7 +159,7 @@ export async function requestSession(data: {
       .maybeSingle()
 
     if (slotError || !slot) {
-      throw new Error('Selected therapist is not available at this specific time slot based on their calendar.')
+      return { success: false, error: 'Selected therapist is not available at this specific time slot.' }
     }
   }
 
@@ -172,9 +173,9 @@ export async function requestSession(data: {
     .gt('end_time', start.toISOString())
     .maybeSingle()
 
-  if (existing) {
-    throw new Error('This time slot has already been booked. Please select another time.')
-  }
+    if (existing) {
+      return { success: false, error: 'This time slot has already been booked. Please select another time.' }
+    }
 
   // 4. CREATE APPOINTMENT (Hybrid Auth/Guest)
   const appointmentPayload: any = {
@@ -205,10 +206,10 @@ export async function requestSession(data: {
     .select()
     .single()
 
-  if (aptError) {
-    console.error('DATABASE ERROR [appointments]:', aptError)
-    throw aptError
-  }
+    if (aptError) {
+      console.error('DATABASE ERROR [appointments]:', aptError)
+      return { success: false, error: 'Database error: Could not create appointment.' }
+    }
 
   // 5. SAVE QUESTIONNAIRE
   const { error: qError } = await adminSupabase
@@ -218,10 +219,10 @@ export async function requestSession(data: {
       answers: data.questionnaire
     }])
 
-  if (qError) {
-    console.error('DATABASE ERROR [questionnaire]:', qError)
-    throw qError
-  }
+    if (qError) {
+      console.error('DATABASE ERROR [questionnaire]:', qError)
+      return { success: false, error: 'Database error: Could not save questionnaire.' }
+    }
 
   // 6. WHATSAPP NOTIFICATIONS
   try {
@@ -251,6 +252,10 @@ export async function requestSession(data: {
     console.error('Non-blocking WhatsApp Notification Error:', error)
   }
 
-  revalidatePath('/admin/dashboard')
-  return { success: true, appointmentId: appointment.id }
+    revalidatePath('/admin/dashboard')
+    return { success: true, appointmentId: appointment.id }
+  } catch (error: any) {
+    console.error('CRITICAL SESSION REQUEST ERROR:', error)
+    return { success: false, error: error.message || 'An unexpected internal error occurred.' }
+  }
 }
