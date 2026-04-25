@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { updateTherapistProfile } from '@/lib/actions'
 import Button from '@/components/ui/Button'
 
 export default function TherapistOnboarding() {
-  const [supabase] = useState(() => createClient())
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   
@@ -22,29 +21,17 @@ export default function TherapistOnboarding() {
     e.preventDefault()
     setLoading(true)
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      alert('You must be logged in to complete onboarding')
-      return
-    }
-
-    const { error } = await supabase
-      .from('therapist_profiles')
-      .upsert({
-        user_id: user.id,
+    try {
+      await updateTherapistProfile({
         full_name: formData.full_name,
         bio: formData.bio,
         qualification: formData.qualification,
         specialties: formData.specialties.split(',').map(s => s.trim()),
         avatar_url: formData.avatar_url
       })
-
-    if (error) {
-      alert(error.message)
-    } else {
-      // Also update the role if they don't have it (optional safety)
-      await supabase.from('user_roles').upsert({ user_id: user.id, role: 'admin' })
       router.push('/admin/dashboard')
+    } catch (error: any) {
+      alert(error.message || 'Failed to complete onboarding')
     }
     setLoading(false)
   }

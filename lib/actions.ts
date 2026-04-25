@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { mailer } from '@/lib/mailer'
 import { revalidatePath } from 'next/cache'
 
@@ -15,17 +15,24 @@ export async function updateTherapistProfile(formData: {
   avatar_url?: string;
 }) {
   const supabase = await createClient()
+  const adminSupabase = await createAdminClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const { error } = await supabase
+  const { error } = await adminSupabase
     .from('therapist_profiles')
     .upsert({
       user_id: user.id,
       ...formData
     })
 
-  if (error) throw error
+  if (error) {
+    console.error('DATABASE ERROR [profile]:', error)
+    throw error
+  }
+
+  // Also ensure they have the proper role
+  await adminSupabase.from('user_roles').upsert({ user_id: user.id, role: 'admin' })
   revalidatePath('/admin/dashboard')
 }
 
@@ -39,22 +46,26 @@ export async function setTherapistAvailability(availability: {
   is_available: boolean;
 }[]) {
   const supabase = await createClient()
+  const adminSupabase = await createAdminClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
   // Clear existing and insert new
-  await supabase
+  await adminSupabase
     .from('therapist_availability')
     .delete()
     .eq('therapist_id', user.id)
 
-  const { error } = await supabase
+  const { error } = await adminSupabase
     .from('therapist_availability')
     .insert(
       availability.map(a => ({ ...a, therapist_id: user.id }))
     )
 
-  if (error) throw error
+  if (error) {
+    console.error('DATABASE ERROR [availability]:', error)
+    throw error
+  }
   revalidatePath('/admin/dashboard')
 }
 
@@ -102,6 +113,7 @@ export async function requestSession(data: {
   patient_details?: { name: string; email: string };
 }) {
   const supabase = await createClient()
+  const adminSupabase = await createAdminClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   // 1. FORMAT & VALIDATE DATE
@@ -111,15 +123,31 @@ export async function requestSession(data: {
   const dayOfWeek = start.getDay()
   const timeStr = start.toTimeString().split(' ')[0] 
 
+  // 1.5. OTP VERIFICATION GUARD (For guests)
+  if (!user) {
+    const { data: otpVerified, error: otpError } = await adminSupabase
+      .from('booking_otps')
+      .select('id')
+      .eq('phone_number', data.phone)
+      .eq('verified', true)
+      .gte('created_at', new Date(Date.now() - 15 * 60000).toISOString()) // Within last 15 mins
+      .limit(1)
+      .maybeSingle()
+
+    if (otpError || !otpVerified) {
+      throw new Error('Verification required. Please verify your phone number via OTP before booking.')
+    }
+  }
+
   // 2. AVAILABILITY GUARD
-  const { data: allRules } = await supabase
+  const { data: allRules } = await adminSupabase
     .from('therapist_availability')
     .select('id')
     .eq('therapist_id', data.therapist_id)
     .limit(1)
 
   if (allRules && allRules.length > 0) {
-    const { data: slot, error: slotError } = await supabase
+    const { data: slot, error: slotError } = await adminSupabase
       .from('therapist_availability')
       .select('*')
       .eq('therapist_id', data.therapist_id)
@@ -135,7 +163,7 @@ export async function requestSession(data: {
   }
 
   // 3. OVERLAP GUARD
-  const { data: existing } = await supabase
+  const { data: existing } = await adminSupabase
     .from('appointments')
     .select('id')
     .eq('therapist_id', data.therapist_id)
@@ -171,23 +199,29 @@ export async function requestSession(data: {
     };
   }
 
-  const { data: appointment, error: aptError } = await supabase
+  const { data: appointment, error: aptError } = await adminSupabase
     .from('appointments')
     .insert([appointmentPayload])
     .select()
     .single()
 
-  if (aptError) throw aptError
+  if (aptError) {
+    console.error('DATABASE ERROR [appointments]:', aptError)
+    throw aptError
+  }
 
   // 5. SAVE QUESTIONNAIRE
-  const { error: qError } = await supabase
+  const { error: qError } = await adminSupabase
     .from('pre_booking_questionnaires')
     .insert([{
       appointment_id: appointment.id,
       answers: data.questionnaire
     }])
 
-  if (qError) throw qError
+  if (qError) {
+    console.error('DATABASE ERROR [questionnaire]:', qError)
+    throw qError
+  }
 
   // 6. WHATSAPP NOTIFICATIONS
   try {
@@ -203,7 +237,7 @@ export async function requestSession(data: {
     }
 
     // B. Notify Therapist
-    const { data: therapistProfile } = await supabase
+    const { data: therapistProfile } = await adminSupabase
       .from('therapist_profiles')
       .select('full_name, phone')
       .eq('user_id', data.therapist_id)
