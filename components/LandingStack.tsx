@@ -230,7 +230,7 @@ export const LandingStack = () => {
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-[#0F9393]/10 flex items-center justify-center">
                         <svg className="w-6 h-6 text-[#0F9393]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04kM12 20.944a11.955 11.955 0 01-8.618-3.04A12.02 12.02 0 013 9c0-3.314 2.686-6 6-6s6 2.686 6 6a6 6 0 01-3 5.196" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04M12 20.944a11.955 11.955 0 01-8.618-3.04A12.02 12.02 0 013 9c0-3.314 2.686-6 6-6s6 2.686 6 6a6 6 0 01-3 5.196" />
                         </svg>
                       </div>
                       <div>
@@ -552,7 +552,7 @@ export const LandingStack = () => {
             </div>
             
             <div ref={lastRef5} className="mt-24 flex justify-center">
-              <button onClick={() => window.location.href = '/blog'} className="group flex items-center gap-4 bg-black p-1.5 pl-8 pr-2 rounded-full border-2 border-black hover:bg-gray-800 transition-all shadow-xl">
+              <button onClick={() => window.location.href = '#'} className="group flex items-center gap-4 bg-black p-1.5 pl-8 pr-2 rounded-full border-2 border-black hover:bg-gray-800 transition-all shadow-xl">
                 <span className="text-white font-nunito font-bold text-[14px] md:text-[18px]">View all articles</span>
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center transition-transform group-hover:translate-x-1">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>

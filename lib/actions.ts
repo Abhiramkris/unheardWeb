@@ -160,9 +160,15 @@ export async function requestSession(data: {
   if (user) {
     appointmentPayload.patient_id = user.id
   } else {
-    appointmentPayload.guest_name = data.patient_details?.name || 'Guest'
-    appointmentPayload.guest_email = data.patient_details?.email || ''
-    appointmentPayload.guest_phone = data.phone
+    // NOTE: Storing guest details in questionnaire to avoid missing column errors in the appointments table
+    data.questionnaire = {
+      ...data.questionnaire,
+      guest_info: {
+        name: data.patient_details?.name || 'Guest',
+        email: data.patient_details?.email || '',
+        phone: data.phone
+      }
+    };
   }
 
   const { data: appointment, error: aptError } = await supabase
@@ -184,27 +190,31 @@ export async function requestSession(data: {
   if (qError) throw qError
 
   // 6. WHATSAPP NOTIFICATIONS
-  const formattedDate = start.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-  const formattedTime = start.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+  try {
+    const formattedDate = start.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    const formattedTime = start.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
 
-  const displayName = user?.user_metadata?.full_name || data.patient_details?.name || 'there'
+    const displayName = user?.user_metadata?.full_name || data.patient_details?.name || 'there'
 
-  // A. Notify Patient
-  if (data.phone) {
-    const patientMsg = `*Booking Requested!* 🧘‍♀️\n\nHi ${displayName}, your session has been requested for *${formattedDate}* at *${formattedTime}*.\n\nWe will notify you once the therapist confirms the slot.`
-    await WhatsAppManager.sendMessage(data.phone, patientMsg)
-  }
+    // A. Notify Patient
+    if (data.phone) {
+      const patientMsg = `*Booking Requested!* 🧘‍♀️\n\nHi ${displayName}, your session has been requested for *${formattedDate}* at *${formattedTime}*.\n\nWe will notify you once the therapist confirms the slot.`
+      WhatsAppManager.sendMessage(data.phone, patientMsg).catch(console.error);
+    }
 
-  // B. Notify Therapist
-  const { data: therapistProfile } = await supabase
-    .from('therapist_profiles')
-    .select('full_name, phone')
-    .eq('user_id', data.therapist_id)
-    .single()
+    // B. Notify Therapist
+    const { data: therapistProfile } = await supabase
+      .from('therapist_profiles')
+      .select('full_name, phone')
+      .eq('user_id', data.therapist_id)
+      .single()
 
-  if (therapistProfile?.phone) {
-    const therapistMsg = `*New Booking Alert!* 🔔\n\nDr. ${therapistProfile.full_name}, you have a new ${data.is_trial ? 'Trial' : 'Standard'} session request from *${displayName}* for *${formattedDate}* at *${formattedTime}*.\n\nPlease log in to confirm the appointment.`
-    await WhatsAppManager.sendMessage(therapistProfile.phone, therapistMsg)
+    if (therapistProfile?.phone) {
+      const therapistMsg = `*New Booking Alert!* 🔔\n\nDr. ${therapistProfile.full_name}, you have a new ${data.is_trial ? 'Trial' : 'Standard'} session request from *${displayName}* for *${formattedDate}* at *${formattedTime}*.\n\nPlease log in to confirm the appointment.`
+      WhatsAppManager.sendMessage(therapistProfile.phone, therapistMsg).catch(console.error);
+    }
+  } catch (error) {
+    console.error('Non-blocking WhatsApp Notification Error:', error)
   }
 
   revalidatePath('/admin/dashboard')

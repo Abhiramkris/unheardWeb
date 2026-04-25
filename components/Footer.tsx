@@ -21,7 +21,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row gap-8 md:gap-16 font-nunito text-[16px]">
           <div className="flex flex-col gap-3">
             <h4 className="font-bold text-white mb-2">Company</h4>
-            <Link href="/" className="text-gray-400 hover:text-white transition-colors">About Us</Link>
+            <Link href="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link>
             <Link href="/contact" className="text-gray-400 hover:text-white transition-colors">Contact</Link>
             <Link href="/therapists" className="text-gray-400 hover:text-white transition-colors">Our Therapists</Link>
           </div>
