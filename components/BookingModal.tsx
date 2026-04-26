@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, ChevronLeft, Calendar, Clock } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '@/utils/supabase/client';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -54,6 +55,16 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
 
   const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [previewTherapist, setPreviewTherapist] = useState<Therapist | null>(null);
+  const [deviceId, setDeviceId] = useState<string>('');
+
+  useEffect(() => {
+    const setFp = async () => {
+      const fp = await FingerprintJS.load();
+      const result = await fp.get();
+      setDeviceId(result.visitorId);
+    };
+    setFp();
+  }, []);
 
   useEffect(() => {
     async function fetchTherapists() {
@@ -122,6 +133,11 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       
+      // Sync with Supabase SDK using the session returned from server
+      if (data.session) {
+        await supabase.auth.setSession(data.session);
+      }
+      
       setDirection(1);
       setStep(3); // Go to Care Type
     } catch (err: any) {
@@ -140,7 +156,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     }
     
     setDirection(1);
-    setStep((s) => Math.min(s + 1, 6)); // Max steps is now 6
+    setStep((s) => Math.min(s + 1, 5)); // Now 5 steps total
   };
 
   const handlePrev = () => {
@@ -174,10 +190,11 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
       }
 
       const result = await requestSession({
-        therapist_id: formData.therapist_id,
+        therapist_id: formData.therapist_id || undefined, // Backend handles null for manual allotment
         start_time: rawDateStr,
         is_trial: formData.is_trial,
         phone: formData.phone,
+        deviceId, // For anti-exploit
         patient_details: !user ? {
           name: formData.name,
           email: formData.email
@@ -232,11 +249,11 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
 
   const renderStepIndicator = () => (
     <div className="flex items-center gap-2 mb-8">
-      {[1, 2, 3, 4, 5, 6].map((s) => (
+      {[1, 2, 3, 4, 5].map((s) => (
         <div key={s} className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? 'w-8 bg-[#0F9393]' : 'w-4 bg-gray-200'}`} />
       ))}
       <span className="ml-2 font-nunito font-bold text-[12px] text-gray-400 uppercase tracking-wider">
-        Step {step}/6
+        Step {step}/5
       </span>
     </div>
   );
@@ -296,7 +313,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
             </div>
 
             {/* Forms Section */}
-            <div className="flex-grow p-8 md:p-12 flex flex-col relative bg-white">
+            <div className="flex-grow p-8 md:p-12 flex flex-col relative bg-white text-black">
               <button onClick={closeAndReset} className="hidden md:flex absolute top-8 right-8 text-gray-400 hover:text-black transition-colors"><X size={28} /></button>
 
               {renderStepIndicator()}
@@ -322,7 +339,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                               value={formData.name} 
                               onChange={(e) => setFormData({...formData, name: e.target.value})} 
                               placeholder="e.g. John Doe" 
-                              className="border border-gray-200 rounded-2xl px-5 py-3.5 font-nunito text-black focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                              className="border border-gray-200 rounded-2xl px-5 py-3.5 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
                             />
                           </div>
                           <div className="flex flex-col gap-2">
@@ -332,7 +349,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                               value={formData.email} 
                               onChange={(e) => setFormData({...formData, email: e.target.value})} 
                               placeholder="e.g. john@example.com" 
-                              className="border border-gray-200 rounded-2xl px-5 py-3.5 font-nunito text-black focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                              className="border border-gray-200 rounded-2xl px-5 py-3.5 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
                             />
                           </div>
                           <div className="flex flex-col gap-2 md:col-span-2">
@@ -342,7 +359,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                               value={formData.phone} 
                               onChange={(e) => setFormData({...formData, phone: e.target.value})} 
                               placeholder="e.g. +91 98765 43210" 
-                              className="border border-gray-200 rounded-2xl px-5 py-3.5 font-nunito text-black focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                              className="border border-gray-200 rounded-2xl px-5 py-3.5 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
                             />
                           </div>
                         </div>
@@ -359,7 +376,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                           <p className="font-nunito text-gray-500">We securely pinged a 6-digit code to <strong>{formData.phone}</strong>.</p>
                         </div>
                         <div className="flex flex-col gap-2 max-w-[300px] mx-auto w-full">
-                          <input type="text" value={formData.otp} onChange={(e) => setFormData({...formData, otp: e.target.value})} placeholder="0 0 0 0 0 0" className="border-b-2 border-gray-300 px-5 py-4 font-bold text-center text-[28px] tracking-[1rem] text-black focus:outline-none focus:border-[#0F9393] bg-transparent" maxLength={6} />
+                          <input type="text" value={formData.otp} onChange={(e) => setFormData({...formData, otp: e.target.value})} placeholder="0 0 0 0 0 0" className="border-b-2 border-gray-300 px-5 py-4 font-bold text-center text-[28px] tracking-[1rem] text-black placeholder:text-gray-300 focus:outline-none focus:border-[#0F9393] bg-transparent" maxLength={6} />
                         </div>
                       </div>
                     )}
@@ -389,7 +406,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                           </div>
                           <div className="flex flex-col gap-2">
                             <label className="font-nunito font-bold text-[14px] text-gray-900">Primary Concern</label>
-                            <input type="text" value={formData.service} onChange={(e) => setFormData({...formData, service: e.target.value})} placeholder="e.g. Anxiety, Stress, Relationships" className="border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-[#0F9393] bg-gray-50/50" />
+                            <input type="text" value={formData.service} onChange={(e) => setFormData({...formData, service: e.target.value})} placeholder="e.g. Anxiety, Stress, Relationships" className="border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-[#0F9393] bg-gray-50/50 text-black placeholder:text-gray-400" />
                           </div>
                         </div>
                       </div>
@@ -398,37 +415,8 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                     {step === 4 && (
                       <div className="flex flex-col gap-6 h-full">
                         <div className="mb-2">
-                          <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Select Therapist</h3>
-                          <p className="font-nunito text-gray-500">Long press to preview therapist details.</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
-                          {therapists.map((t: Therapist) => (
-                            <div 
-                              key={t.user_id} 
-                              onPointerDown={() => handlePressStart(t)} onPointerUp={handlePressEnd} onPointerLeave={handlePressEnd}
-                              onClick={() => setFormData({...formData, therapist_id: t.user_id})}
-                              className={`group border-2 ${formData.therapist_id === t.user_id ? 'border-[#0F9393] bg-[#0F9393]/5 transform scale-[1.02]' : 'border-gray-100 hover:border-gray-200'} rounded-2xl p-4 cursor-pointer transition-all duration-300`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-16 h-16 rounded-xl bg-gray-200 overflow-hidden shrink-0">
-                                   <Image src={t.avatar_url || `/assets/section_2_3.webp`} width={64} height={64} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt="Therapist" />
-                                </div>
-                                <div className="pointer-events-none select-none">
-                                  <h4 className="font-georgia font-bold text-[16px] text-black leading-tight line-clamp-1">{t.full_name}</h4>
-                                  <span className="font-nunito text-[12px] text-gray-500 line-clamp-1">{t.qualification}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {step === 5 && (
-                      <div className="flex flex-col gap-6 h-full">
-                        <div className="mb-2">
                           <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Schedule Time</h3>
-                          <p className="font-nunito text-gray-500">Secure your appointment block with the therapist.</p>
+                          <p className="font-nunito text-gray-500">Secure your appointment block with unHeard.</p>
                         </div>
                         <div className="flex flex-col gap-4">
                            <div className="flex flex-col gap-2">
@@ -438,7 +426,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                                min={new Date().toISOString().split('T')[0]} // restrict past dates
                                value={formData.scheduled_date} 
                                onChange={(e) => setFormData({...formData, scheduled_date: e.target.value})}
-                               className="border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[#0F9393] bg-gray-50/50 font-bold" 
+                               className="border border-gray-200 rounded-2xl px-5 py-4 focus:outline-none focus:border-[#0F9393] bg-gray-50/50 font-bold text-black" 
                              />
                            </div>
                            
@@ -460,7 +448,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                       </div>
                     )}
 
-                    {step === 6 && (
+                    {step === 5 && (
                       <div className="flex flex-col gap-6">
                         <div className="mb-2">
                           <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Select Plan</h3>
@@ -499,10 +487,10 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                 </div>
                 
                 <div className="flex gap-4">
-                  {step < 6 ? (
+                  {step < 5 ? (
                     <button 
                       onClick={handleNext} 
-                      disabled={loading || (step === 1 && !formData.phone) || (step === 2 && formData.otp.length !== 6) || (step === 4 && !formData.therapist_id) || (step === 5 && (!formData.scheduled_date || !formData.scheduled_time))}
+                      disabled={loading || (step === 1 && !formData.phone) || (step === 2 && formData.otp.length !== 6) || (step === 4 && (!formData.scheduled_date || !formData.scheduled_time))}
                       className="bg-black text-white px-8 py-3.5 rounded-2xl font-nunito font-bold flex items-center gap-3 shadow-lg shadow-black/10 hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? 'Processing...' : 'Continue'}

@@ -101,81 +101,115 @@ export async function submitContactInquiry(data: {
 import { WhatsAppManager } from './whatsapp/WhatsAppClient'
 
 /**
+ * HELPERS
+ */
+export const normalizePhone = (phone: string) => {
+  // Remove all non-numeric characters except +
+  let cleaned = phone.replace(/[^\d+]/g, '')
+  // If starts with 00, replace with +
+  if (cleaned.startsWith('00')) cleaned = '+' + cleaned.slice(2)
+  // Ensure it starts with + for E.164 (Assuming India +91 if no code provided?) 
+  // However unHeard seems to be India-centric. Let's just strip and clean for now.
+  return cleaned
+}
+
+/**
  * BOOKING & TRIAL SESSIONS
- * Now handles availability validation, overlap detection, guest data, and WhatsApp alerts.
  */
 export async function requestSession(data: {
-  therapist_id: string;
+  therapist_id?: string;
   start_time: string;
   is_trial: boolean;
   questionnaire: any;
   phone: string; 
+  deviceId?: string;
   patient_details?: { name: string; email: string };
 }) {
   try {
     const supabase = await createClient()
     const adminSupabase = await createAdminClient()
-  const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  // 1. FORMAT & VALIDATE DATE
+    // 0. NORMALIZE PHONE
+    const cleanPhone = normalizePhone(data.phone)
+
+    // 1. FORMAT & VALIDATE DATE
   const start = new Date(data.start_time)
   const duration = data.is_trial ? 30 : 60
   const end = new Date(start.getTime() + duration * 60000)
   const dayOfWeek = start.getDay()
   const timeStr = start.toTimeString().split(' ')[0] 
 
-  // 1.5. OTP VERIFICATION GUARD (For guests)
-  if (!user) {
-    const { data: otpVerified, error: otpError } = await adminSupabase
-      .from('booking_otps')
-      .select('id')
-      .eq('phone_number', data.phone)
-      .eq('verified', true)
-      .gte('created_at', new Date(Date.now() - 15 * 60000).toISOString()) // Within last 15 mins
-      .limit(1)
-      .maybeSingle()
+    // 1.5. OTP VERIFICATION GUARD (For guests)
+    if (!user) {
+      const { data: otpVerified, error: otpError } = await adminSupabase
+        .from('booking_otps')
+        .select('id')
+        .eq('phone_number', data.phone)
+        .eq('verified', true)
+        .gte('created_at', new Date(Date.now() - 15 * 60000).toISOString()) // Within last 15 mins
+        .limit(1)
+        .maybeSingle()
 
-    if (otpError || !otpVerified) {
-      return { success: false, error: 'Verification required. Please verify your phone number via OTP before booking.' }
+      if (otpError || !otpVerified) {
+        return { success: false, error: 'Verification required. Please verify your phone number via OTP before booking.' }
+      }
+
+      // 1.7 ANTI-EXPLOIT (Fingerprint & Phone Uniqueness for Free Trial)
+      if (data.is_trial) {
+        const { data: existingClaim } = await adminSupabase
+          .from('user_fingerprints')
+          .select('id')
+          .or(`phone_number.eq.${cleanPhone},device_id.eq.${data.deviceId}`)
+          .eq('free_trial_claimed', true)
+          .maybeSingle()
+
+        if (existingClaim) {
+          return { success: false, error: 'This device or phone number has already claimed a free consultation session.' }
+        }
+      }
     }
-  }
 
   // 2. AVAILABILITY GUARD
-  const { data: allRules } = await adminSupabase
-    .from('therapist_availability')
-    .select('id')
-    .eq('therapist_id', data.therapist_id)
-    .limit(1)
-
-  if (allRules && allRules.length > 0) {
-    const { data: slot, error: slotError } = await adminSupabase
+  if (data.therapist_id) {
+    const { data: allRules } = await adminSupabase
       .from('therapist_availability')
-      .select('*')
+      .select('id')
       .eq('therapist_id', data.therapist_id)
-      .eq('day_of_week', dayOfWeek)
-      .lte('start_time', timeStr)
-      .gte('end_time', timeStr)
-      .eq('is_available', true)
-      .maybeSingle()
+      .limit(1)
 
-    if (slotError || !slot) {
-      return { success: false, error: 'Selected therapist is not available at this specific time slot.' }
+    if (allRules && allRules.length > 0) {
+      const { data: slot, error: slotError } = await adminSupabase
+        .from('therapist_availability')
+        .select('*')
+        .eq('therapist_id', data.therapist_id)
+        .eq('day_of_week', dayOfWeek)
+        .lte('start_time', timeStr)
+        .gte('end_time', timeStr)
+        .eq('is_available', true)
+        .maybeSingle()
+
+      if (slotError || !slot) {
+        return { success: false, error: 'Selected therapist is not available at this specific time slot.' }
+      }
     }
   }
 
   // 3. OVERLAP GUARD
-  const { data: existing } = await adminSupabase
-    .from('appointments')
-    .select('id')
-    .eq('therapist_id', data.therapist_id)
-    .neq('status', 'cancelled')
-    .lt('start_time', end.toISOString())
-    .gt('end_time', start.toISOString())
-    .maybeSingle()
+  if (data.therapist_id) {
+    const { data: existing } = await adminSupabase
+      .from('appointments')
+      .select('id')
+      .eq('therapist_id', data.therapist_id)
+      .neq('status', 'cancelled')
+      .lt('start_time', end.toISOString())
+      .gt('end_time', start.toISOString())
+      .maybeSingle()
 
     if (existing) {
       return { success: false, error: 'This time slot has already been booked. Please select another time.' }
     }
+  }
 
   // 4. CREATE APPOINTMENT (Hybrid Auth/Guest)
   const appointmentPayload: any = {
@@ -238,19 +272,32 @@ export async function requestSession(data: {
     }
 
     // B. Notify Therapist
-    const { data: therapistProfile } = await adminSupabase
-      .from('therapist_profiles')
-      .select('full_name, phone')
-      .eq('user_id', data.therapist_id)
-      .single()
+    if (data.therapist_id) {
+      const { data: therapistProfile } = await adminSupabase
+        .from('therapist_profiles')
+        .select('full_name, phone')
+        .eq('user_id', data.therapist_id)
+        .single()
 
-    if (therapistProfile?.phone) {
-      const therapistMsg = `*New Booking Alert!* 🔔\n\nDr. ${therapistProfile.full_name}, you have a new ${data.is_trial ? 'Trial' : 'Standard'} session request from *${displayName}* for *${formattedDate}* at *${formattedTime}*.\n\nPlease log in to confirm the appointment.`
-      WhatsAppManager.sendMessage(therapistProfile.phone, therapistMsg).catch(console.error);
+      if (therapistProfile?.phone) {
+        const therapistMsg = `*New Booking Alert!* 🔔\n\nDr. ${therapistProfile.full_name}, you have a new ${data.is_trial ? 'Trial' : 'Standard'} session request from *${displayName}* for *${formattedDate}* at *${formattedTime}*.\n\nPlease log in to confirm the appointment.`
+        WhatsAppManager.sendMessage(therapistProfile.phone, therapistMsg).catch(console.error);
+      }
     }
   } catch (error) {
     console.error('Non-blocking WhatsApp Notification Error:', error)
   }
+
+    // 7. UPDATE FINGERPRINT / HISTORY
+    await adminSupabase.from('user_fingerprints').upsert({
+      phone_number: cleanPhone,
+      device_id: data.deviceId,
+      free_trial_claimed: data.is_trial ? true : undefined,
+    }, { onConflict: 'phone_number' });
+
+    // Increment session count
+    const { data: fp } = await adminSupabase.from('user_fingerprints').select('session_count').eq('phone_number', cleanPhone).maybeSingle();
+    await adminSupabase.from('user_fingerprints').update({ session_count: (fp?.session_count || 0) + 1 }).eq('phone_number', cleanPhone);
 
     revalidatePath('/admin/dashboard')
     return { success: true, appointmentId: appointment.id }
