@@ -4,7 +4,7 @@ import { WhatsAppManager } from '@/lib/whatsapp/WhatsAppClient';
 
 export async function POST(req: Request) {
   try {
-    let { appointment_id, therapist_id, meeting_link } = await req.json();
+    const { appointment_id, therapist_id, meeting_link } = await req.json();
 
     if (!appointment_id || !therapist_id) {
       return NextResponse.json({ success: false, error: 'Appointment ID and Therapist ID are required' }, { status: 400 });

@@ -6,10 +6,10 @@ import { normalizePhone } from '@/utils/phone';
 
 export async function POST(req: Request) {
   try {
-    let { phone, otp } = await req.json();
-    if (!phone || !otp) return NextResponse.json({ success: false, error: 'Phone and OTP are required' }, { status: 400 });
+    const { phone: rawPhone, otp } = await req.json();
+    if (!rawPhone || !otp) return NextResponse.json({ success: false, error: 'Phone and OTP are required' }, { status: 400 });
 
-    phone = normalizePhone(phone);
+    const phone = normalizePhone(rawPhone);
 
     const adminSupabase = await createAdminClient();
     

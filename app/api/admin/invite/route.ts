@@ -9,13 +9,13 @@ export async function POST(request: Request) {
   const adminSupabase = await createAdminClient()
 
   // 1. Check if the current user is a Super Admin
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: roleData } = await supabase
     .from('user_roles')
     .select('role')
-    .eq('user_id', user.id)
+    .eq('user_id', currentUser.id)
     .single()
 
   if (roleData?.role !== 'super_admin') {

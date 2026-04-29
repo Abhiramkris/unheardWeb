@@ -1,13 +1,18 @@
 import { createAdminClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 
-export default async function RoomGateway({ params, searchParams }: { params: { id: string }, searchParams: { type?: string } }) {
+export default async function RoomGateway({ params, searchParams }: { 
+  params: Promise<{ id: string }>, 
+  searchParams: Promise<{ type?: string }> 
+}) {
+  const { id } = await params;
+  const { type } = await searchParams;
   const adminSupabase = await createAdminClient();
 
   const { data: appointment, error } = await adminSupabase
     .from('appointments')
     .select('start_time, status, meeting_link, joined_at_patient, joined_at_therapist')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !appointment) {
@@ -71,11 +76,11 @@ export default async function RoomGateway({ params, searchParams }: { params: { 
   }
 
   // LOG JOIN EVENT
-  const userType = searchParams.type;
+  const userType = type;
   if (userType === 'patient' || userType === 'therapist') {
     // 1. Create a detailed audit log entry
     await adminSupabase.from('session_logs').insert([{
-        appointment_id: params.id,
+        appointment_id: id,
         user_type: userType,
         event_type: 'join'
     }]);
@@ -87,10 +92,10 @@ export default async function RoomGateway({ params, searchParams }: { params: { 
         await adminSupabase
           .from('appointments')
           .update({ [updateColumn]: new Date().toISOString() })
-          .eq('id', params.id);
+          .eq('id', id);
     }
   }
 
   // If valid, boot directly to the secure virtual space.
-  redirect(appointment.meeting_link || `https://meet.jit.si/unHeard-Session-${params.id.substring(0,8)}`);
+  redirect(appointment.meeting_link || `https://meet.jit.si/unHeard-Session-${id.substring(0,8)}`);
 }

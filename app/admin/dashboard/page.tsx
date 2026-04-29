@@ -246,7 +246,9 @@ export default function AdminDashboard() {
                       <p className="text-gray-400 italic">No new registrations yet.</p>
                     </div>
                   ) : (
-                    registrations.map((reg) => (
+                    registrations.map((reg) => {
+                      const duration = getDuration(reg);
+                      return (
                       <div key={reg.id} className="bg-white p-6 rounded-[24px] border border-gray-100 flex flex-col gap-4 hover:shadow-md transition-all group">
                          <div className="flex justify-between items-start">
                             <div className="flex items-center gap-4">
@@ -289,7 +291,7 @@ export default function AdminDashboard() {
                               </a>
                             )}
                             
-                            {reg.status !== 'completed' && reg.joined_at_therapist && getDuration(reg) !== null && getDuration(reg) >= 45 && (
+                            {reg.status !== 'completed' && reg.joined_at_therapist && duration !== null && duration >= 45 && (
                               <button 
                                 onClick={() => setClosingSession(reg.id)}
                                 className="flex-grow h-[45px] bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl text-[13px] transition-all flex items-center justify-center gap-2"
@@ -317,15 +319,15 @@ export default function AdminDashboard() {
                                   <div className={`w-2 h-2 rounded-full ${reg.joined_at_therapist ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
                                   <span className="text-[11px] font-bold text-gray-500 uppercase">Therapist</span>
                                </div>
-                               {getDuration(reg) !== null && (
+                               {duration !== null && (
                                   <div className="ml-auto text-[11px] font-black text-[#0F9393] bg-[#0F9393]/10 px-3 py-1 rounded-full uppercase tracking-tighter">
-                                     Live: {getDuration(reg)} Mins
+                                     Live: {duration} Mins
                                   </div>
                                )}
                             </div>
                          )}
                       </div>
-                    ))
+                    )})
                   )}
                </div>
 

@@ -4,6 +4,7 @@ import { normalizePhone } from '@/utils/phone'
 import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { mailer } from '@/lib/mailer'
 import { revalidatePath } from 'next/cache'
+import { headers } from 'next/headers'
 
 /**
  * THERAPIST ONBOARDING & PROFILE
@@ -133,7 +134,7 @@ export async function requestSession(data: {
   const timeStr = start.toTimeString().split(' ')[0] 
   
   // 1.2 GET CLIENT IP
-  const headersList = await require('next/headers').headers();
+  const headersList = await headers();
   const ip = headersList.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
     // 1.5. OTP VERIFICATION GUARD (For guests)
     if (!user) {
