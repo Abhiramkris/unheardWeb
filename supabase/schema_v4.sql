@@ -13,8 +13,10 @@ CREATE TABLE IF NOT EXISTS public.user_fingerprints (
     device_id TEXT NOT NULL,
     free_trial_claimed BOOLEAN DEFAULT FALSE,
     session_count INTEGER DEFAULT 0,
+    ip_address TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
 
 -- Index for fast lookup
 CREATE INDEX IF NOT EXISTS idx_fingerprints_device ON public.user_fingerprints(device_id);
@@ -41,3 +43,31 @@ ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS registration_status TEX
 -- 22. MANUAL ALLOTMENT SUPPORT
 -- Make therapist_id optional for initial booking
 ALTER TABLE public.appointments ALTER COLUMN therapist_id DROP NOT NULL;
+
+-- 23. BRUTE FORCE PROTECTION & RATE LIMITS
+ALTER TABLE public.booking_otps ADD COLUMN IF NOT EXISTS attempts INTEGER DEFAULT 0;
+
+-- 24. RLS POLICIES (HARDENING)
+ALTER TABLE public.user_fingerprints ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.booking_otps ENABLE ROW LEVEL SECURITY;
+
+-- Fingerprints: Admin only read/write
+CREATE POLICY "Admin Fingerprint Access" ON public.user_fingerprints
+FOR ALL TO authenticated USING (auth.jwt()->>'role' = 'authenticated');
+
+-- Coupons: Public read (active only), Admin write
+CREATE POLICY "Public Active Coupons" ON public.coupons
+FOR SELECT TO anon, authenticated USING (is_active = true AND (expires_at IS NULL OR expires_at > now()));
+
+CREATE POLICY "Admin Coupon Management" ON public.coupons
+FOR ALL TO authenticated USING (auth.jwt()->>'role' = 'authenticated');
+
+-- Appointments: User access (RLS)
+ALTER TABLE public.appointments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users view own appointments" ON public.appointments
+FOR SELECT TO authenticated USING (patient_id = auth.uid());
+
+CREATE POLICY "Admin view all appointments" ON public.appointments
+FOR SELECT TO authenticated USING (auth.jwt()->>'role' = 'authenticated');

@@ -23,6 +23,10 @@ interface Registration {
   };
   answers?: any;
   session_count?: number;
+  meeting_link?: string;
+  joined_at_patient?: string;
+  joined_at_therapist?: string;
+  completed_at?: string;
 }
 
 interface Therapist {
@@ -55,6 +59,9 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
 
+  const [closingSession, setClosingSession] = useState<string | null>(null);
+  const [summary, setSummary] = useState('');
+
   const checkUserPermissions = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -72,12 +79,16 @@ export default function AdminDashboard() {
 
   const fetchRegistrations = useCallback(async () => {
     // Join appointments with questionnaires to get guest info
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
     const { data: apts, error } = await supabase
       .from('appointments')
       .select(`
         *,
         pre_booking_questionnaires(answers)
       `)
+      .eq('therapist_id', user.id)
       .order('created_at', { ascending: false })
 
     if (apts) {
@@ -98,7 +109,11 @@ export default function AdminDashboard() {
         assignment_status: a.assignment_status,
         guest_info: a.pre_booking_questionnaires?.[0]?.answers?.guest_info,
         answers: a.pre_booking_questionnaires?.[0]?.answers,
-        session_count: fpMap.get(a.pre_booking_questionnaires?.[0]?.answers?.guest_info?.phone) || 0
+        session_count: fpMap.get(a.pre_booking_questionnaires?.[0]?.answers?.guest_info?.phone) || 0,
+        meeting_link: a.meeting_link,
+        joined_at_patient: a.joined_at_patient,
+        joined_at_therapist: a.joined_at_therapist,
+        completed_at: a.completed_at
       }))
       setRegistrations(formatted)
     }
@@ -147,13 +162,46 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleCloseSession = async () => {
+    if (!closingSession) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/close-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointment_id: closingSession, summary }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Session closed and resources cleaned up.');
+        setClosingSession(null);
+        setSummary('');
+        fetchRegistrations();
+      } else {
+        alert(data.error);
+      }
+    } catch {
+      alert('Error closing session');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const getDuration = (reg: Registration) => {
+    if (!reg.joined_at_therapist || !reg.joined_at_patient) return null;
+    const start = Math.max(new Date(reg.joined_at_therapist).getTime(), new Date(reg.joined_at_patient).getTime());
+    const end = reg.completed_at ? new Date(reg.completed_at).getTime() : Date.now();
+    const diff = Math.floor((end - start) / (1000 * 60));
+    return diff;
+  }
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#FEFEFC]">Loading Admin Dashboard...</div>
 
   return (
     <div className="min-h-screen bg-[#FEFEFC] font-nunito flex">
       {/* Sidebar */}
       <aside className="w-[280px] bg-white border-r border-gray-100 p-8 flex flex-col gap-10">
-        <h2 className="text-[28px] font-georgia font-bold text-[#0F9393]">unHeard <span className="text-[12px] text-gray-400 font-bold uppercase tracking-widest block">Super Admin</span></h2>
+        <h2 className="text-[28px] font-georgia font-bold text-[#0F9393]">unHeard <span className="text-[12px] text-gray-400 font-bold uppercase tracking-widest block">Therapist</span></h2>
         
         <nav className="flex flex-col gap-3">
           <button 
@@ -162,18 +210,16 @@ export default function AdminDashboard() {
           >
             <LayoutDashboard size={20} /> Registrations
           </button>
-          <button 
-            onClick={() => setActiveTab('coupons')}
-            className={`flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === 'coupons' ? 'bg-[#0F9393] text-white shadow-lg' : 'text-gray-400 hover:bg-gray-50'}`}
-          >
-            <Ticket size={20} /> Coupons
-          </button>
-          <button 
-            onClick={() => setActiveTab('therapists')}
-            className={`flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === 'therapists' ? 'bg-[#0F9393] text-white shadow-lg' : 'text-gray-400 hover:bg-gray-50'}`}
-          >
-            <Users size={20} /> Therapists
-          </button>
+
+
+          {isAdmin && (
+            <button 
+              onClick={() => window.location.href = '/super-admin'}
+              className="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all bg-gray-900 text-white hover:bg-black mt-12 shadow-lg"
+            >
+              <LayoutDashboard size={20} className="text-[#0F9393]" /> Switch to Admin
+            </button>
+          )}
         </nav>
       </aside>
 
@@ -228,14 +274,56 @@ export default function AdminDashboard() {
                             </div>
                             <div className="flex flex-col">
                                <span className="text-[10px] text-gray-400 font-bold uppercase">Constancy</span>
-                               <span className="text-[13px] font-bold text-green-600">{reg.session_count > 0 ? `${reg.session_count} Session(s)` : 'New User'}</span>
+                               <span className="text-[13px] font-bold text-green-600">{reg.session_count && reg.session_count > 0 ? `${reg.session_count} Session(s)` : 'New User'}</span>
                             </div>
                          </div>
 
                          <div className="flex gap-3 mt-2">
-                            <button className="flex-grow h-[45px] bg-[#0F9393]/5 hover:bg-[#0F9393]/10 text-[#0F9393] font-bold rounded-xl text-[13px] transition-all">View Details</button>
-                            <button className="h-[45px] px-6 bg-black text-white font-bold rounded-xl text-[13px] hover:bg-gray-800 transition-all">Manual Allot</button>
+                            {reg.status !== 'completed' && reg.meeting_link && (
+                              <a 
+                                href={`/room/${reg.id}?type=therapist`} 
+                                target="_blank" 
+                                className="flex-grow h-[45px] bg-[#0F9393] text-white font-bold rounded-xl text-[13px] hover:bg-[#0D7F7F] transition-all flex items-center justify-center gap-2 shadow-md"
+                              >
+                                <UserCircle size={16} /> Join Session Space
+                              </a>
+                            )}
+                            
+                            {reg.status !== 'completed' && reg.joined_at_therapist && getDuration(reg) !== null && getDuration(reg) >= 45 && (
+                              <button 
+                                onClick={() => setClosingSession(reg.id)}
+                                className="flex-grow h-[45px] bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl text-[13px] transition-all flex items-center justify-center gap-2"
+                              >
+                                <AlertCircle size={16} /> Close Session
+                              </button>
+                            )}
+
+                            {reg.status === 'completed' && (
+                               <div className="flex-grow h-[45px] bg-gray-50 text-gray-400 font-bold rounded-xl text-[13px] flex items-center justify-center gap-2">
+                                  <CheckCircle2 size={16} /> Session Completed
+                               </div>
+                            )}
+
+                            <button className="h-[45px] px-6 bg-[#0F9393]/5 hover:bg-[#0F9393]/10 text-[#0F9393] font-bold rounded-xl text-[13px] transition-all">Details</button>
                          </div>
+                         
+                         {(reg.joined_at_patient || reg.joined_at_therapist) && reg.status !== 'completed' && (
+                            <div className="flex items-center gap-6 mt-2 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                               <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${reg.joined_at_patient ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+                                  <span className="text-[11px] font-bold text-gray-500 uppercase">Patient</span>
+                               </div>
+                               <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${reg.joined_at_therapist ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+                                  <span className="text-[11px] font-bold text-gray-500 uppercase">Therapist</span>
+                               </div>
+                               {getDuration(reg) !== null && (
+                                  <div className="ml-auto text-[11px] font-black text-[#0F9393] bg-[#0F9393]/10 px-3 py-1 rounded-full uppercase tracking-tighter">
+                                     Live: {getDuration(reg)} Mins
+                                  </div>
+                               )}
+                            </div>
+                         )}
                       </div>
                     ))
                   )}
@@ -316,6 +404,40 @@ export default function AdminDashboard() {
         )}
 
       </main>
+      {/* Close Session Modal */}
+      {closingSession && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+          <div className="bg-white w-full max-w-lg rounded-[32px] p-10 shadow-2xl flex flex-col gap-6 animate-in fade-in zoom-in duration-300">
+            <div>
+              <h2 className="text-[28px] font-georgia font-bold text-gray-900 mb-2">Close Therapy Session</h2>
+              <p className="text-gray-500 text-[14px]">Please provide a brief summary of the session before closing. This will clear the registration from the active pool.</p>
+            </div>
+
+            <textarea 
+               value={summary}
+               onChange={(e) => setSummary(e.target.value)}
+               placeholder="Enter session summary, observations, or next steps..."
+               className="w-full h-[150px] border border-gray-200 rounded-[20px] p-6 text-[14px] font-medium outline-none focus:border-[#0F9393] transition-all resize-none"
+            />
+
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setClosingSession(null)}
+                className="flex-1 h-[55px] font-bold text-gray-500 hover:bg-gray-50 rounded-2xl transition-all"
+              >
+                Go Back
+              </button>
+              <button 
+                onClick={handleCloseSession}
+                disabled={loading || !summary.trim()}
+                className="flex-[2] h-[55px] bg-black text-white font-bold rounded-2xl hover:bg-gray-800 transition-all shadow-lg disabled:opacity-50"
+              >
+                {loading ? 'Closing...' : 'Close & Save Summary'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

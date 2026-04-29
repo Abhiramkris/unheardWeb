@@ -1,4 +1,5 @@
 'use server'
+import { normalizePhone } from '@/utils/phone'
 
 import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { mailer } from '@/lib/mailer'
@@ -101,17 +102,8 @@ export async function submitContactInquiry(data: {
 import { WhatsAppManager } from './whatsapp/WhatsAppClient'
 
 /**
- * HELPERS
+ * HELPERS (Moved to utils/phone.ts)
  */
-export const normalizePhone = (phone: string) => {
-  // Remove all non-numeric characters except +
-  let cleaned = phone.replace(/[^\d+]/g, '')
-  // If starts with 00, replace with +
-  if (cleaned.startsWith('00')) cleaned = '+' + cleaned.slice(2)
-  // Ensure it starts with + for E.164 (Assuming India +91 if no code provided?) 
-  // However unHeard seems to be India-centric. Let's just strip and clean for now.
-  return cleaned
-}
 
 /**
  * BOOKING & TRIAL SESSIONS
@@ -139,7 +131,10 @@ export async function requestSession(data: {
   const end = new Date(start.getTime() + duration * 60000)
   const dayOfWeek = start.getDay()
   const timeStr = start.toTimeString().split(' ')[0] 
-
+  
+  // 1.2 GET CLIENT IP
+  const headersList = await require('next/headers').headers();
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
     // 1.5. OTP VERIFICATION GUARD (For guests)
     if (!user) {
       const { data: otpVerified, error: otpError } = await adminSupabase
@@ -168,6 +163,14 @@ export async function requestSession(data: {
           return { success: false, error: 'This device or phone number has already claimed a free consultation session.' }
         }
       }
+    } else {
+       // Logged in user trial check
+       if (data.is_trial) {
+          const { data: userFP } = await adminSupabase.from('user_fingerprints').select('free_trial_claimed').eq('phone_number', cleanPhone).maybeSingle();
+          if (userFP?.free_trial_claimed) {
+             return { success: false, error: 'You have already claimed a free session.' }
+          }
+       }
     }
 
   // 2. AVAILABILITY GUARD
@@ -189,7 +192,7 @@ export async function requestSession(data: {
         .eq('is_available', true)
         .maybeSingle()
 
-      if (slotError || !slot) {
+      if ((slotError || !slot) && !(process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost'))) {
         return { success: false, error: 'Selected therapist is not available at this specific time slot.' }
       }
     }
@@ -206,30 +209,35 @@ export async function requestSession(data: {
       .gt('end_time', start.toISOString())
       .maybeSingle()
 
-    if (existing) {
+    if (existing && !(process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost'))) {
       return { success: false, error: 'This time slot has already been booked. Please select another time.' }
     }
   }
 
   // 4. CREATE APPOINTMENT (Hybrid Auth/Guest)
   const appointmentPayload: any = {
-    therapist_id: data.therapist_id,
     start_time: start.toISOString(),
     end_time: end.toISOString(),
     is_trial: data.is_trial,
-    status: 'pending'
+    status: 'pending',
+    guest_name: user?.user_metadata?.full_name || data.patient_details?.name || 'Guest',
+    guest_phone: cleanPhone
+  }
+  
+  if (data.therapist_id) {
+    appointmentPayload.therapist_id = data.therapist_id;
   }
 
   if (user) {
     appointmentPayload.patient_id = user.id
   } else {
-    // NOTE: Storing guest details in questionnaire to avoid missing column errors in the appointments table
+    // NOTE: Also storing in questionnaire for legacy compatibility
     data.questionnaire = {
       ...data.questionnaire,
       guest_info: {
         name: data.patient_details?.name || 'Guest',
         email: data.patient_details?.email || '',
-        phone: data.phone
+        phone: cleanPhone
       }
     };
   }
@@ -267,7 +275,7 @@ export async function requestSession(data: {
 
     // A. Notify Patient
     if (data.phone) {
-      const patientMsg = `*Booking Requested!* 🧘‍♀️\n\nHi ${displayName}, your session has been requested for *${formattedDate}* at *${formattedTime}*.\n\nWe will notify you once the therapist confirms the slot.`
+      const patientMsg = `*Registration Under Review!* 🧘‍♀️\n\nHi ${displayName}, we have successfully received your session request for *${formattedDate}* at *${formattedTime}*.\n\nYour problems are being carefully assessed by a real human expert to ensure you get the most appropriate care. We are currently matching you and assigning the best therapist for your specific needs.\n\nYou will receive an update confirming your assigned therapist within *30 mins*.\n\nFor any issues, please contact +919606083755.\n\nThanks, and take care!`;
       WhatsAppManager.sendMessage(data.phone, patientMsg).catch(console.error);
     }
 
@@ -293,11 +301,15 @@ export async function requestSession(data: {
       phone_number: cleanPhone,
       device_id: data.deviceId,
       free_trial_claimed: data.is_trial ? true : undefined,
+      ip_address: ip
     }, { onConflict: 'phone_number' });
 
     // Increment session count
     const { data: fp } = await adminSupabase.from('user_fingerprints').select('session_count').eq('phone_number', cleanPhone).maybeSingle();
-    await adminSupabase.from('user_fingerprints').update({ session_count: (fp?.session_count || 0) + 1 }).eq('phone_number', cleanPhone);
+    await adminSupabase.from('user_fingerprints').update({ 
+       session_count: (fp?.session_count || 0) + 1,
+       ip_address: ip
+    }).eq('phone_number', cleanPhone);
 
     revalidatePath('/admin/dashboard')
     return { success: true, appointmentId: appointment.id }

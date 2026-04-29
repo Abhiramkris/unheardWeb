@@ -60,8 +60,20 @@ export class WhatsAppManager {
     return globalForWhatsApp.socket;
   }
 
+  static async cleanAuthData() {
+    try {
+      const supabase = await createAdminClient();
+      await supabase.from('whatsapp_auth')
+        .delete()
+        .neq('id', 'creds'); // Delete all bloated session/pre-keys, keep only main identity
+      console.log('🧹 Purged bloated WhatsApp session keys (retained creds).');
+    } catch (err) {
+      console.error('Failed to clean auth data:', err);
+    }
+  }
+
   static async softReconnect() {
-    console.log('🔄 Performing a Force Soft Reconnect (re-initializing socket without purging DB)...');
+    console.log('🔄 Performing a Force Soft Reconnect (purging bloated keys without logging out)...');
     
     if (globalForWhatsApp.socket) {
       try {
@@ -75,6 +87,9 @@ export class WhatsAppManager {
 
     globalForWhatsApp.status = 'disconnected';
     globalForWhatsApp.qrDataUrl = null;
+    
+    // Purge bloated crypto keys to keep the DB small, while retaining the 'creds' so we stay logged in
+    await this.cleanAuthData();
 
     return await this.connectToWhatsApp(true);
   }

@@ -79,7 +79,7 @@ export default function BlogEditor({ onSave, initialData }: BlogEditorProps) {
   }
 
   return (
-    <div className="flex flex-col gap-8 max-w-4xl mx-auto pb-20">
+    <div className="flex flex-col gap-8 max-w-4xl mx-auto pb-20 text-black">
       
       {/* Editor Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 sticky top-0 z-20 bg-[#FEFEFC]/80 backdrop-blur-md py-4 border-b border-gray-100 mb-4">
@@ -148,7 +148,7 @@ export default function BlogEditor({ onSave, initialData }: BlogEditorProps) {
                    value={block.value}
                    onChange={(e) => updateBlock(block.id, { value: e.target.value })}
                    placeholder="Start writing the paragraph..."
-                   className="w-full min-h-[120px] text-[18px] font-nunito leading-relaxed border-none outline-none resize-none placeholder:text-gray-300"
+                   className="w-full min-h-[120px] text-[18px] font-nunito leading-relaxed border-none outline-none resize-none placeholder:text-gray-300 text-black"
                  />
                )}
 
@@ -159,7 +159,7 @@ export default function BlogEditor({ onSave, initialData }: BlogEditorProps) {
                         value={block.value}
                         onChange={(e) => updateBlock(block.id, { value: e.target.value })}
                         placeholder="Add some text next to the image..."
-                        className="w-full min-h-[150px] text-[18px] font-nunito leading-relaxed border-none outline-none resize-none placeholder:text-gray-300"
+                        className="w-full min-h-[150px] text-[18px] font-nunito leading-relaxed border-none outline-none resize-none placeholder:text-gray-300 text-black"
                       />
                    </div>
                    <div className="w-full md:w-[35%] flex flex-col gap-2">
@@ -215,10 +215,10 @@ export default function BlogEditor({ onSave, initialData }: BlogEditorProps) {
         {/* Add Block Toolbar */}
         <div className="flex flex-wrap items-center gap-3 mt-10 p-4 bg-gray-50 rounded-[24px]">
            <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest mr-2 ml-2">Add Section:</span>
-           <button onClick={() => addBlock('text')} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] font-bold hover:border-[#0F9393] hover:text-[#0F9393] transition-all"><AlignLeft size={16}/> Text Only</button>
-           <button onClick={() => addBlock('text_image_left')} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] font-bold hover:border-[#0F9393] hover:text-[#0F9393] transition-all"><ImageIcon size={16}/> Image Left</button>
-           <button onClick={() => addBlock('text_image_right')} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] font-bold hover:border-[#0F9393] hover:text-[#0F9393] transition-all"><ImageIcon size={16}/> Image Right</button>
-           <button onClick={() => addBlock('multi_image')} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] font-bold hover:border-[#0F9393] hover:text-[#0F9393] transition-all"><Layout size={16}/> 3 Columns</button>
+           <button onClick={() => addBlock('text')} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] font-bold text-black hover:border-[#0F9393] hover:text-[#0F9393] transition-all"><AlignLeft size={16}/> Text Only</button>
+           <button onClick={() => addBlock('text_image_left')} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] font-bold text-black hover:border-[#0F9393] hover:text-[#0F9393] transition-all"><ImageIcon size={16}/> Image Left</button>
+           <button onClick={() => addBlock('text_image_right')} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] font-bold text-black hover:border-[#0F9393] hover:text-[#0F9393] transition-all"><ImageIcon size={16}/> Image Right</button>
+           <button onClick={() => addBlock('multi_image')} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-[13px] font-bold text-black hover:border-[#0F9393] hover:text-[#0F9393] transition-all"><Layout size={16}/> 3 Columns</button>
         </div>
       </div>
     </div>

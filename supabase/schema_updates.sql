@@ -63,3 +63,42 @@ ALTER TABLE public.appointments ALTER COLUMN patient_id DROP NOT NULL;
 ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS guest_name TEXT;
 ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS guest_email TEXT;
 ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS guest_phone TEXT;
+
+-- 19. APPOINTMENT ASSIGNMENTS & NOTIFICATION QUEUE
+-- Allow manual assignment of therapists, and tracking for automated cron notifications.
+ALTER TABLE public.appointments ALTER COLUMN therapist_id DROP NOT NULL;
+ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS assignment_status TEXT DEFAULT 'pending';
+ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS reminded_6h_patient BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS reminded_3h_patient BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS reminded_15m_patient BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS joined_at_patient TIMESTAMP WITH TIME ZONE;
+ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS joined_at_therapist TIMESTAMP WITH TIME ZONE;
+ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE public.appointments ADD COLUMN IF NOT EXISTS session_summary TEXT;
+
+-- 21. SESSION LOGS
+-- Track every hit to the room gateway for duration auditing and re-join tracking.
+CREATE TABLE IF NOT EXISTS public.session_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    appointment_id UUID REFERENCES public.appointments(id) ON DELETE CASCADE,
+    user_type TEXT NOT NULL, -- 'patient' | 'therapist'
+    event_type TEXT DEFAULT 'join',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.session_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Super admins view session logs" ON public.session_logs FOR ALL USING (true);
+
+-- 20. VIRTUAL ROOMS POOL
+-- Store Google Meet links to be dynamically assigned to appointments.
+CREATE TABLE IF NOT EXISTS public.virtual_rooms (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    gmeet_link TEXT UNIQUE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.virtual_rooms ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Super admins manage virtual rooms" ON public.virtual_rooms;
+CREATE POLICY "Super admins and admins manage virtual rooms" ON public.virtual_rooms FOR ALL USING (true);

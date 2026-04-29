@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
-import { createClient, createAdminClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
+import { normalizePhone } from '@/utils/phone';
 
 export async function POST(req: Request) {
   try {
-    const { phone, otp } = await req.json();
+    let { phone, otp } = await req.json();
     if (!phone || !otp) return NextResponse.json({ success: false, error: 'Phone and OTP are required' }, { status: 400 });
+
+    phone = normalizePhone(phone);
 
     const adminSupabase = await createAdminClient();
     
@@ -25,75 +29,131 @@ export async function POST(req: Request) {
     }
 
     if (otpRecord.otp_code !== otp) {
+       // Increment attempts
+       await adminSupabase
+         .from('booking_otps')
+         .update({ attempts: (otpRecord.attempts || 0) + 1 })
+         .eq('id', otpRecord.id);
+
+       if ((otpRecord.attempts || 0) + 1 >= 5) {
+         return NextResponse.json({ success: false, error: 'Too many failed attempts. Please request a new code.' }, { status: 403 });
+       }
        return NextResponse.json({ success: false, error: 'Incorrect OTP code.' }, { status: 400 });
     }
 
     // 2. Mark as verified in our custom table
     await adminSupabase.from('booking_otps').update({ verified: true }).eq('id', otpRecord.id);
 
-    // 3. Supabase Auth Integration - "Silent Sign-In"
-    const clientSupabase = await createClient();
-    
-    // a. Ensure user exists and phone is confirmed
-    // We try to create the user first. If they exist, this will error but we proceed to magiclink.
-    await adminSupabase.auth.admin.createUser({
-        phone: phone,
-        phone_confirm: true,
-        user_metadata: { phone_verified: true, verified_at: new Date().toISOString() }
-    }).catch(() => {}); // Ignore "already registered" error
-
-    const { data: userLinkData, error: linkError } = await (adminSupabase.auth.admin as any).generateLink({
-      type: 'magiclink',
+    // 3. Ensure Supabase Auth User exists
+    let user;
+    const { data: userData, error: userError } = await adminSupabase.auth.admin.createUser({
       phone: phone,
+      phone_confirm: true,
+      user_metadata: { phone_verified: true, verified_at: new Date().toISOString() }
     });
 
-    let authSession = null;
-    const hash = userLinkData?.properties?.hash || userLinkData?.properties?.token_hash;
-
-    if (!linkError && hash) {
-        // Use the generated hash to verify and create a session
-        const { data: sessionData, error: verifyError } = await clientSupabase.auth.verifyOtp({
-            phone: phone,
-            token: hash,
-            type: 'magiclink'
-        } as any);
-        
-        if (!verifyError && sessionData.session) {
-            authSession = sessionData.session;
-        }
-    } 
-
-    if (!authSession) {
-        // Fallback or detailed error
-        console.error('AUTH SYNC ERROR:', linkError);
-        return NextResponse.json({ success: false, error: 'Failed to synchronize authentication session.' }, { status: 500 });
+    if (userError && userError.message.toLowerCase().includes('already registered')) {
+        // Fetch existing user by phone
+        const { data: userList } = await adminSupabase.auth.admin.listUsers();
+        user = userList.users.find(u => u.phone === phone || u.phone === phone.replace('+', ''));
+    } else {
+        user = userData?.user;
     }
 
-    // 4. Set custom 9-day expiry for cookies
-    const cookieStore = await cookies();
-    const expiry = 9 * 24 * 60 * 60; // 9 days in seconds
+    if (!user) {
+        return NextResponse.json({ success: false, error: 'Could not resolve user account.' }, { status: 500 });
+    }
+    console.log('AUTH USER RESOLVED:', user.id, 'Phone:', user.phone);
 
-    // Supabase cookies usually start with 'sb-' followed by a hash of the project URL
-    // We should ensure the cookies that were just set by clientSupabase.auth.verifyOtp
-    // are updated with the 9-day maxAge.
+    // 4. SYNC USER ROLES (Bridge Phone with User ID)
+    console.log('SYNC ROLE - Searching for phone:', phone);
+    // Check if there's a role pre-assigned to this phone number
+    const { data: existingRole, error: fetchError } = await adminSupabase
+      .from('user_roles')
+      .select('*')
+      .eq('phone_number', phone)
+      .maybeSingle();
+
+    if (fetchError) console.error('SYNC ROLE - Fetch Error:', fetchError);
+
+    if (existingRole) {
+      console.log('SYNC ROLE - Found existing role:', existingRole.role, 'Current user_id:', existingRole.user_id);
+      if (!existingRole.user_id || existingRole.user_id !== user.id) {
+        // Link the pre-assigned role to this new user_id
+        const { error: updateError } = await adminSupabase
+          .from('user_roles')
+          .update({ user_id: user.id })
+          .eq('id', existingRole.id);
+        
+        if (updateError) console.error('SYNC ROLE - Update Error:', updateError);
+        else console.log('SYNC ROLE - Linked phone to user_id successfully');
+      }
+    } else {
+      console.log('SYNC ROLE - No role found for phone, creating default patient');
+      // Create a default patient role if nothing exists
+      await adminSupabase
+        .from('user_roles')
+        .insert([{ 
+          user_id: user.id, 
+          phone_number: phone, 
+          role: 'patient' 
+        }]);
+      console.log('CREATED DEFAULT ROLE [phone]:', phone);
+    }
+
+    // 4. Generate CUSTOM SUPABASE JWT
+    const jwtSecret = process.env.SUPABASE_JWT_SECRET;
+    if (!jwtSecret) {
+        throw new Error('SUPABASE_JWT_SECRET is not configured in environment variables.');
+    }
+
+    const expiryTime = 9 * 24 * 60 * 60; // 9 days in seconds
+    const exp = Math.floor(Date.now() / 1000) + expiryTime;
+
+    const payload = {
+        aud: 'authenticated',
+        role: 'authenticated',
+        sub: user.id,
+        phone: user.phone,
+        app_metadata: user.app_metadata || { provider: 'phone' },
+        user_metadata: user.user_metadata || {},
+        exp: exp
+    };
+
+    const token = jwt.sign(payload, jwtSecret);
+    console.log('JWT SIGNED SUCCESS [phone]:', phone, '[token-exists]:', !!token);
+
+    // 5. Set Cookies manually
+    const cookieStore = await cookies();
     
-    const allCookies = cookieStore.getAll();
-    allCookies.forEach(cookie => {
-        if (cookie.name.includes('auth-token') || cookie.name.startsWith('sb-')) {
-            cookieStore.set(cookie.name, cookie.value, {
-                maxAge: expiry,
-                path: '/',
-                sameSite: 'lax',
-                secure: process.env.NODE_ENV === 'production'
-            });
-        }
-    });
+    // We set the standard Supabase cookie names (Next.js SSR pattern)
+    // Note: The specific cookie name might vary based on your supabase/ssr configuration, 
+    // but usually it's sb-[project-id]-auth-token or similar. 
+    // Since we use @supabase/ssr, we follow its default pattern.
+    
+    const cookieOptions = {
+        maxAge: expiryTime,
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax' as const,
+        secure: process.env.NODE_ENV === 'production'
+    };
+
+    cookieStore.set('sb-access-token', token, cookieOptions);
+    // For refresh token, we can just set the same or a dummy as we are doing custom auth
+    cookieStore.set('sb-refresh-token', token, cookieOptions); 
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Verified and logged in for 9 days.',
-      user_id: authSession.user.id,
-      session: authSession
+      message: 'Logged in successfully via WhatsApp.',
+      user_id: user.id,
+      access_token: token,
+      session: {
+        access_token: token,
+        refresh_token: token,
+        user: user,
+        expires_at: exp
+      }
     });
 
   } catch (error: any) {

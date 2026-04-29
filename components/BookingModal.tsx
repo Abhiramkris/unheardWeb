@@ -53,6 +53,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     scheduled_time: ''
   });
 
+  const [timeLeft, setTimeLeft] = useState(310); // 110 seconds
   const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [previewTherapist, setPreviewTherapist] = useState<Therapist | null>(null);
   const [deviceId, setDeviceId] = useState<string>('');
@@ -101,6 +102,43 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
       }));
     }
   }, [isOpen, initialConfig]);
+
+  // Session Timeout Timer Logic
+  useEffect(() => {
+    if (!isOpen) {
+      setTimeLeft(110);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev > 0 ? prev - 1 : 0);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && timeLeft === 0) {
+      alert("Your booking session has expired. Please start over to secure your slot.");
+      closeAndReset();
+    }
+  }, [timeLeft, isOpen]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost')) {
+      setFormData(prev => ({
+        ...prev,
+        scheduled_date: new Date().toISOString().split('T')[0],
+        scheduled_time: '12:00'
+      }));
+    }
+  }, []);
 
   const dispatchOTP = async () => {
     setLoading(true);
@@ -169,6 +207,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     setTimeout(() => {
       setStep(1);
       setDirection(1);
+      setTimeLeft(110);
     }, 300);
   };
 
@@ -189,23 +228,37 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
          rawDateStr = new Date(combined).toISOString();
       }
 
-      const result = await requestSession({
-        therapist_id: formData.therapist_id || undefined, // Backend handles null for manual allotment
+      // QA TEST OVERRIDE: Automatically schedule for +5 minutes in development mode
+      if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost')) {
+         rawDateStr = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+         console.warn("🚧 DEV MODE: Overriding booking time to exactly 5 minutes from now! Payload Start Time:", rawDateStr);
+      }
+
+      // Construct payload to avoid "$undefined" bugs with Next.js Server Actions
+      const payload: any = {
         start_time: rawDateStr,
         is_trial: formData.is_trial,
         phone: formData.phone,
         deviceId, // For anti-exploit
-        patient_details: !user ? {
-          name: formData.name,
-          email: formData.email
-        } : undefined,
         questionnaire: {
           age: formData.age,
           language: formData.language,
           type: formData.type,
           service: formData.service
         }
-      });
+      };
+
+      if (formData.therapist_id) {
+        payload.therapist_id = formData.therapist_id;
+      }
+      if (!user) {
+        payload.patient_details = {
+          name: formData.name,
+          email: formData.email
+        };
+      }
+
+      const result = await requestSession(payload);
 
       if (!result.success) {
         throw new Error(result.error);
@@ -248,13 +301,22 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   };
 
   const renderStepIndicator = () => (
-    <div className="flex items-center gap-2 mb-8">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <div key={s} className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? 'w-8 bg-[#0F9393]' : 'w-4 bg-gray-200'}`} />
-      ))}
-      <span className="ml-2 font-nunito font-bold text-[12px] text-gray-400 uppercase tracking-wider">
-        Step {step}/5
-      </span>
+    <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center gap-2">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <div key={s} className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? 'w-8 bg-[#0F9393]' : 'w-4 bg-gray-200'}`} />
+        ))}
+        <span className="ml-2 font-nunito font-bold text-[12px] text-gray-400 uppercase tracking-wider">
+          Step {step}/5
+        </span>
+      </div>
+      
+      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors ${timeLeft < 60 ? 'bg-red-50 border-red-100 text-red-500 animate-pulse' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
+        <Clock size={14} />
+        <span className="font-nunito font-black text-[12px] tracking-tight">
+          {formatTime(timeLeft)}
+        </span>
+      </div>
     </div>
   );
 
@@ -405,6 +467,21 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                             </div>
                           </div>
                           <div className="flex flex-col gap-2">
+                            <label className="font-nunito font-bold text-[14px] text-gray-900">Preferred Language</label>
+                            <select 
+                              value={formData.language} 
+                              onChange={(e) => setFormData({...formData, language: e.target.value})} 
+                              className="border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-[#0F9393] bg-white text-black font-bold"
+                            >
+                              <option value="" disabled>Select language</option>
+                              <option value="English">English</option>
+                              <option value="Hindi">Hindi</option>
+                              <option value="Malayalam">Malayalam</option>
+                              <option value="Tamil">Tamil</option>
+                              <option value="Telugu">Telugu</option>
+                            </select>
+                          </div>
+                          <div className="flex flex-col gap-2">
                             <label className="font-nunito font-bold text-[14px] text-gray-900">Primary Concern</label>
                             <input type="text" value={formData.service} onChange={(e) => setFormData({...formData, service: e.target.value})} placeholder="e.g. Anxiety, Stress, Relationships" className="border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-[#0F9393] bg-gray-50/50 text-black placeholder:text-gray-400" />
                           </div>
@@ -490,7 +567,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                   {step < 5 ? (
                     <button 
                       onClick={handleNext} 
-                      disabled={loading || (step === 1 && !formData.phone) || (step === 2 && formData.otp.length !== 6) || (step === 4 && (!formData.scheduled_date || !formData.scheduled_time))}
+                      disabled={loading || (step === 1 && !formData.phone) || (step === 2 && formData.otp.length !== 6) || (step === 4 && !process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost') && (!formData.scheduled_date || !formData.scheduled_time))}
                       className="bg-black text-white px-8 py-3.5 rounded-2xl font-nunito font-bold flex items-center gap-3 shadow-lg shadow-black/10 hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? 'Processing...' : 'Continue'}

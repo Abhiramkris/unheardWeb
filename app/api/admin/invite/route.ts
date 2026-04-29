@@ -1,9 +1,12 @@
-import { createClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 import { resend } from '@/lib/resend'
+import { WhatsAppManager } from '@/lib/whatsapp/WhatsAppClient'
+import { normalizePhone } from '@/utils/phone'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
+  const adminSupabase = await createAdminClient()
 
   // 1. Check if the current user is a Super Admin
   const { data: { user } } = await supabase.auth.getUser()
@@ -19,18 +22,51 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const { email, full_name } = await request.json()
+  const { email, full_name, phone_number } = await request.json()
 
-  if (!email) return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+  if (!email || !phone_number) return NextResponse.json({ error: 'Email and Phone number are required' }, { status: 400 })
 
-  // 2. We use Supabase Auth Admin API (Service Role) to create a user with a temp password
-  // (In a real production app, you might just send an invite link using Supabase internal invite)
-  // For this case, we will use Resend to send a custom "Unheard" branded invitation.
+  const formattedPhone = normalizePhone(phone_number)
 
-  // NOTE: To use Supabase Admin API, we'd need a separate server client initialized with SERVICE_ROLE_KEY
-  // For now, let's assume we're just sending the email via Resend to lead them to a registration page.
+  let user;
+  const { data: userData, error: userError } = await adminSupabase.auth.admin.createUser({
+    email,
+    phone: formattedPhone,
+    email_confirm: true,
+    phone_confirm: true,
+    user_metadata: { full_name }
+  });
 
-  const inviteLink = `${new URL(request.url).origin}/login?invite=true&email=${encodeURIComponent(email)}`
+  if (userError && userError.message.toLowerCase().includes('already registered')) {
+      const { data: userList } = await adminSupabase.auth.admin.listUsers();
+      user = userList.users.find(u => u.email === email || u.phone === formattedPhone || u.phone === formattedPhone.replace('+', ''));
+  } else {
+      user = userData?.user;
+  }
+
+  if (!user) {
+      return NextResponse.json({ error: 'Could not create or resolve user account.' }, { status: 500 });
+  }
+
+  // 3. Insert or update user_roles and therapist_profiles
+  await adminSupabase.from('user_roles').upsert({
+    user_id: user.id,
+    role: 'admin',
+    is_therapist: true,
+    phone_number: formattedPhone
+  }, { onConflict: 'user_id' });
+
+  await adminSupabase.from('therapist_profiles').upsert({
+    user_id: user.id,
+    full_name: full_name || 'New Therapist',
+    phone: formattedPhone
+  }, { onConflict: 'user_id' });
+
+  // 4. Send WhatsApp message
+  const waMessage = `Hi ${full_name || 'there'},\n\nYou have been invited to join unHeard as a specialized therapist.\n\nPlease login at https://unheard.co.in/login with your phone number and OTP to complete your setup.`;
+  await WhatsAppManager.sendMessage(formattedPhone, waMessage);
+
+  const inviteLink = `${new URL(request.url).origin}/login`
 
   try {
     const { data, error } = await resend.emails.send({
@@ -42,8 +78,8 @@ export async function POST(request: Request) {
           <h2 style="color: #0F9393;">Welcome to unHeard.</h2>
           <p>Hi ${full_name || 'there'},</p>
           <p>You have been invited to join unHeard as a specialized therapist (Admin).</p>
-          <p>Please click the link below to complete your onboarding and set up your public profile:</p>
-          <a href="${inviteLink}" style="display: inline-block; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">Complete Onboarding</a>
+          <p>Please click the link below to login using your phone number and OTP:</p>
+          <a href="${inviteLink}" style="display: inline-block; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">Login to Unheard</a>
           <p style="margin-top: 20px; font-size: 14px; color: #666;">If you have any questions, please contact our support team.</p>
         </div>
       `,
