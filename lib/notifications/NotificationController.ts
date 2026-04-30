@@ -27,7 +27,7 @@ export class NotificationController {
    */
   static async sendWhatsApp(phone: string, message: string) {
     try {
-      const result = await WhatsAppManager.sendMessage(phone, message);
+      const result = await WhatsAppManager.enqueueMessage(phone, message);
       return result;
     } catch (err) {
       console.error('WhatsApp Exception:', err);

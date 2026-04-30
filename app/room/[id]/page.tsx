@@ -1,5 +1,7 @@
 import { createAdminClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
+import { logAdminActivity } from '@/utils/logger';
+import { WhatsAppManager } from '@/lib/whatsapp/WhatsAppClient';
 
 export default async function RoomGateway({ params, searchParams }: { 
   params: Promise<{ id: string }>, 
@@ -11,7 +13,7 @@ export default async function RoomGateway({ params, searchParams }: {
 
   const { data: appointment, error } = await adminSupabase
     .from('appointments')
-    .select('start_time, status, meeting_link, joined_at_patient, joined_at_therapist')
+    .select('id, start_time, status, meeting_link, joined_at_patient, joined_at_therapist, guest_name, guest_phone, therapist_id')
     .eq('id', id)
     .single();
 
@@ -93,6 +95,40 @@ export default async function RoomGateway({ params, searchParams }: {
           .from('appointments')
           .update({ [updateColumn]: new Date().toISOString() })
           .eq('id', id);
+    }
+
+    // 3. WHATSAPP NOTIFICATIONS: Triggered on FIRST join of each party
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://unheard.co.in';
+    const roomLink = `${baseUrl}/room/${id}`;
+
+    if (userType === 'therapist' && !appointment.joined_at_therapist && appointment.guest_phone) {
+       // Notify Patient that therapist has arrived
+       const { data: tProfile } = await adminSupabase.from('therapist_profiles').select('full_name').eq('user_id', appointment.therapist_id).single();
+       const therapistName = tProfile?.full_name || 'Your therapist';
+       const pMsg = `*Therapist has joined the room!* 🩺\n\nHi ${appointment.guest_name || ''}, Dr. ${therapistName} is waiting for you in the session room.\n\n🔗 *Join Room Now:* ${roomLink}?type=patient\n\nPlease join immediately to begin your session.`;
+       await WhatsAppManager.enqueueMessage(appointment.guest_phone, pMsg);
+       // Trigger queue processing
+       fetch(`${baseUrl}/api/whatsapp/process-queue`).catch(() => {});
+    } 
+    
+    if (userType === 'patient' && !appointment.joined_at_patient && appointment.therapist_id) {
+       // Notify Therapist that patient has arrived
+       const { data: tProfile } = await adminSupabase.from('therapist_profiles').select('full_name, phone').eq('user_id', appointment.therapist_id).single();
+       if (tProfile?.phone) {
+          const patientName = appointment.guest_name || 'Your patient';
+          const tMsg = `*Patient has joined the room!* 👤\n\nDr. ${tProfile.full_name}, your patient *${patientName}* has entered the session room and is waiting.\n\n🔗 *Join Session Now:* ${roomLink}?type=therapist`;
+          await WhatsAppManager.enqueueMessage(tProfile.phone, tMsg);
+          // Trigger queue processing
+          fetch(`${baseUrl}/api/whatsapp/process-queue`).catch(() => {});
+       }
+    }
+
+    // Log Therapist Entry in Admin Logs
+    if (userType === 'therapist') {
+       const { data: { user } } = await adminSupabase.auth.getUser();
+       if (user) {
+         await logAdminActivity(user.id, 'meeting_join', id, { role: 'therapist' });
+       }
     }
   }
 

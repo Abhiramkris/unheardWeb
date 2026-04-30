@@ -65,6 +65,15 @@ export default function Login() {
         const role = roleData?.role || 'patient'
         const isTherapist = roleData?.is_therapist || false
         
+        // Log Admin Direct Login
+        if (role !== 'patient' || isTherapist) {
+          fetch('/api/admin/logs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'login', details: { method: 'direct', role } })
+          }).catch(() => {});
+        }
+
         if (role === 'super_admin') window.location.href = '/super-admin'
         else if (role === 'admin' || isTherapist) window.location.href = '/admin/dashboard'
         else window.location.href = '/'
@@ -110,8 +119,6 @@ export default function Login() {
         body: JSON.stringify({ phone, otp })
       })
       const data = await res.json()
-      if (!data.success) throw new Error(data.error)
-      
       if (data.access_token) {
         const { error: sessionError } = await supabase.auth.setSession({
           access_token: data.access_token,
@@ -131,6 +138,15 @@ export default function Login() {
         const role = roleData?.role || 'patient'
         const isTherapist = roleData?.is_therapist || false
         
+        // Log Admin Login
+        if (role !== 'patient' || isTherapist) {
+          fetch('/api/admin/logs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'login', details: { method: 'otp', role } })
+          }).catch(() => {});
+        }
+
         if (role === 'super_admin') window.location.href = '/super-admin'
         else if (role === 'admin' || isTherapist) window.location.href = '/admin/dashboard'
         else window.location.href = '/'

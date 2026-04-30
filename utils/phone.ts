@@ -30,10 +30,6 @@ export const normalizePhone = (phone: string): string => {
   return cleaned;
 };
 
-/**
- * Formats a phone number for WhatsApp internal usage (Baileys format).
- * E.g., +918848656908 -> 918848656908@s.whatsapp.net
- */
 export const toWhatsAppJid = (phone: string): string => {
   const normalized = normalizePhone(phone);
   const numericOnly = normalized.replace('+', '');

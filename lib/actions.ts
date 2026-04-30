@@ -101,6 +101,7 @@ export async function submitContactInquiry(data: {
 }
 
 import { WhatsAppManager } from './whatsapp/WhatsAppClient'
+import { IdentityManager } from './identity/IdentityManager'
 
 /**
  * HELPERS (Moved to utils/phone.ts)
@@ -137,41 +138,31 @@ export async function requestSession(data: {
   const headersList = await headers();
   const ip = headersList.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
     // 1.5. OTP VERIFICATION GUARD (For guests)
+    // 1.5. RESOLVE IDENTITY (ROBUST TRACKING)
+    const identity = await IdentityManager.resolveIdentity(cleanPhone, data.deviceId, user?.id);
+
+    // 1.6. OTP VERIFICATION GUARD (For guests)
     if (!user) {
       const { data: otpVerified, error: otpError } = await adminSupabase
         .from('booking_otps')
         .select('id')
         .eq('phone_number', data.phone)
         .eq('verified', true)
-        .gte('created_at', new Date(Date.now() - 15 * 60000).toISOString()) // Within last 15 mins
+        .gte('created_at', new Date(Date.now() - 15 * 60000).toISOString())
         .limit(1)
-        .maybeSingle()
+        .maybeSingle();
 
       if (otpError || !otpVerified) {
-        return { success: false, error: 'Verification required. Please verify your phone number via OTP before booking.' }
+        return { success: false, error: 'Verification required. Please verify your phone number via OTP before booking.' };
       }
+    }
 
-      // 1.7 ANTI-EXPLOIT (Fingerprint & Phone Uniqueness for Free Trial)
-      if (data.is_trial) {
-        const { data: existingClaim } = await adminSupabase
-          .from('user_fingerprints')
-          .select('id')
-          .or(`phone_number.eq.${cleanPhone},device_id.eq.${data.deviceId}`)
-          .eq('free_trial_claimed', true)
-          .maybeSingle()
-
-        if (existingClaim) {
-          return { success: false, error: 'This device or phone number has already claimed a free consultation session.' }
-        }
-      }
-    } else {
-       // Logged in user trial check
-       if (data.is_trial) {
-          const { data: userFP } = await adminSupabase.from('user_fingerprints').select('free_trial_claimed').eq('phone_number', cleanPhone).maybeSingle();
-          if (userFP?.free_trial_claimed) {
-             return { success: false, error: 'You have already claimed a free session.' }
-          }
-       }
+    // 1.7 ANTI-EXPLOIT (Identity-based Trial Protection)
+    if (data.is_trial && identity?.is_trial_claimed) {
+      return { 
+        success: false, 
+        error: 'Our records indicate that you (or this device) have already claimed a free consultation. Please select a standard session.' 
+      };
     }
 
   // 2. AVAILABILITY GUARD
@@ -260,20 +251,10 @@ export async function requestSession(data: {
     console.error('Non-blocking WhatsApp Notification Error:', error)
   }
 
-    // 7. UPDATE FINGERPRINT / HISTORY
-    await adminSupabase.from('user_fingerprints').upsert({
-      phone_number: cleanPhone,
-      device_id: data.deviceId,
-      free_trial_claimed: data.is_trial ? true : undefined,
-      ip_address: ip
-    }, { onConflict: 'phone_number' });
-
-    // Increment session count
-    const { data: fp } = await adminSupabase.from('user_fingerprints').select('session_count').eq('phone_number', cleanPhone).maybeSingle();
-    await adminSupabase.from('user_fingerprints').update({ 
-       session_count: (fp?.session_count || 0) + 1,
-       ip_address: ip
-    }).eq('phone_number', cleanPhone);
+    // 7. RECORD IDENTITY UPDATE & COUPON CLAIM
+    if (identity) {
+      await IdentityManager.claimCoupon(identity.id, data.is_trial ? 'FREE_TRIAL' : 'STANDARD', data.is_trial);
+    }
 
     revalidatePath('/super-admin')
     return { success: true, questionnaireId: questionnaire.id }

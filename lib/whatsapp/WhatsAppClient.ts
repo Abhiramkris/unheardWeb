@@ -10,11 +10,13 @@ const globalForWhatsApp = global as unknown as {
   socket: any | null;
   status: 'disconnected' | 'initializing' | 'pending_qr' | 'authenticated' | 'error';
   qrDataUrl: string | null;
+  connectionPromise: Promise<any> | null;
 };
 
 // Initialize default state
 if (!globalForWhatsApp.status) globalForWhatsApp.status = 'disconnected';
 if (!globalForWhatsApp.qrDataUrl) globalForWhatsApp.qrDataUrl = null;
+if (!globalForWhatsApp.connectionPromise) globalForWhatsApp.connectionPromise = null;
 
 // Reusable Logger Singleton to save RAM
 const logger = pino({ level: 'silent' });
@@ -22,6 +24,10 @@ const logger = pino({ level: 'silent' });
 // Unique ID for this instance to prevent multi-instance connection wars
 const instanceId = Math.random().toString(36).substring(7);
 let heartbeatInterval: NodeJS.Timeout | null = null;
+let workerInterval: NodeJS.Timeout | null = null;
+let lastCredsSave = 0;
+const CREDS_SAVE_THROTTLE = 2000; // 2 seconds
+const WORKER_INTERVAL_MS = 60 * 1000; // 1 minute (high frequency for queue)
 
 export class WhatsAppManager {
   static getStatus() {
@@ -77,6 +83,11 @@ export class WhatsAppManager {
   }
 
   static async softReconnect() {
+    if (globalForWhatsApp.connectionPromise) {
+      console.log('⏳ softReconnect called but a connection is already in progress. Waiting...');
+      return globalForWhatsApp.connectionPromise;
+    }
+
     console.log('🔄 Performing a Force Soft Reconnect (purging bloated keys without logging out)...');
     
     if (globalForWhatsApp.socket) {
@@ -99,7 +110,13 @@ export class WhatsAppManager {
   }
 
   static async connectToWhatsApp(force = false) {
-    // 1. Singleton Guard: Only proceed if disconnected or error, UNLESS forced.
+    // 1. Singleton Guard: If already connecting, return the existing promise
+    if (globalForWhatsApp.connectionPromise && !force) {
+      console.log('⏳ WhatsApp connection already in progress. Waiting for existing promise...');
+      return globalForWhatsApp.connectionPromise;
+    }
+
+    // 2. Status Guard: Only proceed if disconnected or error, UNLESS forced.
     if (!force && (
         globalForWhatsApp.status === 'initializing' || 
         globalForWhatsApp.status === 'pending_qr' || 
@@ -108,134 +125,210 @@ export class WhatsAppManager {
       return globalForWhatsApp.socket;
     }
 
-    console.log(`🔄 [Instance ${instanceId}] Initializing WhatsApp connection...`);
-    
-    // singleton guard via Supabase
-    const supabase = await createAdminClient();
-    try {
-      const { data: lock } = await supabase.from('whatsapp_auth').select('data, updated_at').eq('id', 'connection_lock').single();
-      if (lock) {
-        const lastUpdate = new Date(lock.updated_at).getTime();
-        const isLocked = (Date.now() - lastUpdate) < 20000; // 20 second lock
-        if (isLocked && lock.data?.instanceId !== instanceId && !force) {
-          console.log(`🚫 WhatsApp connection locked by another instance (${lock.data?.instanceId}). Skipping initialization.`);
-          return null;
-        }
-      }
-      
-      // Acquire/Renew lock
-      await supabase.from('whatsapp_auth').upsert({
-        id: 'connection_lock',
-        data: { instanceId, status: 'connecting' },
-        updated_at: new Date().toISOString()
-      });
-    } catch (e) {
-      console.warn('Failed to check/acquire WhatsApp lock:', e);
-    }
-
+    // Set status immediately to prevent race conditions before async calls
     globalForWhatsApp.status = 'initializing';
-    
-    // 2. Cleanup existing socket if any
-    if (globalForWhatsApp.socket) {
+
+    // Create the connection promise
+    globalForWhatsApp.connectionPromise = (async () => {
       try {
-        globalForWhatsApp.socket.ev.removeAllListeners('connection.update');
-        globalForWhatsApp.socket.ev.removeAllListeners('creds.update');
-        globalForWhatsApp.socket.end(undefined);
-      } catch { }
-      globalForWhatsApp.socket = null;
-    }
-
-    try {
-      const { state, saveCreds } = await getSupabaseAuthState();
-      const { version, isLatest } = await fetchLatestBaileysVersion();
-      console.log(`Using WhatsApp v${version.join('.')} (latest: ${isLatest})`);
-
-      const socket = makeWASocket({
-        version,
-        auth: state,
-        printQRInTerminal: false,
-        browser: ['unHeard', 'Chrome', '1.0.0'], 
-        logger, 
-        connectTimeoutMs: 60000,
-        keepAliveIntervalMs: 15000,
-      });
-
-      socket.ev.on('creds.update', saveCreds);
-
-      socket.ev.on('connection.update', async (update) => {
-        const { connection, lastDisconnect, qr } = update;
-
-        if (qr) {
-          globalForWhatsApp.status = 'pending_qr';
-          try {
-            const dataUrl = await QRCode.toDataURL(qr, { margin: 2, scale: 6 });
-            globalForWhatsApp.qrDataUrl = dataUrl;
-          } catch {}
-        }
-
-        if (connection === 'close') {
-          const lastDisconnectError = lastDisconnect?.error as any;
-          const statusCode = lastDisconnectError?.output?.statusCode;
-          
-          const isConflict = statusCode === 440; // Session replaced by another instance
-          const isFatal = statusCode === DisconnectReason.loggedOut || statusCode === 405;
-          const shouldReconnect = !isFatal && !isConflict; // Don't fight for connection if conflict
-          
-          console.error(`⚠️ WhatsApp Connection Closed (Status ${statusCode}). Reconnecting: ${shouldReconnect}`);
-          
-          globalForWhatsApp.socket = null; 
-          globalForWhatsApp.qrDataUrl = null;
-
-          if (heartbeatInterval) {
-            clearInterval(heartbeatInterval);
-            heartbeatInterval = null;
-          }
-
-          if (shouldReconnect) {
-            globalForWhatsApp.status = 'disconnected';
-            // Randomized delay to prevent thundering herd
-            const delay = 5000 + Math.random() * 5000;
-            setTimeout(() => this.connectToWhatsApp(), delay); 
-          } else {
-            globalForWhatsApp.status = isConflict ? 'disconnected' : 'error';
-            if (isFatal) {
-              await NotificationController.notifyAdminTokenExpired(`WhatsApp Session Expired (Status ${statusCode}). Manual scan required.`);
+        console.log(`🔄 [Instance ${instanceId}] Initializing WhatsApp connection...`);
+        
+        // singleton guard via Supabase
+        const supabase = await createAdminClient();
+        try {
+          const { data: lock } = await supabase.from('whatsapp_auth').select('data, updated_at').eq('id', 'connection_lock').single();
+          if (lock) {
+            const lastUpdate = new Date(lock.updated_at).getTime();
+            const isLocked = (Date.now() - lastUpdate) < 20000; // 20 second lock
+            if (isLocked && lock.data?.instanceId !== instanceId && !force) {
+              console.log(`WhatsApp connection locked by another instance (${lock.data?.instanceId}). Skipping initialization.`);
+              globalForWhatsApp.status = 'disconnected';
+              globalForWhatsApp.connectionPromise = null;
+              return null;
             }
           }
-        } else if (connection === 'open') {
-          console.log(`✅ [Instance ${instanceId}] WhatsApp authenticated and connected!`);
-          globalForWhatsApp.status = 'authenticated';
-          globalForWhatsApp.qrDataUrl = null; 
+          
+          // Acquire/Renew lock
+          await supabase.from('whatsapp_auth').upsert({
+            id: 'connection_lock',
+            data: { instanceId, status: 'connecting' },
+            updated_at: new Date().toISOString()
+          });
+        } catch (e) {
+          console.warn('Failed to check/acquire WhatsApp lock:', e);
+        }
 
-          // Start Heartbeat
-          if (heartbeatInterval) clearInterval(heartbeatInterval);
-          heartbeatInterval = setInterval(async () => {
-            if (globalForWhatsApp.status === 'authenticated') {
-              try {
-                const sb = await createAdminClient();
-                await sb.from('whatsapp_auth').upsert({
-                  id: 'connection_lock',
-                  data: { instanceId, status: 'authenticated' },
-                  updated_at: new Date().toISOString()
-                });
-              } catch {}
+        // 3. Cleanup existing socket if any
+        if (globalForWhatsApp.socket) {
+          try {
+            globalForWhatsApp.socket.ev.removeAllListeners('connection.update');
+            globalForWhatsApp.socket.ev.removeAllListeners('creds.update');
+            globalForWhatsApp.socket.end(undefined);
+          } catch { }
+          globalForWhatsApp.socket = null;
+        }
+
+        const { state, saveCreds } = await getSupabaseAuthState();
+        const { version, isLatest } = await fetchLatestBaileysVersion();
+        console.log(`Using WhatsApp v${version.join('.')} (latest: ${isLatest})`);
+
+        const socket = makeWASocket({
+          version,
+          auth: state,
+          printQRInTerminal: false,
+          browser: ['unHeard', 'Chrome', '1.0.0'], 
+          logger, 
+          connectTimeoutMs: 60000,
+          keepAliveIntervalMs: 15000,
+        });
+
+        socket.ev.on('creds.update', async () => {
+          const now = Date.now();
+          if (now - lastCredsSave > CREDS_SAVE_THROTTLE) {
+            lastCredsSave = now;
+            await saveCreds();
+          }
+        });
+
+        socket.ev.on('connection.update', async (update) => {
+          const { connection, lastDisconnect, qr } = update;
+
+          if (qr) {
+            globalForWhatsApp.status = 'pending_qr';
+            try {
+              const dataUrl = await QRCode.toDataURL(qr, { margin: 2, scale: 6 });
+              globalForWhatsApp.qrDataUrl = dataUrl;
+            } catch {}
+          }
+
+          if (connection === 'close') {
+            const lastDisconnectError = lastDisconnect?.error as any;
+            const statusCode = lastDisconnectError?.output?.statusCode;
+            
+            const isConflict = statusCode === 440; // Session replaced by another instance
+            const isFatal = statusCode === DisconnectReason.loggedOut || statusCode === 405;
+            const shouldReconnect = !isFatal && !isConflict;
+            
+            console.error(`⚠️ WhatsApp Connection Closed (Status ${statusCode}). Reconnecting: ${shouldReconnect}`);
+            
+            globalForWhatsApp.socket = null; 
+            globalForWhatsApp.qrDataUrl = null;
+            globalForWhatsApp.connectionPromise = null; // Clear promise on close
+
+            if (heartbeatInterval) {
+              clearInterval(heartbeatInterval);
+              heartbeatInterval = null;
+            }
+            if (workerInterval) {
+              clearInterval(workerInterval);
+              workerInterval = null;
+            }
+
+            if (shouldReconnect) {
+              globalForWhatsApp.status = 'disconnected';
+              const delay = 5000 + Math.random() * 5000;
+              setTimeout(() => {
+                if (globalForWhatsApp.status === 'disconnected' && !globalForWhatsApp.connectionPromise) {
+                  this.connectToWhatsApp();
+                }
+              }, delay); 
             } else {
-              if (heartbeatInterval) {
-                clearInterval(heartbeatInterval);
-                heartbeatInterval = null;
+              globalForWhatsApp.status = isConflict ? 'disconnected' : 'error';
+              if (isFatal) {
+                await NotificationController.notifyAdminTokenExpired(`WhatsApp Session Expired (Status ${statusCode}). Manual scan required.`);
               }
             }
-          }, 15000);
-        }
-      });
+          } else if (connection === 'open') {
+            console.log(`✅ [Instance ${instanceId}] WhatsApp authenticated and connected!`);
+            globalForWhatsApp.status = 'authenticated';
+            globalForWhatsApp.qrDataUrl = null; 
+            globalForWhatsApp.connectionPromise = null; // Clear promise on success
 
-      globalForWhatsApp.socket = socket;
-      return socket;
-    } catch (err) {
-      console.error('Failed to initialize Baileys:', err);
-      globalForWhatsApp.status = 'error';
-      return null;
-    }
+            // Start Heartbeat
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            heartbeatInterval = setInterval(async () => {
+              if (globalForWhatsApp.status === 'authenticated') {
+                try {
+                  const sb = await createAdminClient();
+                  await sb.from('whatsapp_auth').upsert({
+                    id: 'connection_lock',
+                    data: { instanceId, status: 'authenticated' },
+                    updated_at: new Date().toISOString()
+                  });
+                } catch {}
+              } else {
+                if (heartbeatInterval) {
+                  clearInterval(heartbeatInterval);
+                  heartbeatInterval = null;
+                }
+              }
+            }, 15000);
+
+            // Start Background Worker (High Frequency Queue Processor)
+            if (workerInterval) clearInterval(workerInterval);
+            workerInterval = setInterval(async () => {
+               // Only the instance that holds the active 'authenticated' lock should run the worker
+               try {
+                 const sb = await createAdminClient();
+                 const { data: lock } = await sb.from('whatsapp_auth').select('data').eq('id', 'connection_lock').single();
+                 
+                 if (lock?.data?.instanceId === instanceId) {
+                    console.log('🤖 [Background Worker] Processing messaging queue & sync...');
+                    
+                    // A. Trigger Notification Cron (Reminders)
+                    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+                    fetch(`${baseUrl}/api/cron/notifications`, {
+                       headers: { 'Authorization': `Bearer ${process.env.CRON_SECRET || ''}` }
+                    }).catch(() => {});
+
+                    // B. Process whatsapp_queue (Async Messages)
+                    const { data: pending } = await sb
+                      .from('whatsapp_queue')
+                      .select('*')
+                      .eq('status', 'pending')
+                      .lte('scheduled_time', new Date().toISOString())
+                      .order('created_at', { ascending: true })
+                      .limit(5);
+
+                    if (pending && pending.length > 0) {
+                      for (const msg of pending) {
+                         const result = await this.sendMessage(msg.phone, msg.message, false);
+                         if (result.success) {
+                            await sb.from('whatsapp_queue').update({ status: 'sent', attempts: msg.attempts + 1 }).eq('id', msg.id);
+                         } else {
+                            const newAttempts = (msg.attempts || 0) + 1;
+                            const newStatus = newAttempts >= 3 ? 'failed' : 'pending';
+                            await sb.from('whatsapp_queue').update({ 
+                              status: newStatus, 
+                              attempts: newAttempts,
+                              error: result.error?.toString() || 'Unknown error'
+                            }).eq('id', msg.id);
+                         }
+                      }
+                    }
+
+                    // C. Cleanup old entries (older than 24 hours)
+                    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                    await sb.from('whatsapp_queue').delete().lt('created_at', oneDayAgo);
+                 }
+               } catch (e) {
+                 console.warn('Background Worker execution failed:', e);
+               }
+            }, WORKER_INTERVAL_MS);
+          }
+        });
+
+        globalForWhatsApp.socket = socket;
+        return socket;
+      } catch (err) {
+        console.error('Failed to initialize Baileys:', err);
+        globalForWhatsApp.status = 'error';
+        globalForWhatsApp.connectionPromise = null;
+        return null;
+      }
+    })();
+
+    return globalForWhatsApp.connectionPromise;
   }
 
   static async sendMessage(phoneNumber: string, message: string, retryOnDisconnect = true) {
@@ -266,9 +359,29 @@ export class WhatsAppManager {
       await globalForWhatsApp.socket.sendMessage(formattedNumber, { text: message });
       console.log(`WhatsApp message sent to ${formattedNumber}`);
       return { success: true };
-    } catch (error) {
-      console.error('Failed to send WhatsApp message:', error);
-      return { success: false, error };
+    } catch (err: any) {
+      console.error('WhatsApp Dispatch Error:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  /**
+   * Queues a message for background delivery
+   */
+  static async enqueueMessage(phone: string, message: string, scheduledTime?: string) {
+    try {
+      const sb = await createAdminClient();
+      const { error } = await sb.from('whatsapp_queue').insert({
+        phone,
+        message,
+        scheduled_time: scheduledTime || new Date().toISOString(),
+        status: 'pending'
+      });
+      if (error) throw error;
+      return { success: true };
+    } catch (err: any) {
+      console.error('Queue Enqueue Error:', err);
+      return { success: false, error: err.message };
     }
   }
 

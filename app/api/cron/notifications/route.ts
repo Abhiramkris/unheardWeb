@@ -15,16 +15,16 @@ export async function GET(req: Request) {
     const adminSupabase = await createAdminClient();
     const now = new Date();
 
-    // Look for upcoming appointments that haven't passed yet, up to 7 hours ahead to cover 6 hour reminders
+    // Look for upcoming appointments that haven't passed yet
     const timeWindowStart = now.toISOString();
-    const timeWindow6HoursMax = new Date(now.getTime() + (6.5 * 60 * 60 * 1000)).toISOString();
+    const timeWindowMax = new Date(now.getTime() + (7 * 60 * 60 * 1000)).toISOString(); // Look up to 7h ahead
 
     const { data: upcomingAppointments, error } = await adminSupabase
       .from('appointments')
-      .select('*, pre_booking_questionnaires(answers), therapist:therapist_id(id)')
+      .select('*')
       .gte('start_time', timeWindowStart)
-      .lte('start_time', timeWindow6HoursMax)
-      .in('status', ['confirmed', 'approved']); // Only run for confirmed appointments
+      .lte('start_time', timeWindowMax)
+      .eq('status', 'confirmed');
 
     if (error || !upcomingAppointments) {
       console.error('Failed to fetch upcoming appointments:', error);
@@ -39,10 +39,8 @@ export async function GET(req: Request) {
       const diffHours = differenceMs / (1000 * 60 * 60);
       const diffMinutes = differenceMs / (1000 * 60);
 
-      const qData = appt.pre_booking_questionnaires?.[0]?.answers || {};
-      const guestInfo = qData.guest_info || {};
-      const patientPhone = guestInfo.phone;
-      const patientName = guestInfo.name || 'there';
+      const patientPhone = appt.guest_phone;
+      const patientName = appt.guest_name || 'there';
 
       // ==========================================
       // 1. PATIENT: 6 HOURS BEFORE - LINK DELIVERY
@@ -50,9 +48,9 @@ export async function GET(req: Request) {
       const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://unheard.co.in';
       const gatewayLink = `${baseUrl}/room/${appt.id}`;
 
-      if (diffHours <= 6 && diffHours > 1 && !appt.reminded_6h_patient && patientPhone) {
+      if (diffHours <= 6.2 && diffHours > 5.5 && !appt.reminded_6h_patient && patientPhone) {
         const pGatewayLink = `${gatewayLink}?type=patient`;
-        const msg = `*Your Secure Meeting Link* 🔒\n\nHi ${patientName}, your session is scheduled for today.\n\n🔗 *Join Room:* ${pGatewayLink}\n\nThis link will become active 30 minutes before your session. See you soon!`;
+        const msg = `*Your Secure Meeting Link* 🔒\n\nHi ${patientName}, your session is scheduled for today.\n\n🔗 *Join Room:* ${pGatewayLink}\n\nNote: This link will become active 30 minutes before your session. See you soon!`;
         
         await WhatsAppManager.sendMessage(patientPhone, msg);
         await adminSupabase.from('appointments').update({ reminded_6h_patient: true }).eq('id', appt.id);
@@ -89,7 +87,7 @@ export async function GET(req: Request) {
           
           await WhatsAppManager.sendMessage(tProfile.phone, msg);
           
-          // Mark as sent
+          // Mark as sent - use 15m patient flag if therapist flag doesn't exist yet, or just update the DB
           await adminSupabase.from('appointments').update({ reminded_15m_therapist: true }).eq('id', appt.id);
           dispatchedCount++;
         }

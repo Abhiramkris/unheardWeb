@@ -223,6 +223,45 @@ export default function AdminDashboard() {
     }, 15000)
     return () => clearInterval(interval)
   }, [fetchRegistrations])
+  
+  // Track Session Duration from LocalStorage
+  useEffect(() => {
+    const checkActiveSession = () => {
+      const activeSession = localStorage.getItem('active_session_join');
+      if (activeSession) {
+        try {
+          const { id, time } = JSON.parse(activeSession);
+          const durationMs = Date.now() - time;
+          const durationMins = Math.floor(durationMs / 60000);
+          
+          if (durationMins > 0) {
+             console.log(`⏱️ Session ${id} completed. Duration: ${durationMins} mins.`);
+             fetch('/api/admin/logs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  action: 'meeting_leave', 
+                  target_id: id, 
+                  details: { 
+                    role: 'therapist', 
+                    duration_minutes: durationMins,
+                    approx_duration: `${durationMins} minutes`
+                  } 
+                })
+             }).catch(() => {});
+          }
+          
+          localStorage.removeItem('active_session_join');
+        } catch (e) {
+          localStorage.removeItem('active_session_join');
+        }
+      }
+    };
+
+    checkActiveSession();
+    window.addEventListener('focus', checkActiveSession);
+    return () => window.removeEventListener('focus', checkActiveSession);
+  }, []);
 
   // Sync selected session with fresh data
   useEffect(() => {
@@ -254,6 +293,15 @@ export default function AdminDashboard() {
     } catch {
       alert('Error closing session');
     } finally {
+      // Log Session Close
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        fetch('/api/admin/logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'meeting_leave', target_id: closingSession, details: { role: 'therapist' } })
+        }).catch(() => {});
+      }
       setLoading(false);
     }
   }
@@ -272,6 +320,13 @@ export default function AdminDashboard() {
     if (error) {
       alert(error.message);
     } else {
+      // Log Profile Change
+      fetch('/api/admin/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'profile_change', details: { role: 'therapist' } })
+      }).catch(() => {});
+      
       alert('Profile updated successfully!');
       fetchProfile();
     }
@@ -491,7 +546,15 @@ export default function AdminDashboard() {
                       onClick={async () => {
                         const nextVal = !profile.is_available;
                         const { error } = await supabase.from('therapist_profiles').update({ is_available: nextVal }).eq('user_id', profile.user_id);
-                        if (!error) setProfile({ ...profile, is_available: nextVal });
+                        if (!error) {
+                          setProfile({ ...profile, is_available: nextVal });
+                          // Log Availability Toggle
+                          fetch('/api/admin/logs', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'profile_change', details: { role: 'therapist', available: nextVal } })
+                          }).catch(() => {});
+                        }
                       }}
                       className={`w-12 h-6 rounded-full relative transition-all duration-500 cursor-pointer shadow-inner ${profile?.is_available ? 'bg-[#0F9393]' : 'bg-white/10'}`}
                     >
@@ -1133,6 +1196,10 @@ export default function AdminDashboard() {
                     <button 
                       onClick={() => {
                          if (selectedSession?.id) {
+                            localStorage.setItem('active_session_join', JSON.stringify({
+                               id: selectedSession.id,
+                               time: Date.now()
+                            }));
                             window.open(`/room/${selectedSession.id}`, '_blank');
                          } else {
                             alert('Session ID not found. Please sync with system admin.');

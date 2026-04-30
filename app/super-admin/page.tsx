@@ -70,6 +70,7 @@ export default function SuperAdminDashboard() {
   const [editingProfile, setEditingProfile] = useState<any>(null)
   const [selectedQueueItem, setSelectedQueueItem] = useState<any | null>(null)
   const [showQueueSheet, setShowQueueSheet] = useState(false)
+  const [cronStatus, setCronStatus] = useState<{ lastRun: string | null, loading: boolean }>({ lastRun: null, loading: false })
   
   // Coupon Form State
   const [couponForm, setCouponForm] = useState({
@@ -79,6 +80,18 @@ export default function SuperAdminDashboard() {
     usage_limit: -1,
     expires_at: ''
   })
+
+  const logAction = async (action: string, targetId?: string, details?: any) => {
+    try {
+      await fetch('/api/admin/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, target_id: targetId, details })
+      });
+    } catch (e) {
+      console.warn('Failed to log action:', e);
+    }
+  };
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -101,6 +114,28 @@ export default function SuperAdminDashboard() {
       if (interval) clearInterval(interval);
     };
   }, [activeTab, fetchStatus]);
+
+  const triggerCron = async () => {
+    setCronStatus(prev => ({ ...prev, loading: true }));
+    try {
+      const res = await fetch('/api/cron/notifications');
+      const data = await res.json();
+      if (data.success) {
+        setCronStatus({ lastRun: new Date().toLocaleTimeString(), loading: false });
+      } else {
+        setCronStatus(prev => ({ ...prev, loading: false }));
+      }
+    } catch {
+      setCronStatus(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // Passive Auto-Trigger: Every 15 mins while dashboard is open
+  useEffect(() => {
+    triggerCron(); // Run once on mount
+    const interval = setInterval(triggerCron, 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleWhatsappReconnect = async () => {
     setWhatsappStatus({ status: 'initializing', qrDataUrl: null });
@@ -205,12 +240,13 @@ export default function SuperAdminDashboard() {
       })
 
     if (error) {
-       alert(error.message)
+      alert(error.message)
     } else {
-       alert('Blog saved successfully!')
-       setEditingBlog(null)
-       fetchBlogs()
-       localStorage.removeItem('blog_draft')
+      await logAction(editingBlog?.id ? 'edit_blog' : 'add_blog', blogData.title);
+      alert('Blog saved successfully!')
+      setEditingBlog(null)
+      fetchBlogs()
+      localStorage.removeItem('blog_draft')
     }
   }
 
@@ -297,6 +333,7 @@ export default function SuperAdminDashboard() {
     if (error) {
       alert(error.message);
     } else {
+      await logAction('profile_change', editingProfile.user_id, { name: editingProfile.full_name });
       alert('Profile updated successfully!');
       setEditingProfile(null);
       fetchAdmins();
@@ -348,6 +385,12 @@ export default function SuperAdminDashboard() {
           >
             <Phone size={18} /> Engine
           </button>
+          <button 
+            onClick={() => setActiveTab('system')}
+            className={`flex items-center gap-4 px-6 py-4 rounded-[22px] font-black text-[13px] uppercase tracking-widest transition-all duration-300 cursor-pointer ${activeTab === 'system' ? 'bg-[#0F9393] text-white shadow-xl shadow-[#0F9393]/20 scale-105' : 'text-gray-400 hover:bg-gray-50'}`}
+          >
+            <Sparkles size={18} /> System
+          </button>
         </nav>
 
         {isTherapist && (
@@ -383,6 +426,10 @@ export default function SuperAdminDashboard() {
         <button onClick={() => setActiveTab('whatsapp')} className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${activeTab === 'whatsapp' ? 'text-[#0F9393]' : 'text-gray-400'}`}>
           <Phone size={20} />
           <span className="text-[10px] font-bold uppercase tracking-wider">Engine</span>
+        </button>
+        <button onClick={() => setActiveTab('system')} className={`flex flex-col items-center gap-1 cursor-pointer transition-all ${activeTab === 'system' ? 'text-[#0F9393]' : 'text-gray-400'}`}>
+          <Sparkles size={20} />
+          <span className="text-[10px] font-bold uppercase tracking-wider">System</span>
         </button>
       </nav>
 
@@ -991,7 +1038,68 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
         )}
-      </main>
+           {activeTab === 'system' && (
+             <div className="flex flex-col gap-8 max-w-4xl mx-auto">
+                <div className="bg-white rounded-[40px] p-10 border border-gray-100 shadow-sm">
+                   <div className="flex items-center justify-between mb-10">
+                      <div className="flex items-center gap-4">
+                         <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-500">
+                            <Sparkles size={28} />
+                         </div>
+                         <div>
+                            <h3 className="text-[24px] font-bold text-gray-900 tracking-tight">Notification Engine</h3>
+                            <p className="text-gray-400 text-[13px] font-bold">Automated reminders & meeting link delivery</p>
+                         </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Engine Status</span>
+                         <span className="flex items-center gap-2 text-green-500 font-bold text-[14px]">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            Active (Auto-Pilot)
+                         </span>
+                      </div>
+                   </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="p-8 bg-gray-50 rounded-[32px] border border-gray-100">
+                         <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-4">Last Processed Sync</p>
+                         <h4 className="text-[28px] font-bold text-gray-900">{cronStatus.lastRun || 'Never'}</h4>
+                         <p className="text-gray-500 text-[12px] mt-2">Next auto-sync in 15 minutes</p>
+                      </div>
+
+                      <div className="flex flex-col justify-center gap-4">
+                         <Button 
+                           variant="black" 
+                           onClick={triggerCron}
+                           disabled={cronStatus.loading}
+                           className="h-[70px] bg-[#0F9393] hover:bg-[#0D7F7F] border-none rounded-3xl font-black uppercase tracking-widest text-[14px] shadow-xl"
+                         >
+                            {cronStatus.loading ? 'Synchronizing...' : 'Manual Sync Now'}
+                         </Button>
+                         <p className="text-gray-400 text-[11px] text-center font-bold px-4">
+                            Triggering a manual sync will instantly check for upcoming sessions and dispatch any pending 6h or 15m WhatsApp reminders.
+                         </p>
+                      </div>
+                   </div>
+
+                   <div className="mt-10 pt-10 border-t border-gray-50 grid grid-cols-1 md:grid-cols-3 gap-8">
+                      <div className="flex flex-col gap-2">
+                         <span className="text-[10px] font-bold text-[#0F9393] uppercase tracking-widest">6h Reminder</span>
+                         <p className="text-[13px] text-gray-500 leading-relaxed font-medium">Sends the secure meeting link to the patient precisely 6 hours before the session.</p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                         <span className="text-[10px] font-bold text-[#0F9393] uppercase tracking-widest">15m Reminder</span>
+                         <p className="text-[13px] text-gray-500 leading-relaxed font-medium">Final alert sent to both patient and therapist to ensure everyone joins the room on time.</p>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                         <span className="text-[10px] font-bold text-[#0F9393] uppercase tracking-widest">Auto-Pilot</span>
+                         <p className="text-[13px] text-gray-500 leading-relaxed font-medium">As long as this dashboard is open in any admin's browser, reminders will be sent automatically.</p>
+                      </div>
+                   </div>
+                </div>
+             </div>
+           )}
+        </main>
 
       {/* Clinical Intake Detail Sheet */}
       {showQueueSheet && selectedQueueItem && (

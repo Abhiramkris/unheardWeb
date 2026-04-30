@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { WhatsAppManager } from '@/lib/whatsapp/WhatsAppClient';
+import { logAdminActivity } from '@/utils/logger';
 
 export async function POST(req: Request) {
   try {
@@ -23,9 +24,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Session request not found' }, { status: 404 });
     }
 
-    // 2. Perform Virtual Room Allocation
-    let final_meeting_link = meeting_link;
+    // 2. CHECK FOR DOUBLE ALLOTMENT / CONFLICTS
     const startIso = new Date(questionnaire.requested_start_time).toISOString();
+    
+    if (questionnaire.status === 'allotted' || questionnaire.appointment_id) {
+       return NextResponse.json({ 
+         success: false, 
+         error: 'This clinical request has already been processed and a professional has been assigned.' 
+       }, { status: 409 });
+    }
+
+    // Check if this specific patient/guest already has an appointment confirmed for this exact time
+    const { data: existingApt } = await adminSupabase
+      .from('appointments')
+      .select('id')
+      .eq('start_time', startIso)
+      .or(`guest_phone.eq.${questionnaire.guest_phone}${questionnaire.patient_id ? `,patient_id.eq.${questionnaire.patient_id}` : ''}`)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingApt) {
+       return NextResponse.json({ 
+         success: false, 
+         error: 'Conflict Detected: This patient already has an appointment confirmed for this exact time slot.' 
+       }, { status: 409 });
+    }
+
+    // 3. Perform Virtual Room Allocation
+    let final_meeting_link = meeting_link;
     const duration = questionnaire.is_trial ? 30 : 60;
     const endIso = new Date(new Date(questionnaire.requested_start_time).getTime() + duration * 60 * 1000).toISOString();
 
@@ -105,10 +131,11 @@ export async function POST(req: Request) {
     const patientName = questionnaire.guest_name || 'Anonymous User';
 
     // 6. Send WhatsApp to Therapist
+    console.log(`Checking therapist notification: Phone found? ${!!therapistProfile?.phone}`, therapistProfile?.phone);
     if (therapistProfile?.phone) {
       const tGatewayLink = `${gateway_link}?type=therapist`;
       const therapistMsg = `*New Appointment Assigned!* ✅\n\nDr. ${therapistProfile.full_name}, an admin has assigned a new session to you.\n\n*Patient:* ${patientName}\n*Date:* ${formattedDate}\n*Time:* ${formattedTime}\n*Type:* ${qAnswers.type || 'Individual'} (${qAnswers.service || 'General'})\n\n🔗 *Join Session Room:* ${tGatewayLink}\n\nPlease check your dashboard for details.`;
-      await WhatsAppManager.sendMessage(therapistProfile.phone, therapistMsg);
+      await WhatsAppManager.enqueueMessage(therapistProfile.phone, therapistMsg);
     }
 
     // 7. Send WhatsApp to Patient
@@ -123,13 +150,26 @@ export async function POST(req: Request) {
       }
 
       const patientMsg = `*Therapist Assigned & Confirmed!* 🎉\n\nHi ${patientName}, great news! Your session has been officially confirmed.\n\nYou have been matched with *Dr. ${therapistName}* who is highly experienced and specifically trained for your needs.${therapistQual}\n\n🗓️ *Date:* ${formattedDate}\n⏰ *Time:* ${formattedTime}\n\n${msgAction}\n\nSee you soon!`;
-      await WhatsAppManager.sendMessage(patientPhone, patientMsg);
+      await WhatsAppManager.enqueueMessage(patientPhone, patientMsg);
 
       if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost')) {
          const pGatewayLink = `${gateway_link}?type=patient`;
          const reminderMsg = `*Your Session is Starting Soon!* ⏳ (Dev Test)\n\nHi ${patientName}, your session is starting in *15 minutes*.\n\n🔗 *Join Now:* ${pGatewayLink}\n\nPlease join 2 minutes early to test your audio and video.`;
-         await WhatsAppManager.sendMessage(patientPhone, reminderMsg);
+         await WhatsAppManager.enqueueMessage(patientPhone, reminderMsg);
       }
+    }
+
+    // Trigger immediate queue processing for snappy delivery
+    fetch(`${baseUrl}/api/whatsapp/process-queue`).catch(() => {});
+
+    // 8. Log the activity
+    const { data: { user } } = await adminSupabase.auth.getUser();
+    if (user) {
+      await logAdminActivity(user.id, 'assign_appointment', appointment.id, {
+        questionnaire_id,
+        therapist_id,
+        patient_name: patientName
+      });
     }
 
     return NextResponse.json({ success: true });

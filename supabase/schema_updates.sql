@@ -43,14 +43,31 @@ CREATE TABLE IF NOT EXISTS public.whatsapp_auth (
 );
 
 -- 15. BOOKING OTP AUTHORIZATION LOGIC
-CREATE TABLE IF NOT EXISTS public.booking_otps (
+CREATE TABLE IF NOT EXISTS public.whatsapp_queue (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    phone_number TEXT NOT NULL,
-    otp_code TEXT NOT NULL,
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    verified BOOLEAN DEFAULT FALSE,
+    phone TEXT NOT NULL,
+    message TEXT NOT NULL,
+    scheduled_time TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    status TEXT DEFAULT 'pending', 
+    attempts INTEGER DEFAULT 0,
+    error TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- IDENTITY TRAILS (Anti-Exploit System)
+CREATE TABLE IF NOT EXISTS public.identity_trails (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id),
+    phones JSONB DEFAULT '[]'::jsonb,
+    fingerprints JSONB DEFAULT '[]'::jsonb,
+    used_coupons JSONB DEFAULT '[]'::jsonb,
+    is_trial_claimed BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_identity_phones ON public.identity_trails USING GIN (phones);
+CREATE INDEX IF NOT EXISTS idx_identity_fingerprints ON public.identity_trails USING GIN (fingerprints);
 
 
 -- 17. THERAPIST NOTIFICATIONS

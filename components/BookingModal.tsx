@@ -51,7 +51,10 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     scheduled_time: ''
   });
 
-  const [timeLeft, setTimeLeft] = useState(310); // 110 seconds
+  const [couponCode, setCouponCode] = useState('');
+  const [isTrialAvailable, setIsTrialAvailable] = useState(true);
+
+  const [timeLeft, setTimeLeft] = useState(420); // 7 minutes
   const [previewTherapist, setPreviewTherapist] = useState<Therapist | null>(null);
   const [deviceId, setDeviceId] = useState<string>('');
 
@@ -60,7 +63,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     setTimeout(() => {
       setStep(1);
       setDirection(1);
-      setTimeLeft(110);
+      setTimeLeft(420);
     }, 300);
   }, [onClose]);
 
@@ -113,7 +116,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   // Session Timeout Timer Logic
   useEffect(() => {
     if (!isOpen) {
-      setTimeLeft(110);
+      setTimeLeft(420);
       return;
     }
 
@@ -183,6 +186,18 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
         await supabase.auth.setSession(data.session);
       }
       
+      // Check Trial Availability
+      const trialCheck = await fetch('/api/booking/check-trial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formData.phone, deviceId, userId: data.session?.user?.id })
+      });
+      const trialData = await trialCheck.json();
+      setIsTrialAvailable(trialData.available);
+      if (!trialData.available) {
+        setFormData(prev => ({ ...prev, is_trial: false }));
+      }
+
       setDirection(1);
       setStep(3); // Go to Care Type
     } catch (err: any) {
@@ -497,15 +512,26 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                            <div className="flex flex-col gap-2 mt-2">
                              <label className="font-nunito font-bold text-[14px] text-gray-900 flex items-center gap-2"><Clock size={16}/> Popular Slots</label>
                              <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-                               {['09:00', '10:00', '11:00', '13:00', '15:00', '16:00', '18:00', '19:00'].map((time) => (
-                                 <button 
-                                   key={time} 
-                                   onClick={() => setFormData({...formData, scheduled_time: time})} 
-                                   className={`py-3 rounded-xl text-[14px] font-bold border-2 ${formData.scheduled_time === time ? 'bg-[#0F9393] border-[#0F9393] text-white shadow-md' : 'bg-white border-gray-100 text-gray-600 hover:border-gray-300'}`}
-                                 >
-                                   {time}
-                                 </button>
-                               ))}
+                               {['09:00', '10:00', '11:00', '13:00', '15:00', '16:00', '18:00', '19:00'].map((time) => {
+                                 const isToday = formData.scheduled_date === new Date().toISOString().split('T')[0];
+                                 const [hours, minutes] = time.split(':').map(Number);
+                                 const slotDate = new Date();
+                                 slotDate.setHours(hours, minutes, 0, 0);
+                                 
+                                 // Disable if in the past or within 30 mins from now
+                                 const isDisabled = isToday && (slotDate.getTime() < Date.now() + 30 * 60 * 1000);
+
+                                 return (
+                                   <button 
+                                     key={time} 
+                                     disabled={isDisabled}
+                                     onClick={() => setFormData({...formData, scheduled_time: time})} 
+                                     className={`py-3 rounded-xl text-[14px] font-bold border-2 transition-all ${isDisabled ? 'bg-gray-50 border-gray-50 text-gray-200 cursor-not-allowed opacity-50' : (formData.scheduled_time === time ? 'bg-[#0F9393] border-[#0F9393] text-white shadow-md' : 'bg-white border-gray-100 text-gray-600 hover:border-gray-300')}`}
+                                   >
+                                     {time}
+                                   </button>
+                                 );
+                               })}
                              </div>
                            </div>
                         </div>
@@ -516,23 +542,68 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                       <div className="flex flex-col gap-6">
                         <div className="mb-2">
                           <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Select Plan</h3>
-                          <p className="font-nunito text-gray-500">Select a payment option to confirm your booking.</p>
+                          <p className="font-nunito text-gray-500">Choose a session type. Your first intro call is on us!</p>
                         </div>
+
+                        {/* Plan Cards */}
                         <div className="grid grid-cols-2 gap-4">
                           {[
-                            { label: 'Trial Session', price: currentPricing.trial, isTrial: true },
-                            { label: 'Single Session', price: currentPricing.single, isTrial: false },
-                            { label: 'Standard Pack', price: currentPricing.standard, isTrial: false },
-                            { label: 'Premium Pack', price: currentPricing.premium, isTrial: false }
-                          ].map((plan, i) => (
-                            <div 
-                              key={i} onClick={() => setFormData({...formData, is_trial: plan.isTrial})}
-                              className={`border-2 ${((plan.isTrial && formData.is_trial) || (!plan.isTrial && !formData.is_trial && i === 1)) ? 'border-[#0F9393] bg-[#0F9393]/5 transform scale-[1.02]' : 'border-gray-100 hover:border-gray-200'} rounded-3xl p-6 cursor-pointer transition-all flex flex-col items-center justify-center text-center`}
-                            >
-                              <span className="font-nunito font-bold text-[12px] text-[#0F9393] uppercase tracking-widest mb-1">{plan.label}</span>
-                              <h4 className="font-georgia font-bold text-[32px] text-black">{plan.price}/-</h4>
-                            </div>
-                          ))}
+                            { label: 'Trial Session', price: currentPricing.trial, isTrial: true, available: isTrialAvailable },
+                            { label: 'Single Session', price: currentPricing.single, isTrial: false, available: true },
+                            { label: 'Standard Pack', price: currentPricing.standard, isTrial: false, available: true },
+                            { label: 'Premium Pack', price: currentPricing.premium, isTrial: false, available: true }
+                          ].map((plan, i) => {
+                            const isSelected = (plan.isTrial && formData.is_trial) || (!plan.isTrial && !formData.is_trial && i === 1);
+                            const isDisabled = !plan.available;
+
+                            return (
+                              <div 
+                                key={i} 
+                                onClick={() => !isDisabled && setFormData({...formData, is_trial: plan.isTrial})}
+                                className={`group relative border-2 ${isSelected ? 'border-[#0F9393] bg-[#0F9393]/5 transform scale-[1.02]' : 'border-gray-100'} ${isDisabled ? 'opacity-60 grayscale cursor-not-allowed' : 'hover:border-gray-200 cursor-pointer'} rounded-3xl p-6 transition-all flex flex-col items-center justify-center text-center overflow-hidden`}
+                              >
+                                {plan.isTrial && plan.available && (
+                                  <>
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                                    <div className="absolute top-3 right-3 text-[#0F9393] animate-bounce">
+                                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V18H19V19Z"/></svg>
+                                    </div>
+                                  </>
+                                )}
+                                
+                                <span className="font-nunito font-bold text-[11px] text-[#0F9393] uppercase tracking-widest mb-1">
+                                  {isDisabled ? 'Intro Call (Availed)' : plan.label}
+                                </span>
+
+                                <div className="flex flex-col items-center">
+                                  {isDisabled ? (
+                                    <span className="font-georgia font-bold text-[24px] text-gray-400 line-through">₹75/-</span>
+                                  ) : (
+                                    <h4 className="font-georgia font-bold text-[32px] text-black">
+                                      {plan.isTrial ? 'FREE' : `₹${plan.price}/-`}
+                                    </h4>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Coupon Input */}
+                        <div className="mt-4 p-5 bg-gray-50 rounded-[24px] border border-gray-100">
+                          <div className="flex flex-col gap-2">
+                             <label className="font-nunito font-bold text-[12px] text-gray-400 uppercase tracking-widest ml-1">Have a Coupon?</label>
+                             <div className="flex gap-2">
+                               <input 
+                                 type="text" 
+                                 value={couponCode}
+                                 onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                 placeholder="ENTER CODE"
+                                 className="flex-grow bg-white border border-gray-200 rounded-xl px-4 py-2.5 font-bold text-gray-900 outline-none focus:border-[#0F9393]"
+                               />
+                               <button className="bg-black text-white px-6 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition-all">Apply</button>
+                             </div>
+                          </div>
                         </div>
                       </div>
                     )}
