@@ -285,78 +285,11 @@ export class WhatsAppManager {
             // Start Background Worker (High Frequency Queue Processor)
             if (globalForWhatsApp.workerInterval) clearInterval(globalForWhatsApp.workerInterval);
             globalForWhatsApp.workerInterval = setInterval(async () => {
-               try {
-                 const sb = await createAdminClient();
-                 const { data: lock } = await sb.from('whatsapp_auth').select('data, updated_at').eq('id', 'connection_lock').single();
-                 
-                 const lastUpdate = lock ? new Date(lock.updated_at).getTime() : 0;
-                 const isLockedByMe = lock?.data?.instanceId === instanceId;
-                 const isStale = (Date.now() - lastUpdate) > 45000;
-
-                 if (isLockedByMe || isStale) {
-                    if (isStale && !isLockedByMe) {
-                       console.log('🤖 [Worker] Lock was stale. Re-claiming and processing...');
-                       await sb.from('whatsapp_auth').upsert({
-                         id: 'connection_lock',
-                         data: { instanceId, status: 'authenticated' },
-                         updated_at: new Date().toISOString()
-                       });
-                    }
-
-                    // A. Trigger Notification Cron (Reminders)
-                    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-                    fetch(`${baseUrl}/api/cron/notifications`).catch(() => {});
-
-                    // B. Process whatsapp_queue (Async Messages)
-                    const now = new Date().toISOString();
-                    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
-
-                    // Fetch due pending messages (includes overdue ones from any past time)
-                    const { data: pendingMsgs, error: qError } = await sb
-                      .from('whatsapp_queue')
-                      .select('*')
-                      .eq('status', 'pending')
-                      .lte('scheduled_time', now)
-                      .order('scheduled_time', { ascending: true })
-                      .limit(15);
-
-                    if (qError) console.error('Worker Queue Fetch Error:', qError);
-
-                    // Retry recently-failed messages (may have failed because WA was offline)
-                    const { data: failedMsgs } = await sb
-                      .from('whatsapp_queue')
-                      .select('*')
-                      .eq('status', 'failed')
-                      .gte('created_at', sixHoursAgo)
-                      .lt('attempts', 5)
-                      .order('scheduled_time', { ascending: true })
-                      .limit(5);
-
-                    const allMsgs = [...(pendingMsgs || []), ...(failedMsgs || [])];
-
-                    if (allMsgs.length > 0) {
-                      console.log(`🤖 [Worker] Processing ${allMsgs.length} messages (${pendingMsgs?.length || 0} pending, ${failedMsgs?.length || 0} retrying)...`);
-                      for (const msg of allMsgs) {
-                         const result = await this.sendMessage(msg.phone, msg.message, false);
-                         if (result.success) {
-                            await sb.from('whatsapp_queue').update({ status: 'sent', attempts: (msg.attempts || 0) + 1, error: null }).eq('id', msg.id);
-                            console.log(`✅ [Worker] Sent message to ${msg.phone}`);
-                         } else {
-                            const newAttempts = (msg.attempts || 0) + 1;
-                            const newStatus = newAttempts >= 5 ? 'failed' : 'pending';
-                            await sb.from('whatsapp_queue').update({ 
-                              status: newStatus, 
-                              attempts: newAttempts,
-                              error: result.error?.toString() || 'Unknown error'
-                            }).eq('id', msg.id);
-                            console.warn(`❌ [Worker] Failed message to ${msg.phone}: ${result.error}`);
-                         }
-                      }
-                    }
-                 }
-               } catch (e) {
-                 console.warn('Background Worker execution failed:', e);
-               }
+              try {
+                await this.processQueue();
+              } catch (e) {
+                console.warn('Background Worker execution failed:', e);
+              }
             }, WORKER_INTERVAL_MS);
           }
         });
@@ -372,6 +305,66 @@ export class WhatsAppManager {
     })();
 
     return globalForWhatsApp.connectionPromise;
+  }
+
+  /**
+   * Direct Queue Processor (to be called from both background worker AND manual triggers)
+   */
+  static async processQueue() {
+    try {
+      const sb = await createAdminClient();
+      
+      // A. Trigger Notification Cron (Reminders) - We still use fetch for this as it's a separate route
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+      fetch(`${baseUrl}/api/cron/notifications`).catch(() => {});
+
+      // B. Process whatsapp_queue (Async Messages)
+      const now = new Date().toISOString();
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+
+      // Fetch due pending messages
+      const { data: pendingMsgs, error: qError } = await sb
+        .from('whatsapp_queue')
+        .select('*')
+        .eq('status', 'pending')
+        .lte('scheduled_time', now)
+        .order('scheduled_time', { ascending: true })
+        .limit(15);
+
+      if (qError) console.error('Worker Queue Fetch Error:', qError);
+
+      // Retry recently-failed messages
+      const { data: failedMsgs } = await sb
+        .from('whatsapp_queue')
+        .select('*')
+        .eq('status', 'failed')
+        .gte('created_at', sixHoursAgo)
+        .lt('attempts', 5)
+        .order('scheduled_time', { ascending: true })
+        .limit(5);
+
+      const allMsgs = [...(pendingMsgs || []), ...(failedMsgs || [])];
+
+      if (allMsgs.length > 0) {
+        console.log(`🤖 [WhatsApp] Processing ${allMsgs.length} messages...`);
+        for (const msg of allMsgs) {
+          const result = await this.sendMessage(msg.phone, msg.message, false);
+          if (result.success) {
+            await sb.from('whatsapp_queue').update({ status: 'sent', attempts: (msg.attempts || 0) + 1, error: null }).eq('id', msg.id);
+          } else {
+            const newAttempts = (msg.attempts || 0) + 1;
+            const newStatus = newAttempts >= 5 ? 'failed' : 'pending';
+            await sb.from('whatsapp_queue').update({ 
+              status: newStatus, 
+              attempts: newAttempts,
+              error: result.error?.toString() || 'Unknown error'
+            }).eq('id', msg.id);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to process WhatsApp queue:', err);
+    }
   }
 
   static async sendMessage(phoneNumber: string, message: string, retryOnDisconnect = true) {

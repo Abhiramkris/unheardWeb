@@ -326,9 +326,21 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
             // Using the new IFrame Transaction helper
             const { initiatePhonePeTransaction } = await import('@/components/PhonePeProvider');
             
-            initiatePhonePeTransaction(payData.redirectUrl, (status) => {
+            initiatePhonePeTransaction(payData.redirectUrl, async (status) => {
               console.log("PAYMENT CALLBACK STATUS:", status);
               if (status === 'CONCLUDED') {
+                setLoading(true);
+                // Manually trigger verification for instant feedback/local testing
+                try {
+                  await fetch('/api/payment/phonepe/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transactionId: result.transactionId })
+                  });
+                } catch (vErr) {
+                  console.error("Verification Trigger Error:", vErr);
+                }
+
                 setModalState({
                   isOpen: true,
                   type: 'success',

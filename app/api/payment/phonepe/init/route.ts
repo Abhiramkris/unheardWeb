@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     // 1. FETCH & VALIDATE SESSION
     const { data: questionnaire, error: qError } = await adminSupabase
       .from('pre_booking_questionnaires')
-      .select('amount, expires_at, payment_status')
+      .select('amount, expires_at, payment_status, transaction_id')
       .eq('id', questionnaireId)
       .single();
 
@@ -26,11 +26,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Session has expired. Please start over.' });
     }
 
-    // 2. GENERATE IDS
-    const transactionId = `T${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    // 2. GENERATE IDS (Using existing transactionId if available)
+    const transactionId = questionnaire.transaction_id || `T${Date.now()}${Math.floor(Math.random() * 1000)}`;
     const orderId = `ORD${Date.now()}`;
 
-    // 3. UPDATE DB
+    // 3. UPDATE DB (Only update order_id and ensure transaction_id is set)
     await adminSupabase
       .from('pre_booking_questionnaires')
       .update({ 
