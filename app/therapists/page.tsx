@@ -13,10 +13,10 @@ const TherapistCard = ({ t, openBooking }: { t: any, openBooking: (id: string) =
   const displayName = (t.full_name || 'Specialist').toUpperCase();
 
   return (
-    <div className="group relative bg-[#F7CE1A] rounded-[32px] md:rounded-[40px] overflow-hidden border-[3px] border-black/10 hover:border-black transition-all duration-500 hover:shadow-[0_30px_80px_rgba(247,206,26,0.25)] flex flex-col h-full w-[90vw] sm:w-full mx-auto">
+    <div className="group relative bg-[#F7CE1A] rounded-[32px] md:rounded-[40px] overflow-hidden border-[3px] border-black p-5 md:p-6 pb-8 flex flex-col h-full w-[90vw] sm:w-full mx-auto transition-all duration-500 hover:shadow-[0_30px_80px_rgba(247,206,26,0.25)]">
       
-      {/* Framed Image Section (Full-cover image with yellow frame overlay) */}
-      <div className="relative w-full aspect-[4/5] overflow-hidden border-b-[3px] border-black">
+      {/* Polaroid-style Framed Image */}
+      <div className="relative w-full aspect-[4/5] overflow-hidden rounded-[20px] border-[3px] border-black shadow-sm mb-6">
         <Image 
           src={t.avatar_url || '/assets/section_2_3.webp'} 
           alt={t.full_name} 
@@ -24,15 +24,10 @@ const TherapistCard = ({ t, openBooking }: { t: any, openBooking: (id: string) =
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 600px"
           className="object-cover transition-transform duration-1000 group-hover:scale-105" 
         />
-        {/* Yellow Frame Overlay */}
-        <div className="absolute inset-0 border-[16px] border-[#F7CE1A] pointer-events-none">
-          {/* Inner thin black border inside the yellow frame */}
-          <div className="absolute inset-0 border-[2.5px] border-black" />
-        </div>
       </div>
 
-      {/* Content Section */}
-      <div className="pt-6 pb-8 px-6 md:px-8 flex flex-col flex-grow">
+      {/* Content Section (Polaroid Bottom Text Area) */}
+      <div className="flex flex-col flex-grow">
         
         {/* Massive Bold Full Name (Transparent text showing the photo behind it) */}
         <h3 
