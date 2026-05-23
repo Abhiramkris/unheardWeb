@@ -10,13 +10,13 @@ import { useBooking } from '@/components/BookingContext';
 // THERAPIST CARD COMPONENT (INDUSTRIAL PREMIUM DESIGN)
 // ----------------------------------------------------------------------
 const TherapistCard = ({ t, openBooking }: { t: any, openBooking: (id: string) => void }) => {
-  const firstName = (t.full_name || 'Expert').split(' ')[0].toUpperCase();
+  const displayName = (t.full_name || 'Specialist').toUpperCase();
 
   return (
     <div className="group relative bg-[#F7CE1A] rounded-[32px] md:rounded-[40px] overflow-hidden border-[3px] border-black/10 hover:border-black transition-all duration-500 hover:shadow-[0_30px_80px_rgba(247,206,26,0.25)] flex flex-col h-full w-[90vw] sm:w-full mx-auto">
       
-      {/* Framed Image Section */}
-      <div className="p-5 pb-0">
+      {/* Framed Image Section (Fully enclosed frame on all 4 sides) */}
+      <div className="p-5">
         <div className="relative w-full aspect-[4/5] overflow-hidden rounded-[20px] border-[3px] border-black shadow-md">
           <Image 
             src={t.avatar_url || '/assets/section_2_3.webp'} 
@@ -29,23 +29,28 @@ const TherapistCard = ({ t, openBooking }: { t: any, openBooking: (id: string) =
       </div>
 
       {/* Content Section */}
-      <div className="pt-4 pb-8 px-6 md:px-8 flex flex-col flex-grow">
+      <div className="pt-2 pb-8 px-6 md:px-8 flex flex-col flex-grow">
         
-        {/* Massive Bold Hashtag First Name */}
-        <h3 className="font-sans font-black text-[38px] md:text-[46px] text-black leading-none tracking-tighter uppercase mb-1">
-          #{firstName}
+        {/* Massive Bold Full Name (No Hashtag) */}
+        <h3 className="font-sans font-black text-[30px] md:text-[36px] text-black leading-tight tracking-tighter uppercase mb-1">
+          {displayName}
         </h3>
+
+        {/* Qualification under the Name */}
+        <p className="text-[13px] md:text-[14px] font-black text-black/60 uppercase tracking-widest leading-none mb-4">
+          {t.qualification || 'Therapist'}
+        </p>
 
         {/* Separator Line */}
         <div className="w-full h-[3px] bg-black mb-3" />
 
-        {/* Full Name & Title Tagline */}
-        <p className="text-[13px] md:text-[14px] font-black text-black uppercase tracking-wider leading-tight mb-4">
-          {t.full_name} — {t.qualification || 'Therapist'}
+        {/* Microtag under the Line */}
+        <p className="text-black font-sans font-black text-[15px] md:text-[16px] uppercase tracking-wide leading-snug mb-3">
+          {t.microtag || 'Insight-Driven'}
         </p>
 
         {/* Bio description */}
-        <p className="text-black/85 font-nunito text-[14px] md:text-[15px] font-semibold leading-relaxed line-clamp-3 mb-6">
+        <p className="text-black/80 font-nunito text-[13px] md:text-[14px] font-semibold leading-relaxed line-clamp-3 mb-6">
           {t.bio || "Specializing in the identification and restructuring of repetitive mental patterns to achieve sustainable clarity."}
         </p>
 
