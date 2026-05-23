@@ -133,9 +133,8 @@ export default function ServicesPage() {
           top: `${stickyTop1}px`,
         }}
       >
-        <div className="relative w-[97vw] max-w-[2440px] bg-[#1A1A1A] rounded-t-[40px] rounded-b-[40px] border border-white/10 shadow-2xl overflow-hidden flex flex-col items-center pt-36 md:pt-52 pb-24 px-6 md:px-12 lg:px-24 z-20">
+        <div className="relative w-[97vw] max-w-[2440px] bg-[#1A1A1A] rounded-t-[40px] rounded-b-[40px] border border-white/10 shadow-2xl overflow-hidden flex flex-col items-center pt-48 md:pt-64 pb-24 px-6 md:px-12 lg:px-24 z-20">
           <div className="relative z-10 w-full">
-            <div className="h-12 md:h-20" />
             {/* Intro Header: 2-Column Grid (No nested card background) */}
             <div className="w-full flex flex-col items-center mb-16">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-20 items-start w-full max-w-[1400px]">

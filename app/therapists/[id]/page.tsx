@@ -66,6 +66,13 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
 
   useEffect(() => {
     const calculatePinOffset = () => {
+      if (window.innerWidth < 768) {
+        setStickyTop1(0);
+        setStickyTop2(0);
+        setStickyTop3(0);
+        return;
+      }
+
       const getOffset = (card: HTMLElement | null, target: HTMLElement | null) => {
         if (!card || !target) return 0;
         
@@ -135,10 +142,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
   const t = therapist;
 
   return (
-    <div className="relative w-full bg-[#111111] font-nunito flex flex-col items-center pb-[20vh] pt-[20px]">
-      
-      {/* Invisible Navbar Spacer - Prevents collision with fixed navbar */}
-      <div className="h-[110px] md:h-[135px] w-full shrink-0" />
+    <div className="relative w-full bg-[#111111] font-nunito flex flex-col items-center pb-[2vh] pt-[90px] md:pt-[110px]">
       
       {/* GLOBAL BACKGROUND BLOBS */}
       <div className="fixed top-[-10%] left-[-10%] w-[60vw] md:w-[40vw] h-[60vw] md:h-[40vw] bg-[#0F9393]/10 rounded-full blur-[80px] md:blur-[120px] pointer-events-none z-0"></div>
@@ -147,10 +151,10 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
       {/* SECTION 1: HERO (WHITE CARD - STICKY) */}
       <section 
         ref={card1Ref}
-        className="sticky z-10 w-full flex flex-col items-center px-2 md:px-0"
+        className="sticky z-10 w-full flex flex-col items-center px-4 md:px-0"
         style={{ top: `${stickyTop1}px` }}
       >
-        <div className="relative w-full md:w-[90vw] max-w-[1400px] bg-[#FEFEFC] rounded-[32px] md:rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col min-h-[auto] lg:min-h-[85vh]">
+        <div className="relative w-full md:w-[90vw] max-w-[2440px] bg-[#FEFEFC] rounded-[32px] md:rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col min-h-[auto] lg:min-h-[70vh]">
           
           {/* Subtle White Card BG Blob */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[60%] bg-[#0F9393]/5 rounded-full blur-[60px] md:blur-[80px] pointer-events-none"></div>
@@ -159,61 +163,61 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
           <div className="relative z-10 flex flex-col lg:flex-row p-6 md:p-16 lg:p-24 gap-10 lg:gap-24 items-center flex-grow">
             
             {/* Image Wrapper with Badges */}
-            <div className="w-full lg:w-[45%] relative group">
-              <div className="aspect-[1/1] md:aspect-[4/5] relative rounded-[24px] md:rounded-[40px] overflow-hidden shadow-2xl border-[6px] md:border-[12px] border-white transition-all duration-700">
+            <div className="w-full lg:w-[45%] flex justify-center">
+              <div className="w-full max-w-[450px] aspect-[1/1] md:aspect-[4/5] relative rounded-[24px] md:rounded-[40px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-[4px] md:border-[8px] border-white">
                 <Image 
                   src={t.avatar_url || '/assets/section_2_4.webp'} 
                   alt={t.full_name} 
                   fill 
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  sizes="(max-width: 1024px) 100vw, 450px"
                   className="object-cover" 
                   priority
                   quality={90}
                 />
-              </div>
-              {/* Glassmorphism Badge */}
-              <div className="absolute top-6 md:top-10 -right-2 md:-right-4 bg-white/80 backdrop-blur-md border border-white px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl shadow-xl flex items-center gap-2 md:gap-3 scale-90 md:scale-100">
-                 <div className="w-6 h-6 md:w-8 md:h-8 bg-[#0F9393] rounded-full flex items-center justify-center text-white font-bold text-[12px] md:text-[18px]">
-                   ✓
-                 </div>
-                 <div>
-                   <p className="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Verified</p>
-                   <p className="text-[12px] md:text-[14px] font-bold text-black leading-none mt-1">Specialist</p>
-                 </div>
+                {/* Verified Badge Overlay */}
+                <div className="absolute top-4 right-4 md:top-6 md:right-6 bg-white/90 backdrop-blur-md border border-gray-100 rounded-full px-4 md:px-5 py-2 md:py-2.5 flex items-center gap-2 shadow-lg z-20">
+                   <div className="w-6 h-6 md:w-8 md:h-8 bg-[#0F9393] rounded-full flex items-center justify-center text-white font-bold text-[12px] md:text-[18px]">
+                     ✓
+                   </div>
+                   <div>
+                     <p className="text-[8px] md:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Verified</p>
+                     <p className="text-[12px] md:text-[14px] font-bold text-black leading-none mt-1">Specialist</p>
+                   </div>
+                </div>
               </div>
             </div>
 
             {/* Intro Text Section */}
-            <div className="w-full lg:w-[55%] flex flex-col gap-6 md:gap-10">
-              <div className="flex flex-col gap-3 md:gap-4">
+            <div className="w-full lg:w-[55%] flex flex-col items-start gap-6 md:gap-8 text-left">
+              <div className="flex flex-col gap-3 md:gap-4 items-start">
                 <span className="bg-[#0F9393]/10 text-[#0F9393] px-4 md:px-6 py-1.5 md:py-2 rounded-full text-[12px] md:text-[14px] font-bold uppercase tracking-[0.2em] w-fit">
                    {t.microtag || "Mental Health Expert"}
                 </span>
-                <h1 className="text-[32px] md:text-[60px] lg:text-[80px] font-bold font-georgia text-black leading-[1.1] tracking-[-0.03em]">
+                <h1 className="text-[36px] md:text-[48px] font-bold font-georgia text-black leading-[1.1] tracking-[-0.02em]">
                   {t.full_name}
                 </h1>
               </div>
 
               <div className="relative">
                 <div className="absolute -left-4 md:-left-6 top-0 text-[40px] md:text-[64px] font-georgia text-[#0F9393]/20 leading-none">&ldquo;</div>
-                <p className="text-[16px] md:text-[22px] lg:text-[28px] font-bold text-black/80 leading-relaxed font-nunito italic max-w-[600px] pl-4 md:pl-6 border-l-2 md:border-l-4 border-[#0F9393]/20">
+                <p className="text-[16px] md:text-[18px] font-semibold text-black/60 leading-relaxed font-nunito italic max-w-[600px] pl-4 md:pl-6 border-l-2 md:border-l-4 border-[#0F9393]/20">
                   {t.tagline || t.bio || "Helping you find the strength to navigate through life's most complex emotional landscapes."}
                 </p>
               </div>
               
-              <div className="flex flex-col gap-6 mt-4">
+              <div className="flex flex-col items-start gap-4 mt-2 w-full">
                 <button 
                   ref={target1Ref}
                   onClick={() => openBookingModal({ therapist_id: t.user_id })}
-                  className="w-full md:w-fit bg-black text-white px-8 md:px-12 py-4 md:py-6 rounded-full text-[16px] md:text-[20px] font-bold flex flex-row items-center justify-center gap-4 md:gap-5 hover:bg-gray-800 transition-all shadow-xl group active:scale-95"
+                  className="w-full md:w-auto h-[54px] md:h-[64px] bg-black text-white px-8 md:px-12 rounded-full text-[14px] md:text-[18px] font-bold flex flex-row items-center justify-center gap-4 hover:bg-gray-800 transition-all shadow-xl group active:scale-95 font-nunito"
                 >
                   Book Free Intro Session 
-                  <span className="bg-[#0F9393] rounded-full p-2 md:p-2.5">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+                  <span className="bg-[#0F9393] rounded-full p-1.5 md:p-2 flex items-center justify-center shrink-0">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
                   </span>
                 </button>
-                <div className="flex items-center gap-4 md:gap-6 px-2">
-                   <div className="flex -space-x-2 md:-space-x-3">
+              <div className="flex items-center gap-4 md:gap-6 px-2">
+                 <div className="flex -space-x-2 md:-space-x-3">
                      {[1,2,3].map(i => (
                        <div key={i} className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white bg-gray-200 overflow-hidden relative">
                          <Image 
@@ -239,24 +243,21 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
       {/* SECTION 2: ABOUT & STATS (BLACK CARD - STICKY OVER HERO) */}
       <section 
         ref={card2Ref}
-        className="sticky z-20 w-full flex flex-col items-center mt-[-80px] md:mt-[-250px] px-2 md:px-0 pt-[120px] md:pt-[350px]"
+        className="sticky z-20 w-full flex flex-col items-center mt-[-100px] md:mt-[-280px] px-4 md:px-0 pt-[80px] md:pt-[240px]"
         style={{ top: `${stickyTop2}px` }}
       >
-        <div className="relative w-full md:w-[90vw] max-w-[1400px] bg-[#171612] rounded-[32px] md:rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.5)] p-6 md:p-16 lg:p-24 flex flex-col gap-10 md:gap-20 min-h-[auto] lg:min-h-[80vh] overflow-hidden">
+        <div className="relative w-full md:w-[90vw] max-w-[2440px] bg-[#171612] rounded-[32px] md:rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.5)] p-6 md:p-16 lg:p-24 flex flex-col gap-10 md:gap-20 min-h-[auto] lg:min-h-[80vh] overflow-hidden">
           
           {/* Animated Background Blob for Black Card */}
           <div className="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] bg-[#0F9393]/10 rounded-full blur-[100px] pointer-events-none"></div>
 
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-10">
-            <h2 className="text-[32px] md:text-[60px] font-bold font-georgia text-white leading-tight">
+            <h2 className="text-[28px] md:text-[32px] font-bold font-georgia text-white leading-tight">
               My <span className="text-[#0F9393]">Impact</span> <br className="hidden md:block" /> & Qualifications
             </h2>
-            <p className="text-gray-400 font-bold text-[14px] md:text-[18px] max-w-[400px] leading-relaxed">
-               Validated expertise combined with a commitment to individual success.
-            </p>
           </div>
 
-          <div ref={target2Ref} className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+          <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
             {[
               { label: 'Qualification', value: t.qualification || 'Msc', desc: 'Expert' },
               { label: 'Sessions', value: t.display_hours || '0+', desc: 'Verified' },
@@ -265,7 +266,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
             ].map((stat, i) => (
               <div key={i} className="bg-[#1C1B17]/50 backdrop-blur-xl border border-white/5 rounded-[20px] md:rounded-[32px] p-5 md:p-10 flex flex-col items-start relative shadow-2xl transition-all duration-300">
                 <div className="w-8 md:w-12 h-1 bg-[#0F9393] mb-4 md:mb-8 rounded-full"></div>
-                <h3 className="text-[28px] md:text-[56px] font-black font-nunito tracking-tighter text-white leading-none mb-2 md:mb-4">
+                <h3 className="text-[24px] md:text-[40px] font-black font-nunito tracking-tighter text-white leading-none mb-2 md:mb-4">
                   {stat.value}
                 </h3>
                 <p className="text-[10px] md:text-[14px] font-extrabold text-[#0F9393] uppercase tracking-widest mb-1 md:mb-3">{stat.label}</p>
@@ -274,93 +275,98 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* SECTION 2.5: BIO & APPROACH (INTEGRATED) */}
-      <section className="relative w-full flex flex-col items-center px-2 md:px-0 py-20">
-        <div className="w-full md:w-[90vw] max-w-[1400px] grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
-          
-          {/* Bio & Approach */}
-          <div className="flex flex-col gap-12">
-            <div className="flex flex-col gap-6">
-              <h3 className="text-[#0F9393] text-[14px] font-black uppercase tracking-[0.3em]">Biography</h3>
-              <p className="text-gray-300 text-[18px] md:text-[20px] leading-relaxed font-nunito">
-                {t.bio}
-              </p>
-            </div>
-            
-            {t.approach && (
+          {/* Divider */}
+          <div className="w-full h-[1px] bg-white/5 my-4 relative z-10"></div>
+
+          {/* Biography & Approach Section */}
+          <div ref={target2Ref} className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 text-left">
+            {/* Bio & Approach */}
+            <div className="flex flex-col gap-12">
               <div className="flex flex-col gap-6">
-                <h3 className="text-[#0F9393] text-[14px] font-black uppercase tracking-[0.3em]">Therapeutic Approach</h3>
-                <p className="text-gray-300 text-[18px] md:text-[20px] leading-relaxed font-nunito">
-                  {t.approach}
+                <h3 className="text-[#0F9393] text-[14px] font-black uppercase tracking-[0.3em]">Biography</h3>
+                <p className="text-gray-200 text-[18px] md:text-[20px] font-semibold leading-relaxed font-nunito">
+                  {t.bio}
                 </p>
+              </div>
+              
+              {t.approach && (
+                <div className="flex flex-col gap-6">
+                  <h3 className="text-[#0F9393] text-[14px] font-black uppercase tracking-[0.3em]">Therapeutic Approach</h3>
+                  <p className="text-gray-200 text-[18px] md:text-[20px] font-semibold leading-relaxed font-nunito">
+                    {t.approach}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Good Fit For */}
+            {t.good_fit_for && t.good_fit_for.length > 0 && (
+              <div className="bg-[#1C1B17] rounded-[32px] p-10 md:p-16 border border-white/5 shadow-2xl">
+                <h3 className="text-white text-[20px] md:text-[24px] font-bold font-georgia mb-10 flex items-center gap-4">
+                  <span className="w-8 h-1 bg-[#0F9393]"></span>
+                  Good fit for:
+                </h3>
+                <ul className="flex flex-col gap-6">
+                  {t.good_fit_for.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-4 text-gray-300 text-[16px] md:text-[18px] font-semibold font-nunito">
+                      <span className="text-[#0F9393] mt-1">✦</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
 
-          {/* Good Fit For */}
-          {t.good_fit_for && t.good_fit_for.length > 0 && (
-            <div className="bg-[#1C1B17] rounded-[32px] p-10 md:p-16 border border-white/5 shadow-2xl">
-              <h3 className="text-white text-[24px] md:text-[32px] font-bold font-georgia mb-10 flex items-center gap-4">
-                <span className="w-8 h-1 bg-[#0F9393]"></span>
-                Good fit for:
-              </h3>
-              <ul className="flex flex-col gap-6">
-                {t.good_fit_for.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-4 text-gray-400 text-[16px] md:text-[18px] font-bold">
-                    <span className="text-[#0F9393] mt-1">✦</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       </section>
 
       {/* SECTION 3: EXPERTISE & FINAL NOTE (BLACK CARD - STICKY OVER ABOUT) */}
       <section 
         ref={card3Ref}
-        className="sticky z-30 w-full flex flex-col items-center mt-[-80px] md:mt-[-250px] px-2 md:px-0 pt-[120px] md:pt-[350px]"
+        className="sticky z-30 w-full flex flex-col items-center mt-[-100px] md:mt-[-280px] px-4 md:px-0 pt-[80px] md:pt-[240px]"
         style={{ top: `${stickyTop3}px` }}
       >
-        <div className="relative w-full md:w-[90vw] max-w-[1400px] bg-[#171612] rounded-[32px] md:rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.5)] p-6 md:p-16 lg:p-24 flex flex-col gap-12 md:gap-20 min-h-[auto] lg:min-h-[90vh] overflow-hidden">
+        <div className="relative w-full md:w-[90vw] max-w-[2440px] bg-[#171612] rounded-[32px] md:rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.5)] p-6 md:p-16 lg:p-24 flex flex-col gap-12 md:gap-20 min-h-[auto] lg:min-h-[90vh] overflow-hidden">
           
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,#0F939311_0%,transparent_70%)]"></div>
 
           {/* PART 3A: EXPERTISE (Previously Section 3) */}
-          <div className="relative z-10 flex flex-col gap-8 md:gap-12">
-            <div className="flex flex-col gap-4 md:gap-6 max-w-[700px]">
-              <h2 className="text-[32px] md:text-[64px] font-bold font-georgia text-white leading-tight tracking-tight">
-                I <span className="text-[#0F9393]">Excel</span> At.
-              </h2>
-              <p className="text-gray-400 font-bold text-[16px] md:text-[22px] leading-relaxed font-nunito">
-                Chosen areas of mastery for breakthroughs.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2 md:gap-5">
-              {(t.specialties || ['Anxiety', 'Depression', 'Relationships', 'Trauma', 'Growth', 'Stress']).map((kw: string, i: number) => (
-                <div key={i} className="bg-white/10 backdrop-blur-md border border-white/10 text-white text-[14px] md:text-[20px] px-6 md:px-12 py-3 md:py-5 rounded-[12px] md:rounded-[24px] font-bold shadow-xl">
-                  {kw}
+          {t.specialties && t.specialties.length > 0 && (
+            <>
+              <div className="relative z-10 flex flex-col gap-8 md:gap-12">
+                <div className="flex flex-col gap-4 md:gap-6 max-w-[700px]">
+                  <h2 className="text-[28px] md:text-[36px] font-bold font-georgia text-white leading-tight tracking-tight">
+                    I <span className="text-[#0F9393]">Excel</span> At.
+                  </h2>
+                  <p className="text-gray-300 font-semibold text-[18px] md:text-[20px] leading-relaxed font-nunito">
+                    Chosen areas of mastery for breakthroughs.
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          <div className="w-full h-[1px] bg-white/5 relative z-10"></div>
+                <div className="flex flex-wrap gap-2 md:gap-4">
+                  {t.specialties.map((kw: string, i: number) => (
+                    <div key={i} className="bg-white/10 backdrop-blur-md border border-white/10 text-white/95 text-[14px] md:text-[16px] px-5 py-3 rounded-[12px] font-semibold shadow-xl animate-hover">
+                      {kw}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="w-full h-[1px] bg-white/5 relative z-10"></div>
+            </>
+          )}
 
           {/* PART 3B: NOTE & CTA (Previously Section 4) */}
           <div className="relative z-10 flex flex-col gap-10 md:gap-16">
             <div className="flex flex-col gap-6 md:gap-8">
-              <h2 className="text-[24px] md:text-[56px] font-bold font-georgia text-white flex items-center gap-4 md:gap-6">
+              <h2 className="text-[20px] md:text-[28px] font-bold font-georgia text-white flex items-center gap-4 md:gap-6">
                  <span className="w-8 md:w-16 h-1 bg-[#0F9393]"></span>
                  Therapist&apos;s Note
               </h2>
               <div className="max-w-[1100px]">
-                <p className="text-[18px] md:text-[36px] font-bold text-white leading-relaxed font-nunito opacity-95">
+                <p className="text-[18px] md:text-[22px] font-semibold text-white/90 leading-relaxed font-nunito italic opacity-95">
                   &quot;{t.note || "Every step forward, no matter how small, is a victory. I am here to walk that path with you."}&quot;
                 </p>
               </div>
@@ -370,11 +376,11 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                <button 
                 ref={target3Ref}
                 onClick={() => openBookingModal({ therapist_id: t.user_id })}
-                className="w-full md:w-auto bg-white text-black px-10 md:px-16 py-5 md:py-7 rounded-full text-[16px] md:text-[20px] font-bold flex flex-row items-center justify-center gap-4 md:gap-6 hover:bg-gray-100 transition-all shadow-2xl group"
+                className="w-full md:w-auto h-[54px] md:h-[64px] bg-white text-black px-10 md:px-16 rounded-full text-[14px] md:text-[18px] font-bold flex flex-row items-center justify-center gap-4 hover:bg-gray-100 transition-all shadow-2xl group active:scale-95 font-nunito"
               >
                 Start Transformation 
-                <span className="bg-[#0F9393] rounded-full p-2 md:p-2.5">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+                <span className="bg-[#0F9393] rounded-full p-1.5 md:p-2 flex items-center justify-center shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
                 </span>
               </button>
               <div className="text-gray-400 text-[14px] md:text-[18px] font-bold italic md:border-l border-white/10 md:pl-10 text-center md:text-left">

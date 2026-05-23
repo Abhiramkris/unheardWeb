@@ -9,10 +9,153 @@ import { faqData, blogData, specialtiesData } from '@/lib/data/landing';
 import { FeatureCard } from '@/components/landing/FeatureCard';
 import { FAQAccordion } from '@/components/landing/FAQAccordion';
 import { BlogCard } from '@/components/landing/BlogCard';
+import { createClient } from '@/utils/supabase/client';
+
+const getCoverImage = (content: any[]) => {
+  if (!content || !Array.isArray(content)) return '/assets/section_2_1.webp';
+  for (const block of content) {
+    if (block.images && Array.isArray(block.images)) {
+      for (const img of block.images) {
+        if (img && img.trim() !== '') return img;
+      }
+    }
+  }
+  return '/assets/section_2_1.webp';
+};
+
+const getReadTime = (content: any[]) => {
+  if (!content || !Array.isArray(content)) return '3 min read';
+  let wordCount = 0;
+  for (const block of content) {
+    if (block.value) {
+      wordCount += block.value.split(/\s+/).length;
+    }
+  }
+  const minutes = Math.max(1, Math.ceil(wordCount / 200));
+  return `${minutes} min read`;
+};
+
+const renderBlock = (block: any, idx: number) => {
+  switch (block.type) {
+    case 'text':
+      return (
+        <div key={block.id || idx} className="mb-6">
+          {block.heading && (
+            <h4 className="text-[20px] md:text-[22px] font-bold font-georgia text-[#086B6B] mb-3">
+              {block.heading}
+            </h4>
+          )}
+          <p className="text-[15px] md:text-[16px] font-semibold text-black/80 leading-relaxed font-nunito whitespace-pre-wrap">
+            {block.value}
+          </p>
+        </div>
+      );
+    case 'text_image_left':
+      return (
+        <div key={block.id || idx} className="flex flex-col md:flex-row gap-6 mb-6 items-start">
+          {block.images?.[0] && (
+            <div className="w-full md:w-[40%] relative aspect-[4/3] rounded-2xl overflow-hidden shrink-0">
+              <Image src={block.images[0]} alt="" fill className="object-cover" />
+            </div>
+          )}
+          <div className="flex-grow">
+            {block.heading && (
+              <h4 className="text-[20px] md:text-[22px] font-bold font-georgia text-[#086B6B] mb-3">
+                {block.heading}
+              </h4>
+            )}
+            <p className="text-[15px] md:text-[16px] font-semibold text-black/80 leading-relaxed font-nunito whitespace-pre-wrap">
+              {block.value}
+            </p>
+          </div>
+        </div>
+      );
+    case 'text_image_right':
+      return (
+        <div key={block.id || idx} className="flex flex-col md:flex-row-reverse gap-6 mb-6 items-start">
+          {block.images?.[0] && (
+            <div className="w-full md:w-[40%] relative aspect-[4/3] rounded-2xl overflow-hidden shrink-0">
+              <Image src={block.images[0]} alt="" fill className="object-cover" />
+            </div>
+          )}
+          <div className="flex-grow">
+            {block.heading && (
+              <h4 className="text-[20px] md:text-[22px] font-bold font-georgia text-[#086B6B] mb-3">
+                {block.heading}
+              </h4>
+            )}
+            <p className="text-[15px] md:text-[16px] font-semibold text-black/80 leading-relaxed font-nunito whitespace-pre-wrap">
+              {block.value}
+            </p>
+          </div>
+        </div>
+      );
+    case 'multi_image':
+      return (
+        <div key={block.id || idx} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {block.images?.map((img: string, i: number) => img && (
+            <div key={i} className="relative aspect-square rounded-2xl overflow-hidden">
+              <Image src={img} alt="" fill className="object-cover" />
+            </div>
+          ))}
+        </div>
+      );
+    default:
+      return null;
+  }
+};
 
 export const LandingStack = () => {
   const { openBookingModal } = useBooking();
   const [isAnxietyDetailsOpen, setIsAnxietyDetailsOpen] = useState(false);
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [selectedBlog, setSelectedBlog] = useState<any | null>(null);
+
+  React.useEffect(() => {
+    const loadBlogs = async () => {
+      const supabase = createClient();
+      const { data: dbBlogs } = await supabase
+        .from('blogs')
+        .select('*')
+        .eq('published', true)
+        .order('created_at', { ascending: false })
+        .limit(3);
+        
+      if (dbBlogs && dbBlogs.length > 0) {
+        // Fetch author profiles
+        const authorIds = dbBlogs.map(b => b.author_id);
+        const { data: profiles } = await supabase
+          .from('therapist_profiles')
+          .select('user_id, full_name')
+          .in('user_id', authorIds);
+          
+        const authorMap: Record<string, string> = {};
+        profiles?.forEach(p => {
+          authorMap[p.user_id] = p.full_name;
+        });
+
+        const formatted = dbBlogs.map(b => ({
+          id: b.id,
+          title: b.title,
+          author: authorMap[b.author_id] || "unHeard Specialist",
+          date: new Date(b.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          readTime: getReadTime(b.content),
+          image: getCoverImage(b.content),
+          keywords: ["Mental Health", "Wellness"],
+          content: b.content
+        }));
+        setBlogs(formatted);
+      } else {
+        // Fallback to static blogData
+        setBlogs(blogData.map(b => ({
+          ...b,
+          content: [{ type: 'text', value: b.title + " content goes here...", images: [] }]
+        })));
+      }
+    };
+    loadBlogs();
+  }, []);
+
   const card1Ref = React.useRef<HTMLElement>(null);
   const cta1Ref = React.useRef<HTMLDivElement>(null);
   const card2Ref = React.useRef<HTMLElement>(null);
@@ -545,8 +688,10 @@ export const LandingStack = () => {
             </div>
 
             <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-              {blogData.map((blog, idx) => (
-                <BlogCard key={idx} blog={blog} variant="light" />
+              {blogs.map((blog, idx) => (
+                <div key={blog.id || idx} className="cursor-pointer" onClick={() => setSelectedBlog(blog)}>
+                  <BlogCard blog={blog} variant="light" />
+                </div>
               ))}
             </div>
             
@@ -561,6 +706,61 @@ export const LandingStack = () => {
           </div>
         </div>
       </section>
+
+      {/* Dynamic Blog Details Modal */}
+      {selectedBlog && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-[900px] max-h-[85vh] bg-[#FEFEFC] rounded-[32px] overflow-hidden shadow-2xl border border-black/5 flex flex-col animate-in zoom-in-95 duration-300">
+            {/* Header / Banner */}
+            <div className="relative w-full h-[240px] md:h-[320px] shrink-0">
+              <Image src={selectedBlog.image} alt={selectedBlog.title} fill className="object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+              
+              <button 
+                onClick={() => setSelectedBlog(null)}
+                className="absolute top-6 right-6 w-10 h-10 bg-white/95 text-black hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+
+              <div className="absolute bottom-6 left-6 md:left-10 right-6 text-white text-left">
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {selectedBlog.keywords?.map((kw: string, i: number) => (
+                    <span key={i} className="bg-[#0F9393] text-white text-[9px] px-3 py-1 rounded-full font-bold uppercase tracking-widest">
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+                <h2 className="font-georgia text-[24px] md:text-[36px] font-bold leading-tight line-clamp-2">
+                  {selectedBlog.title}
+                </h2>
+              </div>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 text-left scrollbar-thin">
+              {/* Metadata row */}
+              <div className="flex justify-between items-center pb-6 border-b border-black/5 mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#0F9393]/10 flex items-center justify-center text-[#0F9393] font-bold">
+                    {selectedBlog.author?.[0]?.toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-bold text-black font-nunito">{selectedBlog.author}</p>
+                    <p className="text-[12px] text-gray-400 font-bold font-nunito">{selectedBlog.readTime}</p>
+                  </div>
+                </div>
+                <span className="text-[13px] text-gray-400 font-bold font-nunito">{selectedBlog.date}</span>
+              </div>
+
+              {/* Blog body blocks */}
+              <div className="prose max-w-none text-black">
+                {selectedBlog.content?.map((block: any, idx: number) => renderBlock(block, idx))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

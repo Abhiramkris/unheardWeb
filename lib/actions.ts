@@ -1,9 +1,12 @@
-import { createAdminClient } from '@/utils/supabase/server';
+'use server';
+
+import { createAdminClient, createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { PhonePe } from './payment/PhonePe';
 import { WhatsAppManager } from './whatsapp/WhatsAppClient';
 import { IdentityManager } from './identity/IdentityManager';
 import { headers } from 'next/headers';
+import { resend } from './resend';
 
 /**
  * REQUESTS A NEW SESSION (Client-side trigger)
@@ -25,23 +28,19 @@ export async function requestSession(data: {
     const headersList = await headers();
     const ip = headersList.get('x-forwarded-for') || '0.0.0.0';
 
-    // 1. IDENTITY & ANTI-EXPLOIT
-    const identity = await IdentityManager.getOrCreateIdentity({
-      phone: data.phone,
-      deviceId: data.deviceId,
-      ipAddress: ip
-    });
-
-    if (data.is_trial) {
-      if (identity && identity.has_availed_trial) {
-        return { success: false, error: 'You have already availed a free introductory session. Please choose a standard plan.' }
-      }
-    }
-
-    // 2. VALIDATE PHONE
+    // 1. VALIDATE PHONE
     const cleanPhone = data.phone.replace(/\D/g, '').slice(-10);
     if (cleanPhone.length !== 10) {
       return { success: false, error: 'Invalid phone number format.' }
+    }
+
+    // 2. IDENTITY & ANTI-EXPLOIT
+    const identity = await IdentityManager.resolveIdentity(cleanPhone, data.deviceId);
+
+    if (data.is_trial) {
+      if (identity && identity.is_trial_claimed) {
+        return { success: false, error: 'You have already availed a free introductory session. Please choose a standard plan.' }
+      }
     }
 
     // 3. CHECK CONFLICTS (Optional for pending)
@@ -188,4 +187,58 @@ export async function reportClientError(errorMessage: string, context: string) {
     console.error('Failed to report client error:', err);
     return { success: false };
   }
+}
+
+/**
+ * THERAPIST ONBOARDING & PROFILE
+ */
+export async function updateTherapistProfile(formData: {
+  full_name: string;
+  bio: string;
+  qualification: string;
+  specialties: string[];
+  avatar_url?: string;
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { error } = await supabase
+    .from('therapist_profiles')
+    .upsert({
+      user_id: user.id,
+      ...formData
+    })
+
+  if (error) throw error
+  revalidatePath('/admin/dashboard')
+}
+
+/**
+ * CONTACT US HANDLING
+ */
+export async function submitContactInquiry(data: {
+  name: string;
+  email: string;
+  phone?: string;
+  message: string;
+}) {
+  const supabase = await createClient()
+
+  // 1. Save to DB
+  const { error } = await supabase
+    .from('contact_inquiries')
+    .insert([data])
+
+  if (error) throw error
+
+  // 2. Notify via Email using Resend
+  await resend.emails.send({
+    from: 'Unheard <notifications@unheard.care>',
+    to: ['support@unheard.care'], // Company email
+    subject: `New Inquiry from ${data.name}`,
+    html: `<p><strong>Name:</strong> ${data.name}</p><p><strong>Message:</strong> ${data.message}</p>`
+  })
+
+  return { success: true }
 }

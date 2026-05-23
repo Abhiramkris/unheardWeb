@@ -11,7 +11,7 @@ import { useBooking } from '@/components/BookingContext';
 // ----------------------------------------------------------------------
 const TherapistCard = ({ t, openBooking }: { t: any, openBooking: (id: string) => void }) => {
   return (
-    <div className="group relative bg-[#171612] rounded-[40px] overflow-hidden border border-white/5 hover:border-[#0F9393]/30 transition-all duration-700 hover:shadow-[0_40px_100px_rgba(0,0,0,0.6)] flex flex-col h-full">
+    <div className="group relative bg-[#171612] rounded-[40px] overflow-hidden border border-white/5 hover:border-[#0F9393]/30 transition-all duration-700 hover:shadow-[0_40px_100px_rgba(0,0,0,0.6)] flex flex-col h-full w-[90vw] sm:w-full mx-auto">
       
       {/* Visual Anchor: Image with Organic Shape or Mask */}
       <div className="relative w-full aspect-[4/3] overflow-hidden">
@@ -32,7 +32,7 @@ const TherapistCard = ({ t, openBooking }: { t: any, openBooking: (id: string) =
         </div>
 
         {/* Name & Title Overlay */}
-        <div className="absolute bottom-6 left-8 right-8 z-10 transition-transform duration-500">
+        <div className="absolute bottom-4 left-6 right-6 md:bottom-5 md:left-8 md:right-8 z-10 transition-transform duration-500">
           <h3 className="font-georgia font-bold text-[28px] md:text-[32px] text-white leading-tight tracking-tight mb-1">
             {t.full_name}
           </h3>
@@ -43,12 +43,12 @@ const TherapistCard = ({ t, openBooking }: { t: any, openBooking: (id: string) =
       </div>
 
       {/* Content Section */}
-      <div className="p-8 md:p-10 flex flex-col flex-grow gap-8">
+      <div className="pt-5 pb-8 px-6 md:pt-6 md:pb-10 md:px-8 flex flex-col flex-grow gap-6">
         
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           {/* Minimalist Expertise Badges */}
           <div className="flex flex-wrap gap-2">
-            {(t.specialties || ['Anxiety', 'Growth', 'Stress']).slice(0, 3).map((kw: string, i: number) => (
+            {((t.specialties && t.specialties.length > 0) ? t.specialties : ['Anxiety', 'Growth', 'Stress']).slice(0, 3).map((kw: string, i: number) => (
               <span key={i} className="bg-white/5 text-white/60 text-[10px] px-4 py-1.5 rounded-full font-bold uppercase tracking-wider border border-white/5">
                 {kw}
               </span>
@@ -61,8 +61,8 @@ const TherapistCard = ({ t, openBooking }: { t: any, openBooking: (id: string) =
         </div>
 
         {/* Stats & Actions */}
-        <div className="mt-auto flex flex-col gap-8">
-          <div className="flex justify-between items-center border-t border-white/5 pt-8">
+        <div className="mt-auto flex flex-col gap-6">
+          <div className="flex justify-between items-center border-t border-white/5 pt-6">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] leading-none">Perspective</span>
               <span className="text-[16px] font-bold text-white font-georgia italic">{t.microtag || t.perspective || 'Insight-Driven'}</span>
@@ -99,10 +99,6 @@ export default function TherapistListing() {
   const [therapists, setTherapists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Filtering states
-  const [selectedSpecialty, setSelectedSpecialty] = useState('All');
-  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
-
   useEffect(() => {
     async function getTherapists() {
       const { data } = await supabase
@@ -118,15 +114,6 @@ export default function TherapistListing() {
     getTherapists();
   }, [supabase]);
 
-  // Derived data
-  const uniqueSpecialties = ['All', ...Array.from(new Set(therapists.flatMap(t => t.specialties || [])))];
-  
-  const filteredTherapists = therapists.filter(t => {
-    const specialtyMatch = selectedSpecialty === 'All' || (t.specialties && t.specialties.includes(selectedSpecialty));
-    const availabilityMatch = !showAvailableOnly || (t.next_available_at && t.next_available_at.toLowerCase().includes('soon') || t.next_available_at === 'Available');
-    return specialtyMatch && availabilityMatch;
-  });
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#111111] flex items-center justify-center text-white font-nunito text-[24px] font-bold">
@@ -136,57 +123,21 @@ export default function TherapistListing() {
   }
 
   return (
-    <div className="relative w-full bg-[#111111] overflow-x-clip pt-40">
+    <div className="relative w-full bg-[#111111] overflow-x-clip pt-48 md:pt-64">
       
       <div className="relative z-10 w-full flex flex-col items-center gap-16 lg:gap-24 mb-40">
-        
-        {/* FILTER BAR SECTION */}
-        <div className="w-[97vw] max-w-[2440px]">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-[#1a1a1a]/40 backdrop-blur-3xl p-10 rounded-[50px] border border-white/5 shadow-3xl">
-             {/* Specialty Pills */}
-             <div className="flex flex-wrap justify-center md:justify-start gap-3.5 flex-grow order-2 md:order-1">
-               {uniqueSpecialties.slice(0, 10).map(spec => (
-                 <button 
-                   key={spec}
-                   onClick={() => setSelectedSpecialty(spec)}
-                   className={`px-8 py-3 rounded-full text-[13px] md:text-[14px] font-black transition-all border ${
-                     selectedSpecialty === spec 
-                     ? 'bg-[#0F9393] text-white border-[#0F9393] shadow-xl shadow-[#0F9393]/20' 
-                     : 'bg-white/5 text-gray-400 border-white/5 hover:border-white/20 hover:text-white'
-                   }`}
-                 >
-                   {spec}
-                 </button>
-               ))}
-             </div>
-
-             {/* Availability Toggle */}
-             <button 
-               onClick={() => setShowAvailableOnly(!showAvailableOnly)}
-               className={`shrink-0 flex items-center gap-4 px-10 py-3.5 rounded-full font-black text-[14px] transition-all border order-1 md:order-2 ${
-                 showAvailableOnly 
-                 ? 'bg-white text-black border-white shadow-xl shadow-white/5' 
-                 : 'bg-transparent text-white border-white/10 hover:border-white/30'
-               }`}
-             >
-               <div className={`w-2.5 h-2.5 rounded-full ${showAvailableOnly ? 'bg-[#0F9393] animate-pulse' : 'bg-gray-600'}`}></div>
-               Show Available Only
-             </button>
-          </div>
-        </div>
 
         {/* THERAPIST GRID */}
-        <div className="w-[97vw] max-w-[2440px] grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 lg:gap-16 min-h-[400px]">
-          {filteredTherapists.length === 0 ? (
+        <div className="w-[97vw] max-w-[2440px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 lg:gap-16 min-h-[400px]">
+          {therapists.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-40 text-gray-500 gap-8 bg-white/5 rounded-[60px] border border-white/5">
                <span className="text-[80px] opacity-20">📭</span>
                <div className="flex flex-col items-center gap-4">
-                 <p className="italic text-[24px] font-georgia text-white/60">No counselors match your current filters.</p>
-                 <button onClick={() => {setSelectedSpecialty('All'); setShowAvailableOnly(false)}} className="text-[#0F9393] font-bold border-b-2 border-[#0F9393] text-[18px] hover:text-[#0F9393]/80 hover:border-[#0F9393]/80 transition-all">Clear all parameters</button>
+                 <p className="italic text-[24px] font-georgia text-white/60">No counselors available.</p>
                </div>
             </div>
           ) : (
-            filteredTherapists.map((t) => (
+            therapists.map((t) => (
               <TherapistCard key={t.id} t={t} openBooking={(id) => openBookingModal({ therapist_id: id })} />
             ))
           )}
