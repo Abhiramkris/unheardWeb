@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Trash2, Image as ImageIcon, Layout, Save, HelpCircle, AlignLeft, Upload, ArrowLeft, Plus, Bold, Italic, Underline, List } from 'lucide-react'
+import { Image as ImageIcon, Layout, Save, AlignLeft, Upload, ArrowLeft, Plus, Bold, Italic, Underline, List } from 'lucide-react'
 import Button from './ui/Button'
 import Image from 'next/image'
 import { createClient } from '@/utils/supabase/client'
@@ -28,7 +28,6 @@ export default function BlogEditor({ onSave, onBack, initialData }: BlogEditorPr
   const [published, setPublished] = useState(initialData?.published || false)
   const [subtitle, setSubtitle] = useState('')
   const [coverUrl, setCoverUrl] = useState('')
-  const [showGuidance, setShowGuidance] = useState(false)
   const [lastSaved, setLastSaved] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const supabase = createClient()
@@ -140,17 +139,6 @@ export default function BlogEditor({ onSave, onBack, initialData }: BlogEditorPr
         </div>
       </div>
 
-      {showGuidance && (
-        <div className="bg-[#0F9393]/5 border border-[#0F9393]/20 p-6 rounded-[24px] flex flex-col gap-3 text-[#0F9393] mb-4">
-          <p className="font-bold flex items-center gap-2 underline underline-offset-4"><Layout size={18}/> Editor Guidance</p>
-          <ul className="text-[14px] list-disc pl-5 font-medium flex flex-col gap-1">
-            <li><strong>Titles:</strong> Keep them catchy and relevant to the content.</li>
-            <li><strong>Modular Blocks:</strong> Use different block types to keep the reader engaged.</li>
-            <li><strong>Images:</strong> Provide direct URLs to images. Multi-image supports up to 3 side-by-side.</li>
-            <li><strong>Drafts:</strong> We save your progress every 5 seconds. You can restore it if you accidentally close the tab.</li>
-          </ul>
-        </div>
-      )}
 
       {/* Main Inputs */}
       <div className="flex flex-col gap-8 bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">

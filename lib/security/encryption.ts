@@ -2,7 +2,6 @@ import crypto from 'crypto';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12;
-const TAG_LENGTH = 16;
 // Fallback key for development, should be set in environment variables
 const ENCRYPTION_KEY = process.env.PAYMENT_ENCRYPTION_KEY || process.env.SUPABASE_JWT_SECRET?.slice(0, 32) || 'a_very_secure_default_key_32_chars_';
 

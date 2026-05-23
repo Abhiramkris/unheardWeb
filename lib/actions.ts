@@ -2,7 +2,6 @@
 
 import { createAdminClient, createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { PhonePe } from './payment/PhonePe';
 import { WhatsAppManager } from './whatsapp/WhatsAppClient';
 import { IdentityManager } from './identity/IdentityManager';
 import { headers } from 'next/headers';

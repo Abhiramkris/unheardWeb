@@ -1,8 +1,8 @@
 'use client';
-import { useEffect, useState, Suspense } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Home, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Home } from 'lucide-react';
 import Image from 'next/image';
 
 function PaymentSuccessContent() {

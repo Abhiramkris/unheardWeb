@@ -218,10 +218,8 @@ export default function BlogPage() {
       }
 
       let loadedCount = 0;
-      let timeoutId: NodeJS.Timeout;
-
       // Safety timeout: 6 seconds max waiting for asset loading
-      timeoutId = setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         setAssetsLoaded(true);
       }, 6000);
 
