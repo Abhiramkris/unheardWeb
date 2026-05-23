@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import Button from './ui/Button';
 import { useBooking } from '@/components/BookingContext';
 import AnimatedCounter from './ui/AnimatedCounter';
@@ -109,7 +110,6 @@ export const LandingStack = () => {
   const { openBookingModal } = useBooking();
   const [isAnxietyDetailsOpen, setIsAnxietyDetailsOpen] = useState(false);
   const [blogs, setBlogs] = useState<any[]>([]);
-  const [selectedBlog, setSelectedBlog] = useState<any | null>(null);
 
   React.useEffect(() => {
     const loadBlogs = async () => {
@@ -137,6 +137,7 @@ export const LandingStack = () => {
         const formatted = dbBlogs.map(b => ({
           id: b.id,
           title: b.title,
+          slug: b.slug,
           author: authorMap[b.author_id] || "unHeard Specialist",
           date: new Date(b.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
           readTime: getReadTime(b.content),
@@ -149,6 +150,7 @@ export const LandingStack = () => {
         // Fallback to static blogData
         setBlogs(blogData.map(b => ({
           ...b,
+          slug: b.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
           content: [{ type: 'text', value: b.title + " content goes here...", images: [] }]
         })));
       }
@@ -689,9 +691,9 @@ export const LandingStack = () => {
 
             <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
               {blogs.map((blog, idx) => (
-                <div key={blog.id || idx} className="cursor-pointer" onClick={() => setSelectedBlog(blog)}>
+                <Link key={blog.id || idx} href={`/blog/${blog.slug}`} className="block">
                   <BlogCard blog={blog} variant="light" />
-                </div>
+                </Link>
               ))}
             </div>
             
@@ -706,61 +708,6 @@ export const LandingStack = () => {
           </div>
         </div>
       </section>
-
-      {/* Dynamic Blog Details Modal */}
-      {selectedBlog && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative w-full max-w-[900px] max-h-[85vh] bg-[#FEFEFC] rounded-[32px] overflow-hidden shadow-2xl border border-black/5 flex flex-col animate-in zoom-in-95 duration-300">
-            {/* Header / Banner */}
-            <div className="relative w-full h-[240px] md:h-[320px] shrink-0">
-              <Image src={selectedBlog.image} alt={selectedBlog.title} fill className="object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-              
-              <button 
-                onClick={() => setSelectedBlog(null)}
-                className="absolute top-6 right-6 w-10 h-10 bg-white/95 text-black hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-              </button>
-
-              <div className="absolute bottom-6 left-6 md:left-10 right-6 text-white text-left">
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {selectedBlog.keywords?.map((kw: string, i: number) => (
-                    <span key={i} className="bg-[#0F9393] text-white text-[9px] px-3 py-1 rounded-full font-bold uppercase tracking-widest">
-                      {kw}
-                    </span>
-                  ))}
-                </div>
-                <h2 className="font-georgia text-[24px] md:text-[36px] font-bold leading-tight line-clamp-2">
-                  {selectedBlog.title}
-                </h2>
-              </div>
-            </div>
-
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-10 text-left scrollbar-thin">
-              {/* Metadata row */}
-              <div className="flex justify-between items-center pb-6 border-b border-black/5 mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#0F9393]/10 flex items-center justify-center text-[#0F9393] font-bold">
-                    {selectedBlog.author?.[0]?.toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="text-[14px] font-bold text-black font-nunito">{selectedBlog.author}</p>
-                    <p className="text-[12px] text-gray-400 font-bold font-nunito">{selectedBlog.readTime}</p>
-                  </div>
-                </div>
-                <span className="text-[13px] text-gray-400 font-bold font-nunito">{selectedBlog.date}</span>
-              </div>
-
-              {/* Blog body blocks */}
-              <div className="prose max-w-none text-black">
-                {selectedBlog.content?.map((block: any, idx: number) => renderBlock(block, idx))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
