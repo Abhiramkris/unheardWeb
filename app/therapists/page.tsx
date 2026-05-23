@@ -5,17 +5,20 @@ import Image from 'next/image';
 
 const TherapistCard = ({ imgUrl }: { imgUrl: string }) => {
   return (
-    <div className="group relative bg-[#F7CE1A] rounded-[32px] md:rounded-[40px] overflow-hidden border-[3px] border-black p-5 md:p-6 pb-12 flex flex-col h-full w-[90vw] sm:w-full mx-auto transition-all duration-500 hover:shadow-[0_30px_80px_rgba(247,206,26,0.25)] hover:-translate-y-2">
+    <div className="group relative bg-[#F7CE1A] rounded-[32px] md:rounded-[40px] overflow-hidden border-[3px] border-black px-3 md:px-4 pt-5 md:pt-6 pb-12 flex flex-col h-full w-[90vw] sm:w-full mx-auto transition-all duration-500 hover:shadow-[0_30px_80px_rgba(247,206,26,0.25)] hover:-translate-y-2">
       
-      {/* Polaroid-style Framed Image */}
-      <div className="relative w-full aspect-[4/5] overflow-hidden rounded-[20px] border-[3px] border-black shadow-sm">
-        <Image 
-          src={imgUrl} 
-          alt="Therapist Profile" 
-          fill 
-          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 600px"
-          className="object-cover transition-transform duration-1000 group-hover:scale-105" 
-        />
+      {/* Polaroid-style Framed Image with Graphic Overflow */}
+      <div className="relative w-full aspect-[4/5] rounded-[20px] border-[3px] border-black shadow-sm mb-4">
+        {/* Inner wrapper shifted up and left to overflow the outer frame */}
+        <div className="absolute -top-4 -left-3 w-[calc(100%+6px)] h-[calc(100%+8px)] rounded-[16px] overflow-hidden">
+          <Image 
+            src={imgUrl} 
+            alt="Therapist Profile" 
+            fill 
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 600px"
+            className="object-cover transition-transform duration-1000 group-hover:scale-105" 
+          />
+        </div>
       </div>
 
     </div>
