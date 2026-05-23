@@ -31,8 +31,15 @@ const TherapistCard = ({ t, openBooking }: { t: any, openBooking: (id: string) =
       {/* Content Section */}
       <div className="pt-2 pb-8 px-6 md:px-8 flex flex-col flex-grow">
         
-        {/* Massive Bold Full Name (No Hashtag) */}
-        <h3 className="font-sans font-black text-[30px] md:text-[36px] text-black leading-tight tracking-tighter uppercase mb-1">
+        {/* Massive Bold Full Name (Transparent text showing the photo behind it) */}
+        <h3 
+          className="font-sans font-black text-[30px] md:text-[36px] leading-tight tracking-tighter uppercase mb-1 bg-cover bg-center bg-clip-text text-transparent"
+          style={{ 
+            backgroundImage: `url(${t.avatar_url || '/assets/section_2_3.webp'})`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}
+        >
           {displayName}
         </h3>
 
