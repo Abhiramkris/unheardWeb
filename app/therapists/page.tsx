@@ -15,21 +15,24 @@ const TherapistCard = ({ t, openBooking }: { t: any, openBooking: (id: string) =
   return (
     <div className="group relative bg-[#F7CE1A] rounded-[32px] md:rounded-[40px] overflow-hidden border-[3px] border-black/10 hover:border-black transition-all duration-500 hover:shadow-[0_30px_80px_rgba(247,206,26,0.25)] flex flex-col h-full w-[90vw] sm:w-full mx-auto">
       
-      {/* Framed Image Section (Fully enclosed frame on all 4 sides) */}
-      <div className="p-5">
-        <div className="relative w-full aspect-[4/5] overflow-hidden rounded-[20px] border-[3px] border-black shadow-md">
-          <Image 
-            src={t.avatar_url || '/assets/section_2_3.webp'} 
-            alt={t.full_name} 
-            fill 
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 600px"
-            className="object-cover transition-transform duration-1000 group-hover:scale-105" 
-          />
+      {/* Framed Image Section (Full-cover image with yellow frame overlay) */}
+      <div className="relative w-full aspect-[4/5] overflow-hidden border-b-[3px] border-black">
+        <Image 
+          src={t.avatar_url || '/assets/section_2_3.webp'} 
+          alt={t.full_name} 
+          fill 
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 600px"
+          className="object-cover transition-transform duration-1000 group-hover:scale-105" 
+        />
+        {/* Yellow Frame Overlay */}
+        <div className="absolute inset-0 border-[16px] border-[#F7CE1A] pointer-events-none">
+          {/* Inner thin black border inside the yellow frame */}
+          <div className="absolute inset-0 border-[2.5px] border-black" />
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="pt-2 pb-8 px-6 md:px-8 flex flex-col flex-grow">
+      <div className="pt-6 pb-8 px-6 md:px-8 flex flex-col flex-grow">
         
         {/* Massive Bold Full Name (Transparent text showing the photo behind it) */}
         <h3 
@@ -129,8 +132,8 @@ export default function TherapistListing() {
       
       <div className="relative z-10 w-full flex flex-col items-center gap-16 lg:gap-24 mb-40">
 
-        {/* THERAPIST GRID */}
-        <div className="w-[97vw] max-w-[2440px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 lg:gap-16 min-h-[400px]">
+        {/* THERAPIST GRID (3 cards per row on desktop) */}
+        <div className="w-[97vw] max-w-[2440px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-16 min-h-[400px]">
           {therapists.length === 0 ? (
             <div className="col-span-full flex flex-col items-center justify-center py-40 text-gray-500 gap-8 bg-white/5 rounded-[60px] border border-white/5">
                <span className="text-[80px] opacity-20">📭</span>
