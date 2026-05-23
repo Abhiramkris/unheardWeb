@@ -144,6 +144,18 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
   return (
     <div className="relative w-full bg-[#111111] font-nunito flex flex-col items-center pb-[2vh] pt-[90px] md:pt-[110px]">
       
+      {/* Floating Back Cross Button */}
+      <Link 
+        href="/therapists" 
+        className="fixed top-8 right-6 md:top-10 md:right-10 z-[110] w-12 h-12 bg-white text-black hover:bg-white rounded-full flex items-center justify-center shadow-2xl border border-black/10 hover:scale-110 active:scale-90 transition-all group"
+        aria-label="Back to Therapists"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:rotate-90 duration-300">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </Link>
+
       {/* GLOBAL BACKGROUND BLOBS */}
       <div className="fixed top-[-10%] left-[-10%] w-[60vw] md:w-[40vw] h-[60vw] md:h-[40vw] bg-[#0F9393]/10 rounded-full blur-[80px] md:blur-[120px] pointer-events-none z-0"></div>
       <div className="fixed bottom-[-10%] right-[-10%] w-[60vw] md:w-[40vw] h-[60vw] md:h-[40vw] bg-[#0F9393]/5 rounded-full blur-[80px] md:blur-[120px] pointer-events-none z-0"></div>
