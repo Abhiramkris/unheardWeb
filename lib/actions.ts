@@ -214,6 +214,49 @@ export async function updateTherapistProfile(formData: {
 }
 
 /**
+ * ADMIN DIRECT PROFILE UPDATE (Bypasses therapist-only update RLS)
+ */
+export async function adminUpdateTherapistProfile(
+  targetUserId: string,
+  profileData: {
+    full_name?: string;
+    bio?: string;
+    qualification?: string;
+    microtag?: string;
+    tagline?: string;
+    avatar_url?: string;
+    approach?: string;
+    good_fit_for?: string[];
+  }
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // Verify admin permissions
+  const { data: roleData, error: roleError } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', user.id)
+    .single()
+
+  if (roleError || !roleData || !['admin', 'super_admin'].includes(roleData.role)) {
+    throw new Error('Forbidden: Only administrators can modify other profiles.')
+  }
+
+  const adminSupabase = await createAdminClient()
+  const { error } = await adminSupabase
+    .from('therapist_profiles')
+    .update(profileData)
+    .eq('user_id', targetUserId)
+
+  if (error) throw error
+  revalidatePath('/super-admin')
+  revalidatePath('/therapists')
+}
+
+
+/**
  * CONTACT US HANDLING
  */
 export async function submitContactInquiry(data: {

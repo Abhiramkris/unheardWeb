@@ -1,46 +1,240 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
-const TherapistCard = ({ imgUrl }: { imgUrl: string }) => {
+interface Therapist {
+  user_id: string;
+  full_name: string;
+  qualification: string;
+  microtag: string;
+  avatar_url: string;
+}
+
+const TherapistCard = ({ therapist, index }: { therapist: Therapist; index: number }) => {
+  const maskId = `polaroid-mask-${index}`;
+  const name = therapist.full_name || 'Therapist';
+  const qualification = therapist.qualification || 'Licensed Professional';
+  const microtag = therapist.microtag || 'Mental Health';
+
+  // Dynamic font scaling for the cutout name based on string length
+  const getFontSize = (str: string) => {
+    const len = str.length;
+    if (len > 18) return '22';
+    if (len > 14) return '28';
+    if (len > 10) return '34';
+    return '40';
+  };
+
+  const nameFontSize = getFontSize(name);
+
   return (
-    <div className="group relative bg-[#F7CE1A] rounded-[32px] md:rounded-[40px] overflow-hidden border-[3px] border-black px-3 md:px-4 pt-5 md:pt-6 pb-12 flex flex-col h-full w-[90vw] sm:w-full mx-auto transition-all duration-500 hover:shadow-[0_30px_80px_rgba(247,206,26,0.25)] hover:-translate-y-2">
-      
-      {/* Polaroid-style Framed Image with Graphic Overflow */}
-      <div className="relative w-full aspect-[4/5] rounded-[20px] border-[3px] border-black shadow-sm mb-4">
-        {/* Inner wrapper shifted up and left to overflow the outer frame */}
-        <div className="absolute -top-4 -left-3 w-[calc(100%+6px)] h-[calc(100%+8px)] rounded-[16px] overflow-hidden">
-          <Image 
-            src={imgUrl} 
-            alt="Therapist Profile" 
-            fill 
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 600px"
-            className="object-cover transition-transform duration-1000 group-hover:scale-105" 
-          />
-        </div>
-      </div>
+    <Link 
+      href={`/therapists/${therapist.user_id}`}
+      className="group relative w-full aspect-[4/5.2] rounded-[32px] overflow-hidden border-[1.5px] border-black shadow-lg transition-all duration-500 hover:shadow-[0_30px_80px_rgba(15,147,147,0.25)] hover:-translate-y-2 max-w-[480px] mx-auto block"
+    >
+      <Image 
+        src={therapist.avatar_url} 
+        alt={therapist.full_name} 
+        fill 
+        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 600px"
+        className="object-cover transition-transform duration-1000 group-hover:scale-105" 
+      />
 
-    </div>
+      {/* Gradient overlay removed */}
+
+      {/* 2. Inset Polaroid Frame Overlay */}
+      <div className="absolute inset-3 sm:inset-4 md:inset-5 pointer-events-none select-none z-10">
+        <svg 
+          viewBox="0 0 400 520" 
+          fill="none" 
+          className="w-full h-full filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <mask id={maskId}>
+              {/* White background: Accent frame will show fully */}
+              <rect x="0" y="0" width="400" height="520" fill="white" rx="16" />
+              
+              {/* Black rectangle cutout: Transparent window showing the photo */}
+              <rect x="18" y="18" width="364" height="375" fill="black" rx="8" />
+            </mask>
+          </defs>
+
+          {/* Accent Frame (Masked) */}
+          <rect 
+            x="0" 
+            y="0" 
+            width="400" 
+            height="520" 
+            fill="#0F9393" 
+            mask={`url(#${maskId})`} 
+            rx="16" 
+          />
+
+          {/* Therapist Name (White text) */}
+          <text 
+            x="24" 
+            y="430" 
+            fontFamily="'Inter', 'Arial Black', system-ui, -apple-system, sans-serif" 
+            fontWeight="900" 
+            fontSize={nameFontSize} 
+            fill="white"
+            letterSpacing="-1"
+          >
+            {name}
+          </text>
+
+          {/* Qualifications text */}
+          <text 
+            x="24" 
+            y="453" 
+            fontFamily="'Inter', system-ui, -apple-system, sans-serif" 
+            fontWeight="700" 
+            fontSize={qualification.length > 25 ? "11" : "13"} 
+            fill="white"
+            opacity="0.9"
+            letterSpacing="0.3"
+          >
+            {qualification}
+          </text>
+
+          {/* Divider line */}
+          <line 
+            x1="24" 
+            y1="470" 
+            x2="376" 
+            y2="470" 
+            stroke="white" 
+            strokeWidth="1.5" 
+            opacity="0.25" 
+          />
+
+          {/* Microtag text */}
+          <text 
+            x="24" 
+            y="499" 
+            fontFamily="'Inter', system-ui, -apple-system, sans-serif" 
+            fontWeight="600" 
+            fontSize="11" 
+            fill="white"
+            opacity="0.8"
+            letterSpacing="0.5"
+          >
+            {microtag}
+          </text>
+
+          {/* 3. View Profile Button (SVG Group) - Vertically Centered & Right-Aligned */}
+          <g>
+            <rect 
+              x="248" 
+              y="479" 
+              width="128" 
+              height="32" 
+              rx="16" 
+              fill="white"
+              className="transition-colors duration-300 group-hover:fill-neutral-200"
+            />
+            <text 
+              x="312" 
+              y="499" 
+              fontFamily="'Inter', system-ui, -apple-system, sans-serif" 
+              fontWeight="900" 
+              fontSize="11" 
+              fill="black" 
+              textAnchor="middle"
+              letterSpacing="0.4"
+            >
+              VIEW PROFILE
+            </text>
+          </g>
+        </svg>
+      </div>
+    </Link>
   );
 };
 
 export default function TherapistListing() {
-  const staticImages = [
-    '/assets/section_2_1.webp',
-    '/assets/section_2_2.webp',
-    '/assets/section_2_3.webp',
+  const [supabase] = useState(() => createClient());
+  const [therapists, setTherapists] = useState<Therapist[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fallbackTherapists: Therapist[] = [
+    {
+      user_id: '769132a4-be29-4569-bff9-127e05a9fe1e',
+      full_name: 'Ananya Iyer',
+      qualification: 'M.Sc. Clinical Psychology',
+      microtag: 'Gentle Support',
+      avatar_url: '/assets/section_2_1.webp'
+    },
+    {
+      user_id: '2',
+      full_name: 'Vikram Seth',
+      qualification: 'Ph.D. Counseling Psychology',
+      microtag: 'Burnout & Stress',
+      avatar_url: '/assets/section_2_2.webp'
+    },
+    {
+      user_id: '3',
+      full_name: 'Sarah Jenkins',
+      qualification: 'M.Sc. Cognitive Science',
+      microtag: 'Anxiety Specialist',
+      avatar_url: '/assets/section_2_3.webp'
+    }
   ];
+
+  useEffect(() => {
+    async function loadTherapists() {
+      try {
+        const { data, error } = await supabase
+          .from('therapist_profiles')
+          .select('user_id, full_name, qualification, microtag, avatar_url');
+        
+        if (error) {
+          console.error('Error fetching from Supabase:', error);
+          setTherapists(fallbackTherapists);
+        } else if (data && data.length > 0) {
+          const formatted = data.map((t, idx) => ({
+            user_id: t.user_id,
+            full_name: t.full_name || 'Therapist',
+            qualification: t.qualification || 'Licensed Professional',
+            microtag: t.microtag || 'Mental Health Expert',
+            avatar_url: t.avatar_url || fallbackTherapists[idx % 3].avatar_url
+          }));
+          setTherapists(formatted);
+        } else {
+          setTherapists(fallbackTherapists);
+        }
+      } catch (err) {
+        console.error('Supabase load error:', err);
+        setTherapists(fallbackTherapists);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadTherapists();
+  }, [supabase]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#111111] flex items-center justify-center text-white font-nunito text-[24px] font-bold">
+        Loading Therapists...
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full bg-[#111111] overflow-x-clip pt-48 md:pt-64 min-h-screen">
       
-      <div className="relative z-10 w-full flex flex-col items-center gap-16 lg:gap-24 mb-40">
+      <div className="relative z-10 w-full flex flex-col items-center gap-16 lg:gap-24 mb-40 px-4 md:px-8">
 
         {/* THERAPIST GRID (3 cards per row on desktop) */}
-        <div className="w-[97vw] max-w-[2440px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-16 min-h-[400px]">
-          {staticImages.map((imgUrl, index) => (
-            <TherapistCard key={index} imgUrl={imgUrl} />
+        <div className="w-full max-w-[1400px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12 min-h-[400px]">
+          {therapists.map((therapist, index) => (
+            <TherapistCard key={therapist.user_id} therapist={therapist} index={index} />
           ))}
         </div>
 

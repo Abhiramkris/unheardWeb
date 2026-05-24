@@ -13,6 +13,7 @@ import {
 import Image from 'next/image'
 import BlogEditor from '@/components/BlogEditor'
 import { useCallback } from 'react'
+import { adminUpdateTherapistProfile } from '@/lib/actions'
 
 interface AdminRole {
   id: string;
@@ -22,6 +23,7 @@ interface AdminRole {
   phone_number?: string;
   full_name?: string;
   qualification?: string;
+  avatar_url?: string;
 }
 
 interface Coupon {
@@ -131,7 +133,8 @@ export default function SuperAdminDashboard() {
           is_blogger: roleData ? !!roleData.is_blogger : false,
           phone_number: roleData?.phone_number || profile.phone,
           full_name: profile.full_name || 'Anonymous Professional',
-          qualification: profile.qualification || 'Therapist'
+          qualification: profile.qualification || 'Therapist',
+          avatar_url: profile.avatar_url
         }
       }))
     }
@@ -358,20 +361,27 @@ export default function SuperAdminDashboard() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase
-      .from('therapist_profiles')
-      .update(editingProfile)
-      .eq('user_id', editingProfile.user_id);
-
-    if (error) {
-      alert(error.message);
-    } else {
+    try {
+      const updatePayload = {
+        full_name: editingProfile.full_name,
+        bio: editingProfile.bio,
+        qualification: editingProfile.qualification,
+        microtag: editingProfile.microtag,
+        tagline: editingProfile.tagline,
+        avatar_url: editingProfile.avatar_url,
+        approach: editingProfile.approach,
+        good_fit_for: editingProfile.good_fit_for
+      };
+      await adminUpdateTherapistProfile(editingProfile.user_id, updatePayload);
       await logAction('profile_change', editingProfile.user_id, { name: editingProfile.full_name });
       alert('Profile updated successfully!');
       setEditingProfile(null);
       fetchAdmins();
+    } catch (error: any) {
+      alert('Error updating profile: ' + (error.message || error));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
 
@@ -551,28 +561,38 @@ export default function SuperAdminDashboard() {
                   <p className="text-gray-400 italic">No therapists active yet.</p>
                 ) : (
                   admins.map((admin) => (
-                    <div key={admin.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
-                      <div>
-                        <div className="flex items-center gap-3">
-                           <h4 className="font-bold text-[18px] text-[#0F9393]">{admin.full_name}</h4>
-                           <span className="text-[12px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md">{admin.phone_number || 'No Phone Sync'}</span>
+                    <div key={admin.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-50 relative flex-shrink-0 border border-gray-100">
+                          <Image 
+                            src={admin.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(admin.full_name?.trim() || 'Therapist')}&background=0F9393&color=fff`} 
+                            alt={admin.full_name || 'Therapist'} 
+                            fill
+                            className="object-cover"
+                          />
                         </div>
-                        <div className="flex items-center gap-2">
-                           <p className="text-[14px] text-gray-600">{admin.qualification || 'Awaiting profile setup'}</p>
-                           <span className="text-gray-300">•</span>
-                           <button 
-                             onClick={() => toggleBloggerRole(admin.user_id, admin.is_blogger)}
-                             className={`text-[12px] font-black uppercase tracking-widest ${admin.is_blogger ? 'text-[#0F9393]' : 'text-gray-400 hover:text-gray-600'}`}
-                           >
-                              {admin.is_blogger ? 'Blogger Active' : 'Enable Blogging'}
-                           </button>
-                           <span className="text-gray-300">•</span>
-                           <button 
-                             onClick={() => handleEditProfile(admin.user_id)}
-                             className="text-[12px] font-black uppercase tracking-widest text-[#0F9393] hover:underline"
-                           >
-                              Edit Profile
-                           </button>
+                        <div>
+                          <div className="flex items-center gap-3">
+                             <h4 className="font-bold text-[18px] text-[#0F9393]">{admin.full_name}</h4>
+                             <span className="text-[12px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md">{admin.phone_number || 'No Phone Sync'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                             <p className="text-[14px] text-gray-600">{admin.qualification || 'Awaiting profile setup'}</p>
+                             <span className="text-gray-300">•</span>
+                             <button 
+                               onClick={() => toggleBloggerRole(admin.user_id, admin.is_blogger)}
+                               className={`text-[12px] font-black uppercase tracking-widest ${admin.is_blogger ? 'text-[#0F9393]' : 'text-gray-400 hover:text-gray-600'}`}
+                             >
+                                {admin.is_blogger ? 'Blogger Active' : 'Enable Blogging'}
+                             </button>
+                             <span className="text-gray-300">•</span>
+                             <button 
+                               onClick={() => handleEditProfile(admin.user_id)}
+                               className="text-[12px] font-black uppercase tracking-widest text-[#0F9393] hover:underline"
+                             >
+                                Edit Profile
+                             </button>
+                          </div>
                         </div>
                       </div>
                       <div className="flex gap-2">
