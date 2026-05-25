@@ -51,11 +51,11 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
         alt={therapist.full_name} 
         fill 
         sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 600px"
-        className="object-cover transition-transform duration-1000 group-hover:scale-105" 
+        className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" 
       />
 
       {/* 2. Inset Polaroid Frame Overlay */}
-      <div className="absolute inset-3 sm:inset-4 md:inset-5 pointer-events-none select-none z-10">
+      <div className="absolute inset-1.5 sm:inset-2 md:inset-2.5 pointer-events-none select-none z-10">
         <svg 
           viewBox="0 0 400 520" 
           fill="none" 
@@ -68,7 +68,7 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
               <rect x="0" y="0" width="400" height="520" fill="white" rx="16" />
               
               {/* Black rectangle cutout: Transparent window showing the photo */}
-              <rect x="18" y="18" width="364" height="375" fill="black" rx="8" />
+              <rect x="10" y="10" width="380" height="380" fill="black" rx="8" />
             </mask>
           </defs>
 
@@ -85,7 +85,7 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
 
           {/* Therapist Name (White text) */}
           <text 
-            x="24" 
+            x="16" 
             y="430" 
             fontFamily="'Inter', 'Arial Black', system-ui, -apple-system, sans-serif" 
             fontWeight="900" 
@@ -98,7 +98,7 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
 
           {/* Qualifications text */}
           <text 
-            x="24" 
+            x="16" 
             y="453" 
             fontFamily="'Inter', system-ui, -apple-system, sans-serif" 
             fontWeight="700" 
@@ -112,9 +112,9 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
 
           {/* Divider line */}
           <line 
-            x1="24" 
+            x1="16" 
             y1="470" 
-            x2="376" 
+            x2="384" 
             y2="470" 
             stroke="white" 
             strokeWidth="1.5" 
@@ -123,7 +123,7 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
 
           {/* Microtag text */}
           <text 
-            x="24" 
+            x="16" 
             y="499" 
             fontFamily="'Inter', system-ui, -apple-system, sans-serif" 
             fontWeight="600" 
@@ -138,7 +138,7 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
           {/* 3. View Profile Button (SVG Group) - Vertically Centered & Right-Aligned */}
           <g>
             <rect 
-              x="248" 
+              x="256" 
               y="479" 
               width="128" 
               height="32" 
@@ -147,7 +147,7 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
               className="transition-colors duration-300 group-hover:fill-neutral-200"
             />
             <text 
-              x="312" 
+              x="320" 
               y="499" 
               fontFamily="'Inter', system-ui, -apple-system, sans-serif" 
               fontWeight="900" 

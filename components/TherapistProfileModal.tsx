@@ -55,6 +55,15 @@ export default function TherapistProfileModal({
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
             className="relative w-full max-w-[980px] h-[85vh] md:h-auto md:max-h-[85vh] bg-white rounded-[24px] md:rounded-[36px] shadow-2xl overflow-hidden flex flex-col md:flex-row group/modal z-10 border border-gray-100"
           >
+            {/* Global Close Button (Fixed overlay at top-right on mobile & desktop) */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 md:top-6 md:right-6 z-[60] bg-white/90 hover:bg-white text-gray-500 hover:text-black border border-gray-200/50 p-2 md:p-2.5 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95"
+              aria-label="Close modal"
+            >
+              <X className="w-[18px] h-[18px] md:w-[20px] md:h-[20px]" />
+            </button>
+
             {/* Left Column - Desktop (Image & Glassmorphic Text) */}
             <div className="hidden md:flex md:w-[40%] bg-[#111111] relative overflow-hidden flex-col justify-end shrink-0 min-h-[600px]">
               <Image
@@ -94,40 +103,22 @@ export default function TherapistProfileModal({
               </div>
             </div>
 
-            {/* Mobile Header / Image Component */}
-            <div className="md:hidden w-full h-[240px] relative overflow-hidden shrink-0">
-              <Image
-                src={therapist.avatar_url || '/assets/section_2_4.webp'}
-                alt={therapist.full_name}
-                fill
-                sizes="100vw"
-                className="object-cover object-top"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-transparent pointer-events-none" />
-              
-              {/* Close Button on Mobile */}
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 z-20 bg-black/45 backdrop-blur-md text-white p-2.5 rounded-full hover:bg-black/60 transition-colors shadow-lg border border-white/10"
-                aria-label="Close modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
             {/* Right Column - detailed content with custom scrolling */}
             <div className="flex-1 p-6 md:p-10 lg:p-12 flex flex-col relative bg-white text-black overflow-y-auto min-h-0 md:max-h-[85vh]">
-              {/* Close Button on Desktop */}
-              <button
-                onClick={onClose}
-                className="hidden md:flex absolute top-6 right-6 text-gray-400 hover:text-black transition-colors z-20 bg-gray-50 hover:bg-gray-100 p-2.5 rounded-full border border-gray-100"
-                aria-label="Close modal"
-              >
-                <X size={20} />
-              </button>
-
               <div className="flex flex-col gap-8 text-left max-w-[580px] mx-auto w-full pb-4">
+                {/* Mobile Header Image - inside scrollable area (Hidden on Desktop) */}
+                <div className="md:hidden w-[calc(100%+48px)] -mx-6 -mt-6 h-[260px] relative overflow-hidden shrink-0 mb-6 rounded-t-[24px]">
+                  <Image
+                    src={therapist.avatar_url || '/assets/section_2_4.webp'}
+                    alt={therapist.full_name}
+                    fill
+                    sizes="100vw"
+                    className="object-cover object-top"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-transparent pointer-events-none" />
+                </div>
+
                 {/* Mobile Name & Credentials Section (Hidden on Desktop) */}
                 <div className="md:hidden flex flex-col items-start gap-2 border-b border-gray-100 pb-5 mb-1">
                   <span className="bg-[#0F9393]/10 text-[#0F9393] px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">

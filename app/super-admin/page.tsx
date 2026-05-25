@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import Button from '@/components/ui/Button'
 import { 
@@ -54,6 +55,7 @@ interface WhatsappStatus {
 
 export default function SuperAdminDashboard() {
   const [supabase] = useState(() => createClient())
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -69,7 +71,6 @@ export default function SuperAdminDashboard() {
   const [virtualRooms, setVirtualRooms] = useState<any[]>([])
   const [editingBlog, setEditingBlog] = useState<Partial<Blog> | null>(null)
   const [whatsappStatus, setWhatsappStatus] = useState<WhatsappStatus>({ status: 'disconnected', qrDataUrl: null })
-  const [editingProfile, setEditingProfile] = useState<any>(null)
   const [selectedQueueItem, setSelectedQueueItem] = useState<any | null>(null)
   const [showQueueSheet, setShowQueueSheet] = useState(false)
   const [cronStatus, setCronStatus] = useState<{ lastRun: string | null, loading: boolean }>({ lastRun: null, loading: false })
@@ -322,68 +323,6 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, userId: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setLoading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('therapist-assets')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('therapist-assets')
-        .getPublicUrl(filePath);
-
-      setEditingProfile({ ...editingProfile, avatar_url: publicUrl });
-      alert('Avatar uploaded! Please save the profile to finalize.');
-    } catch (error: any) {
-      alert('Error: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEditProfile = async (userId: string) => {
-    setLoading(true);
-    const { data } = await supabase.from('therapist_profiles').select('*').eq('user_id', userId).single();
-    if (data) setEditingProfile(data);
-    setLoading(false);
-  }
-
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const updatePayload = {
-        full_name: editingProfile.full_name,
-        bio: editingProfile.bio,
-        qualification: editingProfile.qualification,
-        microtag: editingProfile.microtag,
-        tagline: editingProfile.tagline,
-        avatar_url: editingProfile.avatar_url,
-        approach: editingProfile.approach,
-        good_fit_for: editingProfile.good_fit_for
-      };
-      await adminUpdateTherapistProfile(editingProfile.user_id, updatePayload);
-      await logAction('profile_change', editingProfile.user_id, { name: editingProfile.full_name });
-      alert('Profile updated successfully!');
-      setEditingProfile(null);
-      fetchAdmins();
-    } catch (error: any) {
-      alert('Error updating profile: ' + (error.message || error));
-    } finally {
-      setLoading(false);
-    }
-  }
-
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans flex flex-col md:flex-row relative">
@@ -587,7 +526,7 @@ export default function SuperAdminDashboard() {
                              </button>
                              <span className="text-gray-300">•</span>
                              <button 
-                               onClick={() => handleEditProfile(admin.user_id)}
+                               onClick={() => router.push(`/super-admin/therapists/${admin.user_id}/edit`)}
                                className="text-[12px] font-black uppercase tracking-widest text-[#0F9393] hover:underline"
                              >
                                 Edit Profile
@@ -1011,111 +950,7 @@ export default function SuperAdminDashboard() {
               </div>
           </div>
         )}
-        {editingProfile && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
-            <div className="bg-white w-full max-w-4xl rounded-[32px] p-10 shadow-2xl flex flex-col gap-6 animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
-              <div className="flex justify-between items-center">
-                <h2 className="text-[28px] font-georgia font-bold text-gray-900">Edit Therapist Profile</h2>
-                <button onClick={() => setEditingProfile(null)} className="text-gray-400 hover:text-gray-600 font-bold">✕ Close</button>
-              </div>
 
-              <form onSubmit={handleUpdateProfile} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="col-span-full flex items-center gap-6 mb-4">
-                  <div 
-                    className="w-24 h-24 rounded-3xl bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden relative group cursor-pointer"
-                    onClick={() => document.getElementById('admin-avatar-upload')?.click()}
-                  >
-                    <Image
-                      src={editingProfile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(editingProfile.full_name?.trim() || 'Therapist')}&background=0F9393&color=fff`}
-                      width={96} height={96} className="w-full h-full object-cover group-hover:opacity-50 transition-opacity" alt="Avatar"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Plus size={24} className="text-[#0F9393]" />
-                    </div>
-                    <input 
-                      id="admin-avatar-upload"
-                      type="file" 
-                      accept="image/*"
-                      className="hidden" 
-                      onChange={(e) => handleProfileImageUpload(e, editingProfile.user_id)}
-                      disabled={loading}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[14px] font-bold text-gray-900">{loading ? 'Uploading...' : 'Therapist Portrait'}</span>
-                    <span className="text-[12px] text-gray-400">Click to change professional photo</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-[12px] font-black text-gray-400 uppercase">Full Name</label>
-                  <input 
-                    type="text" 
-                    value={editingProfile.full_name || ''} 
-                    onChange={(e) => setEditingProfile({...editingProfile, full_name: e.target.value})}
-                    className="w-full border border-gray-100 rounded-xl px-5 py-3 outline-none focus:border-[#0F9393] bg-gray-50/50 font-bold"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[12px] font-black text-gray-400 uppercase">Microtag (e.g. Aligned Growth)</label>
-                  <input 
-                    type="text" 
-                    value={editingProfile.microtag || ''} 
-                    onChange={(e) => setEditingProfile({...editingProfile, microtag: e.target.value})}
-                    className="w-full border border-gray-100 rounded-xl px-5 py-3 outline-none focus:border-[#0F9393] bg-gray-50/50 font-bold"
-                  />
-                </div>
-                <div className="col-span-full flex flex-col gap-2">
-                  <label className="text-[12px] font-black text-gray-400 uppercase">Qualification</label>
-                  <input 
-                    type="text" 
-                    value={editingProfile.qualification || ''} 
-                    onChange={(e) => setEditingProfile({...editingProfile, qualification: e.target.value})}
-                    className="w-full border border-gray-100 rounded-xl px-5 py-3 outline-none focus:border-[#0F9393] bg-gray-50/50 font-bold"
-                  />
-                </div>
-                <div className="col-span-full flex flex-col gap-2">
-                  <label className="text-[12px] font-black text-gray-400 uppercase">Tagline</label>
-                  <input 
-                    type="text" 
-                    value={editingProfile.tagline || ''} 
-                    onChange={(e) => setEditingProfile({...editingProfile, tagline: e.target.value})}
-                    className="w-full border border-gray-100 rounded-xl px-5 py-3 outline-none focus:border-[#0F9393] bg-gray-50/50 font-bold italic"
-                  />
-                </div>
-                <div className="col-span-full flex flex-col gap-2">
-                  <label className="text-[12px] font-black text-gray-400 uppercase">Biography</label>
-                  <textarea 
-                    value={editingProfile.bio || ''} 
-                    onChange={(e) => setEditingProfile({...editingProfile, bio: e.target.value})}
-                    className="w-full h-32 border border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-[#0F9393] bg-gray-50/50 font-medium resize-none"
-                  />
-                </div>
-                <div className="col-span-full flex flex-col gap-2">
-                  <label className="text-[12px] font-black text-gray-400 uppercase">Therapeutic Approach</label>
-                  <textarea 
-                    value={editingProfile.approach || ''} 
-                    onChange={(e) => setEditingProfile({...editingProfile, approach: e.target.value})}
-                    className="w-full h-32 border border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-[#0F9393] bg-gray-50/50 font-medium resize-none"
-                  />
-                </div>
-                <div className="col-span-full flex flex-col gap-2">
-                  <label className="text-[12px] font-black text-gray-400 uppercase">Good Fit For (One per line)</label>
-                  <textarea 
-                    value={editingProfile.good_fit_for?.join('\n') || ''} 
-                    onChange={(e) => setEditingProfile({...editingProfile, good_fit_for: e.target.value.split('\n').filter(l => l.trim())})}
-                    className="w-full h-32 border border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-[#0F9393] bg-gray-50/50 font-medium resize-none"
-                  />
-                </div>
-                <div className="col-span-full pt-4">
-                  <Button type="submit" variant="black" className="w-full h-[60px] text-[18px]" disabled={loading}>
-                    {loading ? 'Saving...' : 'Update Profile'}
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
            {activeTab === 'system' && (
              <div className="flex flex-col gap-8 max-w-4xl mx-auto">
                 <div className="bg-white rounded-[40px] p-10 border border-gray-100 shadow-sm">
