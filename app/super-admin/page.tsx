@@ -560,8 +560,8 @@ export default function SuperAdminDashboard() {
                 {admins.length === 0 ? (
                   <p className="text-gray-400 italic">No therapists active yet.</p>
                 ) : (
-                  admins.map((admin) => (
-                    <div key={admin.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors gap-4">
+                  admins.map((admin, idx) => (
+                    <div key={admin.id || idx} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors gap-4">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-50 relative flex-shrink-0 border border-gray-100">
                           <Image 
@@ -638,8 +638,8 @@ export default function SuperAdminDashboard() {
                    </Button>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                 {blogs.map((blog: Blog) => (
-                    <div key={blog.id} className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6 hover:shadow-md transition-all">
+                 {blogs.map((blog: Blog, idx) => (
+                    <div key={blog.id || idx} className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 flex flex-col gap-6 hover:shadow-md transition-all">
                        <div className="flex justify-between items-start">
                           <span className={`text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest ${blog.published ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'}`}>
                             {blog.published ? 'Published' : 'Draft'}

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
+import TherapistProfileModal from '@/components/TherapistProfileModal';
 
 interface Therapist {
   user_id: string;
@@ -11,9 +11,17 @@ interface Therapist {
   qualification: string;
   microtag: string;
   avatar_url: string;
+  bio?: string;
+  display_hours?: string;
+  display_rating?: string;
+  specialties?: string[];
+  note?: string;
+  tagline?: string;
+  approach?: string;
+  good_fit_for?: string[];
 }
 
-const TherapistCard = ({ therapist, index }: { therapist: Therapist; index: number }) => {
+const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; index: number; onOpen: () => void }) => {
   const maskId = `polaroid-mask-${index}`;
   const name = therapist.full_name || 'Therapist';
   const qualification = therapist.qualification || 'Licensed Professional';
@@ -31,9 +39,12 @@ const TherapistCard = ({ therapist, index }: { therapist: Therapist; index: numb
   const nameFontSize = getFontSize(name);
 
   return (
-    <Link 
-      href={`/therapists/${therapist.user_id}`}
-      className="group relative w-full aspect-[4/5.2] rounded-[32px] overflow-hidden border-[1.5px] border-black shadow-lg transition-all duration-500 hover:shadow-[0_30px_80px_rgba(15,147,147,0.25)] hover:-translate-y-2 max-w-[480px] mx-auto block"
+    <div 
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onOpen(); } }}
+      className="group relative w-full aspect-[4/5.2] rounded-[32px] overflow-hidden border-[1.5px] border-black shadow-lg transition-all duration-500 hover:shadow-[0_30px_80px_rgba(15,147,147,0.25)] hover:-translate-y-2 max-w-[480px] mx-auto block cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#0F9393] focus:ring-offset-2 focus:ring-offset-black"
     >
       <Image 
         src={therapist.avatar_url} 
@@ -42,8 +53,6 @@ const TherapistCard = ({ therapist, index }: { therapist: Therapist; index: numb
         sizes="(max-width: 768px) 100vw, (max-width: 1280px) 33vw, 600px"
         className="object-cover transition-transform duration-1000 group-hover:scale-105" 
       />
-
-      {/* Gradient overlay removed */}
 
       {/* 2. Inset Polaroid Frame Overlay */}
       <div className="absolute inset-3 sm:inset-4 md:inset-5 pointer-events-none select-none z-10">
@@ -152,7 +161,7 @@ const TherapistCard = ({ therapist, index }: { therapist: Therapist; index: numb
           </g>
         </svg>
       </div>
-    </Link>
+    </div>
   );
 };
 
@@ -160,6 +169,8 @@ export default function TherapistListing() {
   const [supabase] = useState(() => createClient());
   const [therapists, setTherapists] = useState<Therapist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTherapist, setSelectedTherapist] = useState<Therapist | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fallbackTherapists: Therapist[] = [
     {
@@ -167,21 +178,42 @@ export default function TherapistListing() {
       full_name: 'Ananya Iyer',
       qualification: 'M.Sc. Clinical Psychology',
       microtag: 'Gentle Support',
-      avatar_url: '/assets/section_2_1.webp'
+      avatar_url: '/assets/section_2_1.webp',
+      bio: 'Ananya is an empathetic counselor who specializes in trauma recovery, grief support, and self-esteem building. With a client-centered approach, she offers a safe space to grow.',
+      display_hours: '120+',
+      display_rating: '4.9',
+      specialties: ['Grief Support', 'Trauma Recovery', 'Self-Esteem'],
+      note: 'You are stronger than you think. Let us discover your inner light together.',
+      approach: 'Client-centered, empathetic listening combined with gentle Cognitive Behavioral Therapy (CBT).',
+      good_fit_for: ['Young adults navigating transitions', 'Individuals dealing with past trauma', 'Grief and loss support']
     },
     {
       user_id: '2',
       full_name: 'Vikram Seth',
       qualification: 'Ph.D. Counseling Psychology',
       microtag: 'Burnout & Stress',
-      avatar_url: '/assets/section_2_2.webp'
+      avatar_url: '/assets/section_2_2.webp',
+      bio: 'Vikram has spent over a decade helping corporate professionals navigate burnout, chronic stress, and relationship conflicts. His style is goal-oriented and practical.',
+      display_hours: '400+',
+      display_rating: '5.0',
+      specialties: ['Stress Management', 'Career Burnout', 'Relationship Conflict'],
+      note: 'Growth begins at the edge of your comfort zone. Let us take the first step.',
+      approach: 'Action-oriented therapy using CBT, Mindfulness, and stress reduction strategies.',
+      good_fit_for: ['Professionals facing burnout', 'Couples trying to improve communication', 'High-stress lifestyle management']
     },
     {
       user_id: '3',
       full_name: 'Sarah Jenkins',
       qualification: 'M.Sc. Cognitive Science',
       microtag: 'Anxiety Specialist',
-      avatar_url: '/assets/section_2_3.webp'
+      avatar_url: '/assets/section_2_3.webp',
+      bio: 'Sarah focuses on anxiety disorders, panic control, and obsessive-compulsive behaviors. She utilizes evidence-based cognitive strategies to empower her clients.',
+      display_hours: '250+',
+      display_rating: '4.8',
+      specialties: ['Anxiety & Panic', 'OCD', 'Social Anxiety'],
+      note: 'Anxiety is a wave you can learn to surf. Let us find your balance.',
+      approach: 'Cognitive behavioral techniques (CBT) and Exposure Response Prevention (ERP).',
+      good_fit_for: ['Individuals experiencing general anxiety', 'People dealing with panic attacks', 'Managing obsessive thoughts']
     }
   ];
 
@@ -190,7 +222,7 @@ export default function TherapistListing() {
       try {
         const { data, error } = await supabase
           .from('therapist_profiles')
-          .select('user_id, full_name, qualification, microtag, avatar_url');
+          .select('*');
         
         if (error) {
           console.error('Error fetching from Supabase:', error);
@@ -201,7 +233,15 @@ export default function TherapistListing() {
             full_name: t.full_name || 'Therapist',
             qualification: t.qualification || 'Licensed Professional',
             microtag: t.microtag || 'Mental Health Expert',
-            avatar_url: t.avatar_url || fallbackTherapists[idx % 3].avatar_url
+            avatar_url: t.avatar_url || fallbackTherapists[idx % 3].avatar_url,
+            bio: t.bio || '',
+            display_hours: t.display_hours || '0+',
+            display_rating: t.display_rating || '5.0',
+            specialties: t.specialties || [],
+            note: t.note || '',
+            tagline: t.tagline || '',
+            approach: t.approach || '',
+            good_fit_for: t.good_fit_for || []
           }));
           setTherapists(formatted);
         } else {
@@ -217,6 +257,11 @@ export default function TherapistListing() {
 
     loadTherapists();
   }, [supabase]);
+
+  const handleOpenProfile = (therapist: Therapist) => {
+    setSelectedTherapist(therapist);
+    setIsModalOpen(true);
+  };
 
   if (loading) {
     return (
@@ -234,12 +279,25 @@ export default function TherapistListing() {
         {/* THERAPIST GRID (3 cards per row on desktop) */}
         <div className="w-full max-w-[1400px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12 min-h-[400px]">
           {therapists.map((therapist, index) => (
-            <TherapistCard key={therapist.user_id} therapist={therapist} index={index} />
+            <TherapistCard 
+              key={therapist.user_id} 
+              therapist={therapist} 
+              index={index} 
+              onOpen={() => handleOpenProfile(therapist)}
+            />
           ))}
         </div>
 
       </div>
 
+      <TherapistProfileModal 
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTherapist(null);
+        }}
+        therapist={selectedTherapist as any}
+      />
     </div>
   );
 }

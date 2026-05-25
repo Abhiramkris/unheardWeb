@@ -322,9 +322,25 @@ export default function AdminDashboard() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    const updatePayload = {
+      full_name: profile.full_name,
+      bio: profile.bio,
+      qualification: profile.qualification,
+      display_hours: profile.display_hours,
+      phone: profile.phone,
+      note: profile.note,
+      tagline: profile.note, // Keep note and tagline in sync
+      microtag: profile.microtag,
+      approach: profile.approach,
+      specialties: profile.specialties || [],
+      good_fit_for: profile.good_fit_for || [],
+      avatar_url: profile.avatar_url,
+      is_available: profile.is_available ?? true
+    };
+
     const { error } = await supabase
       .from('therapist_profiles')
-      .update(profile)
+      .update(updatePayload)
       .eq('user_id', user.id)
 
     if (error) {
@@ -533,7 +549,7 @@ export default function AdminDashboard() {
                       const isCompleted = r.status === 'completed';
                       
                       return (
-                        <div key={r.id} className="relative">
+                        <div key={r.id || i} className="relative">
                           <div className={`absolute -left-[30px] top-3.5 w-4 h-4 rounded-full border-[3px] border-[#F8F9FA] transition-all ${isCompleted ? 'bg-gray-300' : isFirst ? 'bg-[#0F9393] scale-110 shadow-md' : 'bg-gray-200'}`} />
                           <div
                             onClick={() => { setSelectedSession(r); setShowSheet(true); }}
@@ -656,7 +672,7 @@ export default function AdminDashboard() {
                   }
 
                   return (
-                    <div key={reg.id} className="relative flex items-stretch gap-3 md:gap-8 group">
+                    <div key={reg.id || idx} className="relative flex items-stretch gap-3 md:gap-8 group">
                       {/* Timeline Thread */}
                       <div className="flex flex-col items-center w-8 md:w-16 flex-shrink-0">
                         <div className={`w-1 flex-grow ${idx === 0 ? 'bg-transparent' : 'bg-gray-100'}`} />
@@ -1051,8 +1067,8 @@ export default function AdminDashboard() {
                           <label className="text-[10px] font-bold text-[#0F9393] uppercase tracking-widest ml-1">Therapeutic Approach</label>
                           <textarea
                             placeholder="Her approach is humanistic and trauma-informed, integrating REBT, CBT, EFT, and emotion-focused work..."
-                            value={profile.approach_long || ''}
-                            onChange={(e) => setProfile({ ...profile, approach_long: e.target.value })}
+                            value={profile.approach || ''}
+                            onChange={(e) => setProfile({ ...profile, approach: e.target.value })}
                             className="w-full h-40 border-2 border-gray-50 rounded-2xl px-6 py-4 outline-none focus:border-[#0F9393] focus:bg-white bg-gray-50 font-medium text-gray-800 resize-none transition-all"
                           />
                         </div>
@@ -1067,7 +1083,7 @@ export default function AdminDashboard() {
                         <div className="flex flex-col gap-4">
                           <label className="text-[10px] font-bold text-[#0F9393] uppercase tracking-widest ml-1">I Excel At (Add 4-5 using the plus icon to add more )</label>
                           <div className="flex flex-wrap gap-2 mb-4">
-                            {(profile.approach || '').split('\n').filter((l: string) => l.trim()).map((p: string, i: number) => (
+                            {(profile.specialties || []).map((p: string, i: number) => (
                               <motion.div
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
@@ -1078,9 +1094,9 @@ export default function AdminDashboard() {
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const lines = profile.approach.split('\n').filter((l: string) => l.trim());
-                                    lines.splice(i, 1);
-                                    setProfile({ ...profile, approach: lines.join('\n') });
+                                    const items = [...(profile.specialties || [])];
+                                    items.splice(i, 1);
+                                    setProfile({ ...profile, specialties: items });
                                   }}
                                   className="text-gray-500 hover:text-red-400 transition-colors"
                                 >
@@ -1089,7 +1105,7 @@ export default function AdminDashboard() {
                               </motion.div>
                             ))}
                           </div>
-                          {(!profile.approach || profile.approach.split('\n').filter((l: string) => l.trim()).length < 5) && (
+                          {(!(profile.specialties) || profile.specialties.length < 5) && (
                             <div className="relative">
                               <input
                                 type="text"
@@ -1100,8 +1116,8 @@ export default function AdminDashboard() {
                                   if (e.key === 'Enter') {
                                     e.preventDefault();
                                     if (expertiseInput.trim()) {
-                                      const current = profile.approach || '';
-                                      setProfile({ ...profile, approach: current ? `${current}\n${expertiseInput.trim()}` : expertiseInput.trim() });
+                                      const current = profile.specialties || [];
+                                      setProfile({ ...profile, specialties: [...current, expertiseInput.trim()] });
                                       setExpertiseInput('');
                                     }
                                   }
@@ -1111,8 +1127,8 @@ export default function AdminDashboard() {
                               <div 
                                 onClick={() => {
                                   if (expertiseInput.trim()) {
-                                    const current = profile.approach || '';
-                                    setProfile({ ...profile, approach: current ? `${current}\n${expertiseInput.trim()}` : expertiseInput.trim() });
+                                    const current = profile.specialties || [];
+                                    setProfile({ ...profile, specialties: [...current, expertiseInput.trim()] });
                                     setExpertiseInput('');
                                   }
                                 }}
