@@ -118,10 +118,16 @@ export default function AdminDashboard() {
       .from('appointments')
       .select(`
         *,
-        pre_booking_questionnaires(answers),
-        therapist_profiles(full_name)
+        pre_booking_questionnaires(answers)
       `)
       .order('start_time', { ascending: false })
+
+    const { data: profiles } = await supabase
+      .from('therapist_profiles')
+      .select('user_id, full_name')
+
+    const profileMap = new Map();
+    profiles?.forEach((p: any) => profileMap.set(p.user_id, p.full_name));
 
     const { data: fps } = await supabase
       .from('fingerprint_logs')
@@ -132,7 +138,11 @@ export default function AdminDashboard() {
 
     if (apts) {
       const formatted = apts.map((a: any) => {
-        const guestPhone = a.pre_booking_questionnaires?.[0]?.answers?.guest_info?.phone || 'N/A';
+        const qAnswers = Array.isArray(a.pre_booking_questionnaires)
+          ? a.pre_booking_questionnaires[0]?.answers
+          : a.pre_booking_questionnaires?.answers;
+
+        const guestPhone = a.guest_phone || qAnswers?.guest_info?.phone || qAnswers?.phone || 'N/A';
 
         return {
           id: a.id,
@@ -141,18 +151,18 @@ export default function AdminDashboard() {
           status: a.status,
           assignment_status: a.assignment_status,
           guest_info: {
-            name: a.guest_name || a.pre_booking_questionnaires?.[0]?.answers?.guest_info?.name || 'Anonymous',
-            phone: a.guest_phone || a.pre_booking_questionnaires?.[0]?.answers?.guest_info?.phone || 'N/A',
-            email: a.guest_email || a.pre_booking_questionnaires?.[0]?.answers?.guest_info?.email
+            name: a.guest_name || qAnswers?.guest_info?.name || qAnswers?.name || 'Anonymous',
+            phone: guestPhone,
+            email: a.guest_email || qAnswers?.guest_info?.email || qAnswers?.email
           },
-          answers: a.pre_booking_questionnaires?.[0]?.answers,
+          answers: qAnswers,
           session_count: fpMap.get(guestPhone) || 0,
           meeting_link: a.meeting_link,
           joined_at_patient: a.joined_at_patient,
           joined_at_therapist: a.joined_at_therapist,
           completed_at: a.completed_at,
           session_summary: a.session_summary,
-          therapist_name: a.therapist_profiles?.full_name
+          therapist_name: profileMap.get(a.therapist_id) || 'Admin'
         };
       })
       setRegistrations(formatted)

@@ -95,7 +95,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   const [couponCode, setCouponCode] = useState('');
   const [isTrialAvailable, setIsTrialAvailable] = useState(true);
 
-  const [timeLeft, setTimeLeft] = useState(420); // 7 minutes
+  const [timeLeft, setTimeLeft] = useState(780); // 13 minutes
   const [previewTherapist, setPreviewTherapist] = useState<Therapist | null>(null);
   const [deviceId, setDeviceId] = useState<string>('');
 
@@ -111,7 +111,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     setTimeout(() => {
       setStep(1);
       setDirection(1);
-      setTimeLeft(420);
+      setTimeLeft(780);
     }, 300);
   }, [onClose]);
 
@@ -169,7 +169,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   // Session Timeout Timer Logic
   useEffect(() => {
     if (!isOpen) {
-      setTimeLeft(420);
+      setTimeLeft(780);
       return;
     }
 
