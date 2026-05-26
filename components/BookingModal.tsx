@@ -280,9 +280,10 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   const isStep1Valid = 
     formData.firstName.trim() !== '' &&
     formData.lastName.trim() !== '' &&
-    formData.dob !== '' &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) &&
     formData.phone.trim().replace(/\D/g, '').length >= 10;
+
+  const isStep3Valid = formData.dob !== '';
 
   const isStep5Valid = formData.wellbeing >= 1 && formData.wellbeing <= 10;
 
@@ -306,7 +307,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     }
     
     setDirection(1);
-    setStep((s) => Math.min(s + 1, 7)); // Now 7 steps total
+    setStep((s) => Math.min(s + 1, 8)); // Now 8 steps total internally
   };
 
   const handlePrev = () => {
@@ -498,25 +499,25 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     exit: (direction: number) => ({ zIndex: 0, x: direction < 0 ? 50 : -50, opacity: 0 })
   };
 
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-between mb-8">
-      <div className="flex items-center gap-2">
-        {[1, 2, 3, 4, 5, 6, 7].map((s) => (
-          <div key={s} className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? 'w-8 bg-[#0F9393]' : 'w-4 bg-gray-200'}`} />
-        ))}
-        <span className="ml-2 font-nunito font-bold text-[12px] text-gray-400 uppercase tracking-wider">
-          Step {step}/7
-        </span>
+  const renderStepIndicator = () => {
+    if (step === 2) {
+      return null;
+    }
+    const displayStep = step === 1 ? 1 : step - 1;
+    return (
+      <div className="flex items-center justify-between mb-4 md:mb-8">
+        {/* Hide dots indicator on mobile */}
+        <div className="hidden md:flex items-center gap-2">
+          {[1, 2, 3, 4, 5, 6, 7].map((s) => (
+            <div key={s} className={`h-1.5 rounded-full transition-all duration-300 ${displayStep === s ? 'w-8 bg-[#0F9393]' : 'w-4 bg-gray-200'}`} />
+          ))}
+          <span className="ml-2 font-nunito font-bold text-[12px] text-gray-400 uppercase tracking-wider">
+            Step {displayStep}/7
+          </span>
+        </div>
       </div>
-      
-      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-colors ${timeLeft < 60 ? 'bg-red-50 border-red-100 text-red-500 animate-pulse' : 'bg-gray-50 border-gray-100 text-gray-500'}`}>
-        <Clock size={14} />
-        <span className="font-nunito font-bold text-[12px] tracking-tight">
-          {formatTime(timeLeft)}
-        </span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
@@ -545,6 +546,10 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                 <h2 className="font-georgia text-[36px] font-bold text-white leading-tight mb-6">
                   Begin Your <br /><span className="text-[#0F9393]">Journey to</span> <br />Better Mental Health
                 </h2>
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-colors mb-6 ${timeLeft < 60 ? 'bg-red-500/20 border-red-500/30 text-red-400 animate-pulse' : 'bg-white/10 border-white/20 text-white/80'}`}>
+                  <Clock size={14} className={timeLeft < 60 ? 'animate-pulse' : ''} />
+                  <span className="font-nunito font-bold text-[12px] tracking-tight">Slot held: {formatTime(timeLeft)}</span>
+                </div>
                 <p className="font-nunito text-white/70 text-[18px] leading-relaxed max-w-[280px]">
                   Take the first step towards a clearer mind and a more fulfilled life.
                 </p>
@@ -569,12 +574,16 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                <button onClick={closeAndReset} className="absolute top-6 right-6 z-20 text-white/70 hover:text-white"><X size={24} /></button>
                <div className="relative z-10">
                  <Image src="/assets/logo unherd white.svg" alt="unHeard" width={100} height={24} className="h-[24px] w-auto mb-4" />
-                 <h2 className="font-georgia text-[24px] font-bold text-white">Book Your Session</h2>
+                 <h2 className="font-georgia text-[24px] font-bold text-white mb-2">Book Your Session</h2>
+                 <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border transition-colors ${timeLeft < 60 ? 'bg-red-500/20 border-red-500/30 text-red-400 animate-pulse' : 'bg-white/10 border-white/20 text-white/80'}`}>
+                   <Clock size={12} className={timeLeft < 60 ? 'animate-pulse' : ''} />
+                   <span className="font-nunito font-bold text-[12px] tracking-tight">{formatTime(timeLeft)}</span>
+                 </div>
                </div>
             </div>
 
             {/* Forms Section */}
-            <div className="flex-grow p-8 md:p-12 flex flex-col relative bg-white text-black overflow-hidden">
+            <div className="flex-grow p-5 md:p-12 flex flex-col relative bg-white text-black overflow-hidden">
               <button onClick={closeAndReset} className="hidden md:flex absolute top-8 right-8 text-gray-400 hover:text-black transition-colors"><X size={28} /></button>
 
               {/* CARING IN PROGRESS LOADING OVERLAY */}
@@ -633,10 +642,10 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                     {step === 1 && (
                       <div className="flex flex-col gap-5 text-black">
                         <div className="mb-1">
-                          <h3 className="font-georgia font-bold text-[28px] text-black mb-1">Personal Information</h3>
-                          <p className="font-nunito text-gray-500 text-[14px]">Please fill in your details to customize your care journey. We verify via WhatsApp.</p>
+                          <h3 className="font-georgia font-bold text-[20px] md:text-[28px] text-black mb-1">Personal Information</h3>
+                          <p className="font-nunito text-gray-500 text-[13px] md:text-[14px]">Please fill in your details to customize your care journey. We verify via WhatsApp.</p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[55vh] md:max-h-[420px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[42vh] md:max-h-[420px] overflow-y-auto pr-2 custom-scrollbar">
                           {/* First Name & Last Name */}
                           <div className="flex flex-col gap-1.5">
                             <label className="font-nunito font-bold text-[13px] text-gray-700">First Name *</label>
@@ -659,6 +668,53 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                             />
                           </div>
 
+                          {/* Email Address & WhatsApp Phone Number */}
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[13px] text-gray-700">Email Address *</label>
+                            <input 
+                              type="email" 
+                              value={formData.email} 
+                              onChange={(e) => setFormData({...formData, email: e.target.value})} 
+                              placeholder="priya@example.com" 
+                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[13px] text-gray-700">Phone Number *</label>
+                            <input 
+                              type="tel" 
+                              value={formData.phone} 
+                              onChange={(e) => setFormData({...formData, phone: e.target.value})} 
+                              placeholder="e.g. +91 98765 43210" 
+                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {step === 2 && (
+                      <div className="flex flex-col gap-6">
+                        <div className="mb-4 text-center mt-8">
+                          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                          </div>
+                          <h3 className="font-georgia font-bold text-[20px] md:text-[28px] text-black mb-2">Check WhatsApp</h3>
+                          <p className="font-nunito text-gray-500">We securely pinged a 6-digit code to <strong>{formData.phone}</strong>.</p>
+                        </div>
+                        <div className="flex flex-col gap-2 max-w-[300px] mx-auto w-full">
+                          <input type="text" value={formData.otp} onChange={(e) => setFormData({...formData, otp: e.target.value})} placeholder="0 0 0 0 0 0" className="border-b-2 border-gray-300 px-5 py-4 font-bold text-center text-[28px] tracking-[1rem] text-black placeholder:text-gray-300 focus:outline-none focus:border-[#0F9393] bg-transparent" maxLength={6} />
+                        </div>
+                      </div>
+                    )}
+
+                    {step === 3 && (
+                      <div className="flex flex-col gap-5 text-black">
+                        <div className="mb-1">
+                          <h3 className="font-georgia font-bold text-[20px] md:text-[28px] text-black mb-1">Additional Details</h3>
+                          <p className="font-nunito text-gray-500 text-[13px] md:text-[14px]">Help us customize your clinical assignment.</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[42vh] md:max-h-[420px] overflow-y-auto pr-2 custom-scrollbar">
                           {/* Date of Birth & Gender Identity */}
                           <div className="flex flex-col gap-1.5">
                             <label className="font-nunito font-bold text-[13px] text-gray-700">Date of Birth *</label>
@@ -714,54 +770,17 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                               <option value="Prefer not to say">Prefer not to say</option>
                             </select>
                           </div>
-
-                          {/* Email Address & WhatsApp Phone Number */}
-                          <div className="flex flex-col gap-1.5">
-                            <label className="font-nunito font-bold text-[13px] text-gray-700">Email Address *</label>
-                            <input 
-                              type="email" 
-                              value={formData.email} 
-                              onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                              placeholder="priya@example.com" 
-                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                            <label className="font-nunito font-bold text-[13px] text-gray-700">Phone Number *</label>
-                            <input 
-                              type="tel" 
-                              value={formData.phone} 
-                              onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-                              placeholder="e.g. +91 98765 43210" 
-                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
-                            />
-                          </div>
                         </div>
                       </div>
                     )}
 
-                    {step === 2 && (
-                      <div className="flex flex-col gap-6">
-                        <div className="mb-4 text-center mt-8">
-                          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                          </div>
-                          <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Check WhatsApp</h3>
-                          <p className="font-nunito text-gray-500">We securely pinged a 6-digit code to <strong>{formData.phone}</strong>.</p>
-                        </div>
-                        <div className="flex flex-col gap-2 max-w-[300px] mx-auto w-full">
-                          <input type="text" value={formData.otp} onChange={(e) => setFormData({...formData, otp: e.target.value})} placeholder="0 0 0 0 0 0" className="border-b-2 border-gray-300 px-5 py-4 font-bold text-center text-[28px] tracking-[1rem] text-black placeholder:text-gray-300 focus:outline-none focus:border-[#0F9393] bg-transparent" maxLength={6} />
-                        </div>
-                      </div>
-                    )}
-
-                    {step === 3 && (
+                    {step === 4 && (
                       <div className="flex flex-col gap-6 text-black">
                         <div className="mb-2">
-                          <h3 className="font-georgia font-bold text-[28px] text-black mb-2">How can we help?</h3>
-                          <p className="font-nunito text-gray-500">Select the type of care you&apos;re looking for.</p>
+                          <h3 className="font-georgia font-bold text-[20px] md:text-[28px] text-black mb-2">How can we help?</h3>
+                          <p className="font-nunito text-gray-500 text-[13px] md:text-[14px]">Select the type of care you&apos;re looking for.</p>
                         </div>
-                        <div className="flex flex-col gap-5 max-h-[55vh] md:max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="flex flex-col gap-5 max-h-[50vh] md:max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
                           <div className="flex flex-col gap-2">
                             <label className="font-nunito font-bold text-[14px] text-gray-900">Therapy Type</label>
                             <div className="flex flex-wrap gap-3">
@@ -832,10 +851,10 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                       </div>
                     )}
 
-                    {step === 4 && (
+                    {step === 5 && (
                       <div className="flex flex-col gap-6 h-full">
-                        <div className="mb-2">
-                          <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Schedule Time</h3>
+                        <div className="mb-1">
+                          <h3 className="font-georgia font-bold text-[20px] md:text-[28px] text-black mb-2">Schedule Time</h3>
                           <p className="font-nunito text-gray-500">Secure your appointment block with unHeard.</p>
                         </div>
                         <div className="flex flex-col gap-4">
@@ -879,13 +898,13 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                       </div>
                     )}
 
-                    {step === 5 && (
+                    {step === 6 && (
                       <div className="flex flex-col gap-6 text-black">
-                        <div className="mb-2">
-                          <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Mental Health History</h3>
-                          <p className="font-nunito text-gray-500">This helps us match you with a therapist aligned with your profile.</p>
+                        <div className="mb-1">
+                          <h3 className="font-georgia font-bold text-[20px] md:text-[28px] text-black mb-2">Mental Health History</h3>
+                          <p className="font-nunito text-gray-500 text-[13px] md:text-[14px]">This helps us match you with a therapist aligned with your profile.</p>
                         </div>
-                        <div className="flex flex-col gap-6 max-h-[55vh] md:max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="flex flex-col gap-6 max-h-[42vh] md:max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
                           {/* Counselling before */}
                           <div className="flex flex-col gap-2">
                             <label className="font-nunito font-bold text-[14px] text-gray-900">Have you received counselling or therapy before?</label>
@@ -1020,13 +1039,13 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                       </div>
                     )}
 
-                    {step === 6 && (
+                    {step === 7 && (
                       <div className="flex flex-col gap-6 text-black">
-                        <div className="mb-2">
-                          <h3 className="font-georgia font-bold text-[28px] text-black mb-1">Safety & Consent</h3>
-                          <p className="font-nunito text-gray-500">These questions help us ensure your safety and provide the right support.</p>
+                        <div className="mb-1">
+                          <h3 className="font-georgia font-bold text-[20px] md:text-[28px] text-black mb-1">Safety & Consent</h3>
+                          <p className="font-nunito text-gray-500 text-[13px] md:text-[14px]">These questions help us ensure your safety and provide the right support.</p>
                         </div>
-                        <div className="flex flex-col gap-6 max-h-[55vh] md:max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="flex flex-col gap-6 max-h-[42vh] md:max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
                           {/* Harming yourself */}
                           <div className="flex flex-col gap-2">
                             <label className="font-nunito font-bold text-[14px] text-gray-900">Are you currently having any thoughts of harming yourself or ending your life? *</label>
@@ -1186,10 +1205,10 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                       </div>
                     )}
 
-                    {step === 7 && (
+                    {step === 8 && (
                       <div className="flex flex-col gap-6">
-                        <div className="mb-2">
-                          <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Select Plan</h3>
+                        <div className="mb-1">
+                          <h3 className="font-georgia font-bold text-[20px] md:text-[28px] text-black mb-2">Select Plan</h3>
                           <p className="font-nunito text-gray-500">Choose a session type. Your first intro call is on us!</p>
                         </div>
 
@@ -1261,32 +1280,39 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
 
               {/* Navigation Footer */}
               <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                <div>
+                <div className="min-w-[60px]">
                   {step > 1 && (
-                    <button onClick={handlePrev} className="group flex items-center gap-2 font-nunito font-bold text-gray-400 hover:text-black transition-colors">
-                      <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" /> Back
+                    <button onClick={handlePrev} className="group flex items-center gap-1.5 font-nunito font-bold text-gray-400 hover:text-black transition-colors text-[13px] md:text-[14px]">
+                      <ChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" /> Back
                     </button>
                   )}
                 </div>
                 
-                <div className="flex gap-4">
-                  {step < 7 ? (
+                {/* Steps text on mobile between buttons */}
+                {step !== 2 && (
+                  <div className="md:hidden font-nunito font-bold text-[12px] text-gray-400 uppercase tracking-wider">
+                    Step {step === 1 ? 1 : step - 1}/7
+                  </div>
+                )}
+                
+                <div>
+                  {step < 8 ? (
                     <button 
                       onClick={handleNext} 
-                      disabled={loading || (step === 1 && !isStep1Valid) || (step === 2 && formData.otp.length !== 6) || (step === 4 && !process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost') && (!formData.scheduled_date || !formData.scheduled_time)) || (step === 5 && !isStep5Valid) || (step === 6 && !isStep6Valid)}
-                      className="bg-black text-white px-8 py-3.5 rounded-2xl font-nunito font-bold flex items-center gap-3 shadow-lg shadow-black/10 hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={loading || (step === 1 && !isStep1Valid) || (step === 2 && formData.otp.length !== 6) || (step === 3 && !isStep3Valid) || (step === 5 && !process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost') && (!formData.scheduled_date || !formData.scheduled_time)) || (step === 6 && !isStep5Valid) || (step === 7 && !isStep6Valid)}
+                      className="bg-black text-white px-5 py-2.5 md:px-8 md:py-3.5 rounded-xl md:rounded-2xl font-nunito font-bold flex items-center gap-2 md:gap-3 shadow-lg shadow-black/10 hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-[13px] md:text-[14px]"
                     >
                       {loading ? 'Processing...' : 'Continue'}
-                      <ChevronRight size={20} />
+                      <ChevronRight size={18} />
                     </button>
                   ) : (
                     <button 
                       onClick={handleBookNow} 
                       disabled={loading} 
-                      className="bg-[#0F9393] text-white px-10 py-3.5 rounded-2xl font-nunito font-bold flex items-center gap-3 shadow-lg shadow-[#0F9393]/20 hover:bg-[#0D7F7F] transition-all active:scale-95 disabled:opacity-50"
+                      className="bg-[#0F9393] text-white px-6 py-2.5 md:px-10 md:py-3.5 rounded-xl md:rounded-2xl font-nunito font-bold flex items-center gap-2 md:gap-3 shadow-lg shadow-[#0F9393]/20 hover:bg-[#0D7F7F] transition-all active:scale-95 disabled:opacity-50 text-[13px] md:text-[14px]"
                     >
-                      {loading ? 'Processing...' : 'Complete Booking'}
-                      <ChevronRight size={20} />
+                      {loading ? 'Processing...' : 'Complete'}
+                      <ChevronRight size={18} />
                     </button>
                   )}
                 </div>
