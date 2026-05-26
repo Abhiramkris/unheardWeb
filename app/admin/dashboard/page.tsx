@@ -1399,6 +1399,190 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
+                {/* Additional Client Preferences */}
+                {(selectedSession?.answers?.preferredFormat || selectedSession?.answers?.additionalInfo) && (
+                  <div className="flex flex-col gap-4 bg-white border border-gray-100 p-6 rounded-[28px] shadow-sm">
+                    {selectedSession?.answers?.preferredFormat && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Preferred Session Format</span>
+                        <span className="text-[14px] font-bold text-[#0F9393]">{selectedSession.answers.preferredFormat}</span>
+                      </div>
+                    )}
+                    {selectedSession?.answers?.additionalInfo && (
+                      <div className="flex flex-col gap-1 border-t border-gray-50 pt-3">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Counselor Note</span>
+                        <p className="text-[13px] text-gray-700 font-medium leading-relaxed italic">
+                          &quot;{selectedSession.answers.additionalInfo}&quot;
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Personal Information */}
+                {(selectedSession?.answers?.firstName ||
+                  selectedSession?.answers?.lastName ||
+                  selectedSession?.answers?.dob ||
+                  selectedSession?.answers?.gender ||
+                  selectedSession?.answers?.occupation ||
+                  selectedSession?.answers?.relationshipStatus) && (
+                  <div className="flex flex-col gap-4 bg-white border border-gray-100 p-6 rounded-[28px] shadow-sm">
+                    <div className="flex items-center gap-2 text-[#0F9393] border-b border-gray-50 pb-2 mb-1">
+                      <UserCircle size={16} />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Personal Information</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedSession?.answers?.firstName && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">First Name</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.firstName}</span>
+                        </div>
+                      )}
+                      {selectedSession?.answers?.lastName && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Last Name</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.lastName}</span>
+                        </div>
+                      )}
+                      {selectedSession?.answers?.dob && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Date of Birth</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.dob}</span>
+                        </div>
+                      )}
+                      {selectedSession?.answers?.gender && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Gender Identity</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.gender}</span>
+                        </div>
+                      )}
+                      {selectedSession?.answers?.occupation && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Occupation</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.occupation}</span>
+                        </div>
+                      )}
+                      {selectedSession?.answers?.relationshipStatus && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Relationship Status</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.relationshipStatus}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Mental Health History */}
+                {(selectedSession?.answers?.therapyBefore ||
+                  selectedSession?.answers?.diagnoses ||
+                  selectedSession?.answers?.medication ||
+                  selectedSession?.answers?.underCare ||
+                  selectedSession?.answers?.wellbeing ||
+                  selectedSession?.answers?.stressLevel) && (
+                  <div className="flex flex-col gap-5 bg-white border border-gray-100 p-6 rounded-[28px] shadow-sm">
+                    <div className="flex items-center gap-2 text-[#0F9393] border-b border-gray-50 pb-2 mb-1">
+                      <Sparkles size={16} />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Mental Health History</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedSession?.answers?.therapyBefore && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Counselling Before</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.therapyBefore}</span>
+                        </div>
+                      )}
+                      {selectedSession?.answers?.underCare && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Under Care of Doctor</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.underCare}</span>
+                        </div>
+                      )}
+                      {selectedSession?.answers?.medication && (
+                        <div className="flex flex-col gap-0.5 col-span-2">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Psychiatric Medication</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.medication}</span>
+                        </div>
+                      )}
+                      {selectedSession?.answers?.wellbeing !== undefined && selectedSession?.answers?.wellbeing > 0 && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Wellbeing</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.wellbeing}/10</span>
+                        </div>
+                      )}
+                      {selectedSession?.answers?.stressLevel !== undefined && selectedSession?.answers?.stressLevel > 0 && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Stress Level</span>
+                          <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.stressLevel}/10</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {selectedSession?.answers?.diagnoses && (
+                      <div className="flex flex-col gap-1 border-t border-gray-50 pt-3">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Diagnoses</span>
+                        <p className="text-[13px] text-gray-800 font-bold leading-relaxed">
+                          {selectedSession.answers.diagnoses}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Safety & Consent */}
+                {(selectedSession?.answers?.harmingThoughts ||
+                  selectedSession?.answers?.trustedPerson ||
+                  selectedSession?.answers?.emergencyContactName ||
+                  selectedSession?.answers?.digitalSignature) && (
+                  <div className="flex flex-col gap-4 bg-white border border-gray-100 p-6 rounded-[28px] shadow-sm">
+                    <div className="flex items-center gap-2 text-rose-500 border-b border-gray-50 pb-2 mb-1">
+                      <AlertCircle size={16} />
+                      <span className="text-[11px] font-bold uppercase tracking-wider">Safety & Consent Profile</span>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      {selectedSession?.answers?.harmingThoughts && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Self-Harm Thoughts</span>
+                          <span className={`text-[13px] font-bold ${selectedSession.answers.harmingThoughts === 'No' ? 'text-gray-900' : 'text-rose-600 font-extrabold'}`}>
+                            {selectedSession.answers.harmingThoughts}
+                          </span>
+                        </div>
+                      )}
+
+                      {selectedSession?.answers?.harmingThoughts !== 'No' && (
+                        <>
+                          {selectedSession?.answers?.trustedPerson && (
+                            <div className="flex flex-col gap-0.5 border-t border-gray-50 pt-2">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Trusted Person in Crisis</span>
+                              <span className="text-[13px] font-bold text-gray-900">{selectedSession.answers.trustedPerson}</span>
+                            </div>
+                          )}
+
+                          {(selectedSession?.answers?.emergencyContactName || selectedSession?.answers?.emergencyContactPhone) && (
+                            <div className="flex flex-col gap-1 border-t border-gray-50 pt-2">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Emergency Contact</span>
+                              <div className="text-[13px] text-gray-900 font-bold bg-rose-50/30 p-3 rounded-xl border border-rose-100/50">
+                                <div>Name: {selectedSession.answers.emergencyContactName || 'N/A'}</div>
+                                <div>Phone: {selectedSession.answers.emergencyContactPhone || 'N/A'}</div>
+                                <div>Relation: {selectedSession.answers.emergencyContactRelation || 'N/A'}</div>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {selectedSession?.answers?.digitalSignature && (
+                        <div className="flex flex-col gap-0.5 border-t border-gray-50 pt-2">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Digital Signature</span>
+                          <span className="text-[13px] font-bold text-gray-900 italic font-mono">&quot;{selectedSession.answers.digitalSignature}&quot;</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex flex-col gap-6">
                   <h3 className="text-[14px] font-bold uppercase tracking-[0.2em] text-gray-400">Session Protocol</h3>
                   <div className="flex flex-col relative ml-2 border-l-2 border-gray-200 pl-8 gap-10">

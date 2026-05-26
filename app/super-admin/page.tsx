@@ -9,7 +9,9 @@ import {
   PenTool, Ticket, Phone, 
   MonitorPlay, ArrowLeftRight, 
   Sparkles, 
-  Plus, Smartphone, LogOut
+  Plus, Smartphone, LogOut,
+  UserCircle,
+  AlertCircle
 } from 'lucide-react'
 import Image from 'next/image'
 import BlogEditor from '@/components/BlogEditor'
@@ -1066,6 +1068,190 @@ export default function SuperAdminDashboard() {
                     <span className="text-[14px] font-bold text-gray-900">{new Date(selectedQueueItem.requested_start_time).toLocaleDateString([], { day: '2-digit', month: 'short' })} {new Date(selectedQueueItem.requested_start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                  </div>
               </div>
+
+              {/* Additional Client Preferences */}
+              {(selectedQueueItem.answers?.preferredFormat || selectedQueueItem.answers?.additionalInfo) && (
+                <div className="flex flex-col gap-4 bg-white border border-gray-100 p-6 rounded-[28px] shadow-sm">
+                  {selectedQueueItem.answers?.preferredFormat && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Preferred Session Format</span>
+                      <span className="text-[14px] font-bold text-[#0F9393]">{selectedQueueItem.answers.preferredFormat}</span>
+                    </div>
+                  )}
+                  {selectedQueueItem.answers?.additionalInfo && (
+                    <div className="flex flex-col gap-1 border-t border-gray-50 pt-3">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Counselor Note</span>
+                      <p className="text-[13px] text-gray-700 font-medium leading-relaxed italic">
+                        &quot;{selectedQueueItem.answers.additionalInfo}&quot;
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Personal Information */}
+              {(selectedQueueItem.answers?.firstName ||
+                selectedQueueItem.answers?.lastName ||
+                selectedQueueItem.answers?.dob ||
+                selectedQueueItem.answers?.gender ||
+                selectedQueueItem.answers?.occupation ||
+                selectedQueueItem.answers?.relationshipStatus) && (
+                <div className="flex flex-col gap-4 bg-white border border-gray-100 p-6 rounded-[28px] shadow-sm">
+                  <div className="flex items-center gap-2 text-[#0F9393] border-b border-gray-50 pb-2 mb-1">
+                    <UserCircle size={16} />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Personal Information</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedQueueItem.answers?.firstName && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">First Name</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.firstName}</span>
+                      </div>
+                    )}
+                    {selectedQueueItem.answers?.lastName && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Last Name</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.lastName}</span>
+                      </div>
+                    )}
+                    {selectedQueueItem.answers?.dob && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Date of Birth</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.dob}</span>
+                      </div>
+                    )}
+                    {selectedQueueItem.answers?.gender && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Gender Identity</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.gender}</span>
+                      </div>
+                    )}
+                    {selectedQueueItem.answers?.occupation && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Occupation</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.occupation}</span>
+                      </div>
+                    )}
+                    {selectedQueueItem.answers?.relationshipStatus && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Relationship Status</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.relationshipStatus}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Mental Health History */}
+              {(selectedQueueItem.answers?.therapyBefore ||
+                selectedQueueItem.answers?.diagnoses ||
+                selectedQueueItem.answers?.medication ||
+                selectedQueueItem.answers?.underCare ||
+                selectedQueueItem.answers?.wellbeing ||
+                selectedQueueItem.answers?.stressLevel) && (
+                <div className="flex flex-col gap-5 bg-white border border-gray-100 p-6 rounded-[28px] shadow-sm">
+                  <div className="flex items-center gap-2 text-[#0F9393] border-b border-gray-50 pb-2 mb-1">
+                    <Sparkles size={16} />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Mental Health History</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedQueueItem.answers?.therapyBefore && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Counselling Before</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.therapyBefore}</span>
+                      </div>
+                    )}
+                    {selectedQueueItem.answers?.underCare && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Under Care of Doctor</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.underCare}</span>
+                      </div>
+                    )}
+                    {selectedQueueItem.answers?.medication && (
+                      <div className="flex flex-col gap-0.5 col-span-2">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito font-bold">Psychiatric Medication</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.medication}</span>
+                      </div>
+                    )}
+                    {selectedQueueItem.answers?.wellbeing !== undefined && selectedQueueItem.answers?.wellbeing > 0 && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito font-bold">Wellbeing</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.wellbeing}/10</span>
+                      </div>
+                    )}
+                    {selectedQueueItem.answers?.stressLevel !== undefined && selectedQueueItem.answers?.stressLevel > 0 && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito font-bold">Stress Level</span>
+                        <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.stressLevel}/10</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedQueueItem.answers?.diagnoses && (
+                    <div className="flex flex-col gap-1 border-t border-gray-50 pt-3">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito font-bold">Diagnoses</span>
+                      <p className="text-[13px] text-gray-800 font-bold leading-relaxed">
+                        {selectedQueueItem.answers.diagnoses}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Safety & Consent */}
+              {(selectedQueueItem.answers?.harmingThoughts ||
+                selectedQueueItem.answers?.trustedPerson ||
+                selectedQueueItem.answers?.emergencyContactName ||
+                selectedQueueItem.answers?.digitalSignature) && (
+                <div className="flex flex-col gap-4 bg-white border border-gray-100 p-6 rounded-[28px] shadow-sm">
+                  <div className="flex items-center gap-2 text-rose-500 border-b border-gray-50 pb-2 mb-1">
+                    <AlertCircle size={16} />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">Safety & Consent Profile</span>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    {selectedQueueItem.answers?.harmingThoughts && (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Self-Harm Thoughts</span>
+                        <span className={`text-[13px] font-bold ${selectedQueueItem.answers.harmingThoughts === 'No' ? 'text-gray-900' : 'text-rose-600 font-extrabold'}`}>
+                          {selectedQueueItem.answers.harmingThoughts}
+                        </span>
+                      </div>
+                    )}
+
+                    {selectedQueueItem.answers?.harmingThoughts !== 'No' && (
+                      <>
+                        {selectedQueueItem.answers?.trustedPerson && (
+                          <div className="flex flex-col gap-0.5 border-t border-gray-50 pt-2">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Trusted Person in Crisis</span>
+                            <span className="text-[13px] font-bold text-gray-900">{selectedQueueItem.answers.trustedPerson}</span>
+                          </div>
+                        )}
+
+                        {(selectedQueueItem.answers?.emergencyContactName || selectedQueueItem.answers?.emergencyContactPhone) && (
+                          <div className="flex flex-col gap-1 border-t border-gray-50 pt-2">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Emergency Contact</span>
+                            <div className="text-[13px] text-gray-900 font-bold bg-rose-50/30 p-3 rounded-xl border border-rose-100/50">
+                              <div>Name: {selectedQueueItem.answers.emergencyContactName || 'N/A'}</div>
+                              <div>Phone: {selectedQueueItem.answers.emergencyContactPhone || 'N/A'}</div>
+                              <div>Relation: {selectedQueueItem.answers.emergencyContactRelation || 'N/A'}</div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {selectedQueueItem.answers?.digitalSignature && (
+                      <div className="flex flex-col gap-0.5 border-t border-gray-50 pt-2">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-nunito">Digital Signature</span>
+                        <span className="text-[13px] font-bold text-gray-900 italic font-mono">&quot;{selectedQueueItem.answers.digitalSignature}&quot;</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {selectedQueueItem.status !== 'allotted' ? (
                 <div className="bg-[#111111] rounded-[40px] p-8 md:p-10 text-white shadow-2xl flex flex-col gap-8">

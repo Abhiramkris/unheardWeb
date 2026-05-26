@@ -39,7 +39,27 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
 
   const [user, setUser] = useState<any>(null); 
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
+    dob: '',
+    gender: '',
+    occupation: '',
+    relationshipStatus: '',
+    preferredFormat: 'Video call',
+    additionalInfo: '',
+    therapyBefore: '',
+    diagnoses: '',
+    medication: '',
+    underCare: '',
+    wellbeing: 0,
+    stressLevel: 0,
+    harmingThoughts: '',
+    trustedPerson: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactRelation: '',
+    acceptTerms: false,
+    digitalSignature: '',
     email: '',
     phone: '',
     otp: '',
@@ -100,9 +120,14 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       if (user) {
+        const fullName = user.user_metadata?.full_name || '';
+        const parts = fullName.trim().split(/\s+/);
+        const firstName = parts[0] || '';
+        const lastName = parts.slice(1).join(' ') || '';
         setFormData(prev => ({
           ...prev,
-          name: user.user_metadata?.full_name || '',
+          firstName: user.user_metadata?.first_name || firstName,
+          lastName: user.user_metadata?.last_name || lastName,
           email: user.email || '',
           phone: user.user_metadata?.phone || prev.phone
         }));
@@ -234,8 +259,28 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     }
   };
 
+  const isStep1Valid = 
+    formData.firstName.trim() !== '' &&
+    formData.lastName.trim() !== '' &&
+    formData.dob !== '' &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) &&
+    formData.phone.trim().replace(/\D/g, '').length >= 10;
+
+  const isStep5Valid = formData.wellbeing >= 1 && formData.wellbeing <= 10;
+
+  const isStep6Valid = 
+    formData.harmingThoughts !== '' &&
+    (formData.harmingThoughts === 'No' || (
+      formData.trustedPerson !== '' &&
+      formData.emergencyContactName.trim() !== '' &&
+      formData.emergencyContactPhone.trim() !== '' &&
+      formData.emergencyContactRelation !== ''
+    )) &&
+    formData.acceptTerms &&
+    formData.digitalSignature.trim() !== '';
+
   const handleNext = async () => {
-    if (step === 1 && formData.phone) {
+    if (step === 1 && isStep1Valid) {
       return dispatchOTP();
     }
     if (step === 2) {
@@ -243,7 +288,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     }
     
     setDirection(1);
-    setStep((s) => Math.min(s + 1, 5)); // Now 5 steps total
+    setStep((s) => Math.min(s + 1, 7)); // Now 7 steps total
   };
 
   const handlePrev = () => {
@@ -254,8 +299,11 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   const handleBookNow = async () => {
     setLoading(true);
     try {
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
       localStorage.setItem('unheard_booking_basic', JSON.stringify({
-        name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        name: fullName,
         email: formData.email,
         phone: formData.phone
       }));
@@ -281,15 +329,36 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
         phone: formData.phone,
         deviceId, // For anti-exploit
         questionnaire: {
-          name: formData.name, // Save name inside answers for redundancy
+          name: fullName, // Save name inside answers for redundancy
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          dob: formData.dob,
+          gender: formData.gender,
+          occupation: formData.occupation,
+          relationshipStatus: formData.relationshipStatus,
           age: formData.age,
           language: formData.language,
           type: formData.type,
           service: formData.service,
-          plan_type: formData.plan_type
+          plan_type: formData.plan_type,
+          preferredFormat: formData.preferredFormat,
+          additionalInfo: formData.additionalInfo,
+          therapyBefore: formData.therapyBefore,
+          diagnoses: formData.diagnoses,
+          medication: formData.medication,
+          underCare: formData.underCare,
+          wellbeing: formData.wellbeing,
+          stressLevel: formData.stressLevel,
+          harmingThoughts: formData.harmingThoughts,
+          trustedPerson: formData.trustedPerson,
+          emergencyContactName: formData.emergencyContactName,
+          emergencyContactPhone: formData.emergencyContactPhone,
+          emergencyContactRelation: formData.emergencyContactRelation,
+          acceptTerms: formData.acceptTerms,
+          digitalSignature: formData.digitalSignature
         },
         patient_details: {
-          name: formData.name,
+          name: fullName,
           email: formData.email
         }
       };
@@ -317,7 +386,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
               questionnaireId: result.questionnaireId,
               amount: result.amount,
               phone: formData.phone,
-              name: formData.name
+              name: fullName
             })
           });
 
@@ -407,11 +476,11 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   const renderStepIndicator = () => (
     <div className="flex items-center justify-between mb-8">
       <div className="flex items-center gap-2">
-        {[1, 2, 3, 4, 5].map((s) => (
+        {[1, 2, 3, 4, 5, 6].map((s) => (
           <div key={s} className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? 'w-8 bg-[#0F9393]' : 'w-4 bg-gray-200'}`} />
         ))}
         <span className="ml-2 font-nunito font-bold text-[12px] text-gray-400 uppercase tracking-wider">
-          Step {step}/5
+          Step {step}/6
         </span>
       </div>
       
@@ -425,9 +494,10 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   );
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
+    <>
+      <AnimatePresence>
+        {isOpen && (
+          <div key="booking-modal-container" className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={closeAndReset}
@@ -492,40 +562,109 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                     className="w-full h-full flex flex-col pt-2"
                   >
                     {step === 1 && (
-                      <div className="flex flex-col gap-6 text-black">
-                        <div className="mb-2">
-                          <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Basic Details</h3>
-                          <p className="font-nunito text-gray-500">Provide your contact info. We verify via WhatsApp.</p>
+                      <div className="flex flex-col gap-5 text-black">
+                        <div className="mb-1">
+                          <h3 className="font-georgia font-bold text-[28px] text-black mb-1">Personal Information</h3>
+                          <p className="font-nunito text-gray-500 text-[14px]">Please fill in your details to customize your care journey. We verify via WhatsApp.</p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="flex flex-col gap-2">
-                            <label className="font-nunito font-bold text-[14px] text-gray-900">Good Name</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[55vh] md:max-h-[420px] overflow-y-auto pr-2 custom-scrollbar">
+                          {/* First Name & Last Name */}
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[13px] text-gray-700">First Name *</label>
                             <input 
                               type="text" 
-                              value={formData.name} 
-                              onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                              placeholder="e.g. John Doe" 
-                              className="border border-gray-200 rounded-2xl px-5 py-3.5 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                              value={formData.firstName} 
+                              onChange={(e) => setFormData({...formData, firstName: e.target.value})} 
+                              placeholder="Priya" 
+                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
                             />
                           </div>
-                          <div className="flex flex-col gap-2">
-                            <label className="font-nunito font-bold text-[14px] text-gray-900">Email Address</label>
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[13px] text-gray-700">Last Name *</label>
+                            <input 
+                              type="text" 
+                              value={formData.lastName} 
+                              onChange={(e) => setFormData({...formData, lastName: e.target.value})} 
+                              placeholder="Sharma" 
+                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                            />
+                          </div>
+
+                          {/* Date of Birth & Gender Identity */}
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[13px] text-gray-700">Date of Birth *</label>
+                            <input 
+                              type="date" 
+                              max={new Date().toISOString().split('T')[0]}
+                              value={formData.dob} 
+                              onChange={(e) => setFormData({...formData, dob: e.target.value})} 
+                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[13px] text-gray-700">Gender Identity</label>
+                            <select 
+                              value={formData.gender} 
+                              onChange={(e) => setFormData({...formData, gender: e.target.value})} 
+                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M7%209l3%203%203-3%22%20stroke%3D%22%25236b7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_1.25rem_center] bg-no-repeat pr-10"
+                            >
+                              <option value="">Select...</option>
+                              <option value="Female">Female</option>
+                              <option value="Male">Male</option>
+                              <option value="Non-binary">Non-binary</option>
+                              <option value="Prefer not to say">Prefer not to say</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+
+                          {/* Occupation & Relationship Status */}
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[13px] text-gray-700">Occupation</label>
+                            <input 
+                              type="text" 
+                              value={formData.occupation} 
+                              onChange={(e) => setFormData({...formData, occupation: e.target.value})} 
+                              placeholder="e.g. Software engineer" 
+                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[13px] text-gray-700">Relationship Status</label>
+                            <select 
+                              value={formData.relationshipStatus} 
+                              onChange={(e) => setFormData({...formData, relationshipStatus: e.target.value})} 
+                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M7%209l3%203%203-3%22%20stroke%3D%22%25236b7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_1.25rem_center] bg-no-repeat pr-10"
+                            >
+                              <option value="">Select...</option>
+                              <option value="Single">Single</option>
+                              <option value="In a relationship">In a relationship</option>
+                              <option value="Married">Married</option>
+                              <option value="Separated">Separated</option>
+                              <option value="Divorced">Divorced</option>
+                              <option value="Widowed">Widowed</option>
+                              <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                          </div>
+
+                          {/* Email Address & WhatsApp Phone Number */}
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[13px] text-gray-700">Email Address *</label>
                             <input 
                               type="email" 
                               value={formData.email} 
                               onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                              placeholder="e.g. john@example.com" 
-                              className="border border-gray-200 rounded-2xl px-5 py-3.5 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                              placeholder="priya@example.com" 
+                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
                             />
                           </div>
-                          <div className="flex flex-col gap-2 md:col-span-2">
-                            <label className="font-nunito font-bold text-[14px] text-gray-900">WhatsApp Phone Number</label>
+                          <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[13px] text-gray-700">Phone Number *</label>
                             <input 
                               type="tel" 
                               value={formData.phone} 
                               onChange={(e) => setFormData({...formData, phone: e.target.value})} 
                               placeholder="e.g. +91 98765 43210" 
-                              className="border border-gray-200 rounded-2xl px-5 py-3.5 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
+                              className="border border-gray-200 rounded-2xl px-5 py-3 font-nunito text-black placeholder:text-gray-400 focus:outline-none focus:border-[#0F9393] focus:ring-1 focus:ring-[#0F9393] transition-all bg-gray-50/50" 
                             />
                           </div>
                         </div>
@@ -548,25 +687,46 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                     )}
 
                     {step === 3 && (
-                      <div className="flex flex-col gap-6">
+                      <div className="flex flex-col gap-6 text-black">
                         <div className="mb-2">
                           <h3 className="font-georgia font-bold text-[28px] text-black mb-2">How can we help?</h3>
                           <p className="font-nunito text-gray-500">Select the type of care you&apos;re looking for.</p>
                         </div>
-                        <div className="flex flex-col gap-5">
+                        <div className="flex flex-col gap-5 max-h-[55vh] md:max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
                           <div className="flex flex-col gap-2">
                             <label className="font-nunito font-bold text-[14px] text-gray-900">Therapy Type</label>
                             <div className="flex flex-wrap gap-3">
                               {['Individual', 'Couple', 'Teenager', 'Family'].map((t) => (
-                                <button key={t} onClick={() => setFormData({...formData, type: t})} className={`px-6 py-2.5 rounded-full text-[14px] font-bold border-2 ${formData.type === t ? 'bg-[#0F9393] border-[#0F9393] text-white' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300'}`}>{t}</button>
+                                <button key={t} type="button" onClick={() => setFormData({...formData, type: t})} className={`px-6 py-2.5 rounded-full text-[14px] font-bold border-2 ${formData.type === t ? 'bg-[#0F9393] border-[#0F9393] text-white' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300'}`}>{t}</button>
                               ))}
                             </div>
                           </div>
+
+                          <div className="flex flex-col gap-2">
+                            <label className="font-nunito font-bold text-[14px] text-gray-900">Preferred Session Format</label>
+                            <div className="flex flex-wrap gap-3">
+                              {['Video call', 'Phone call', 'In person'].map((format) => (
+                                <button
+                                  key={format}
+                                  type="button"
+                                  onClick={() => setFormData({...formData, preferredFormat: format})}
+                                  className={`px-6 py-2.5 rounded-full text-[14px] font-bold border-2 ${
+                                    formData.preferredFormat === format
+                                      ? 'bg-[#0F9393] border-[#0F9393] text-white'
+                                      : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300'
+                                  }`}
+                                >
+                                  {format}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
                           <div className="flex flex-col gap-2">
                             <label className="font-nunito font-bold text-[14px] text-gray-900">Age Group</label>
                             <div className="flex flex-wrap gap-3">
                               {['18-25', '26-35', '36-50', '50+'].map((a) => (
-                                <button key={a} onClick={() => setFormData({...formData, age: a})} className={`px-6 py-2.5 rounded-full text-[14px] font-bold border-2 ${formData.age === a ? 'bg-[#0F9393] border-[#0F9393] text-white' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300'}`}>{a}</button>
+                                <button key={a} type="button" onClick={() => setFormData({...formData, age: a})} className={`px-6 py-2.5 rounded-full text-[14px] font-bold border-2 ${formData.age === a ? 'bg-[#0F9393] border-[#0F9393] text-white' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300'}`}>{a}</button>
                               ))}
                             </div>
                           </div>
@@ -588,6 +748,16 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                           <div className="flex flex-col gap-2">
                             <label className="font-nunito font-bold text-[14px] text-gray-900">Primary Concern</label>
                             <input type="text" value={formData.service} onChange={(e) => setFormData({...formData, service: e.target.value})} placeholder="e.g. Anxiety, Stress, Relationships" className="border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-[#0F9393] bg-gray-50/50 text-black placeholder:text-gray-400" />
+                          </div>
+
+                          <div className="flex flex-col gap-2">
+                            <label className="font-nunito font-bold text-[14px] text-gray-900">Is there anything else you&apos;d like your counsellor to know before your first session?</label>
+                            <textarea
+                              value={formData.additionalInfo}
+                              onChange={(e) => setFormData({...formData, additionalInfo: e.target.value})}
+                              placeholder="Share any details, history, or specific requirements here..."
+                              className="border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-[#0F9393] bg-gray-50/50 text-black placeholder:text-gray-400 min-h-[90px] resize-none font-nunito"
+                            />
                           </div>
                         </div>
                       </div>
@@ -641,6 +811,313 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                     )}
 
                     {step === 5 && (
+                      <div className="flex flex-col gap-6 text-black">
+                        <div className="mb-2">
+                          <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Mental Health History</h3>
+                          <p className="font-nunito text-gray-500">This helps us match you with a therapist aligned with your profile.</p>
+                        </div>
+                        <div className="flex flex-col gap-6 max-h-[55vh] md:max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
+                          {/* Counselling before */}
+                          <div className="flex flex-col gap-2">
+                            <label className="font-nunito font-bold text-[14px] text-gray-900">Have you received counselling or therapy before?</label>
+                            <div className="flex gap-3">
+                              {['Yes', 'No'].map((option) => (
+                                <button
+                                  key={option}
+                                  type="button"
+                                  onClick={() => setFormData({...formData, therapyBefore: option})}
+                                  className={`px-6 py-2.5 rounded-full text-[14px] font-bold border-2 ${
+                                    formData.therapyBefore === option
+                                      ? 'bg-[#0F9393] border-[#0F9393] text-white'
+                                      : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300'
+                                  }`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Diagnoses */}
+                          <div className="flex flex-col gap-2">
+                            <label className="font-nunito font-bold text-[14px] text-gray-900">Do you have any current or previous mental health diagnoses?</label>
+                            <input
+                              type="text"
+                              value={formData.diagnoses}
+                              onChange={(e) => setFormData({...formData, diagnoses: e.target.value})}
+                              placeholder="e.g. anxiety, depression, ADHD — or leave blank if none"
+                              className="border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-[#0F9393] bg-gray-50/50 text-black placeholder:text-gray-400"
+                            />
+                          </div>
+
+                          {/* Medication */}
+                          <div className="flex flex-col gap-2">
+                            <label className="font-nunito font-bold text-[14px] text-gray-900">Are you currently taking any medication for mental health?</label>
+                            <div className="flex flex-wrap gap-3">
+                              {['Yes', 'No', 'Prefer not to say'].map((option) => (
+                                <button
+                                  key={option}
+                                  type="button"
+                                  onClick={() => setFormData({...formData, medication: option})}
+                                  className={`px-6 py-2.5 rounded-full text-[14px] font-bold border-2 ${
+                                    formData.medication === option
+                                      ? 'bg-[#0F9393] border-[#0F9393] text-white'
+                                      : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300'
+                                  }`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Under care of doctor/psychiatrist */}
+                          <div className="flex flex-col gap-2">
+                            <label className="font-nunito font-bold text-[14px] text-gray-900">Are you currently under the care of a psychiatrist or doctor for mental health?</label>
+                            <div className="flex gap-3">
+                              {['Yes', 'No'].map((option) => (
+                                <button
+                                  key={option}
+                                  type="button"
+                                  onClick={() => setFormData({...formData, underCare: option})}
+                                  className={`px-6 py-2.5 rounded-full text-[14px] font-bold border-2 ${
+                                    formData.underCare === option
+                                      ? 'bg-[#0F9393] border-[#0F9393] text-white'
+                                      : 'bg-white border-gray-100 text-gray-500 hover:border-gray-300'
+                                  }`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Wellbeing rating */}
+                          <div className="flex flex-col gap-2.5">
+                            <label className="font-nunito font-bold text-[14px] text-gray-900 flex items-center justify-between">
+                              <span>How would you rate your overall wellbeing right now? *</span>
+                              {formData.wellbeing > 0 && <span className="text-[#0F9393] font-black">{formData.wellbeing}/10</span>}
+                            </label>
+                            <div className="flex justify-between gap-1.5 md:gap-2">
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                                <button
+                                  key={num}
+                                  type="button"
+                                  onClick={() => setFormData({...formData, wellbeing: num})}
+                                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full font-bold flex items-center justify-center text-[12px] md:text-[14px] border ${
+                                    formData.wellbeing === num
+                                      ? 'bg-[#0F9393] border-[#0F9393] text-white shadow-md'
+                                      : 'bg-white border-gray-200 text-gray-700 hover:border-[#0F9393]/30'
+                                  }`}
+                                >
+                                  {num}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex justify-between px-1 text-[11px] font-bold text-gray-400">
+                              <span>Very poor</span>
+                              <span>Excellent</span>
+                            </div>
+                          </div>
+
+                          {/* Stress Level rating */}
+                          <div className="flex flex-col gap-2.5">
+                            <label className="font-nunito font-bold text-[14px] text-gray-900 flex items-center justify-between">
+                              <span>How would you rate your current stress level?</span>
+                              {formData.stressLevel > 0 && <span className="text-[#0F9393] font-black">{formData.stressLevel}/10</span>}
+                            </label>
+                            <div className="flex justify-between gap-1.5 md:gap-2">
+                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                                <button
+                                  key={num}
+                                  type="button"
+                                  onClick={() => setFormData({...formData, stressLevel: num})}
+                                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full font-bold flex items-center justify-center text-[12px] md:text-[14px] border ${
+                                    formData.stressLevel === num
+                                      ? 'bg-[#0F9393] border-[#0F9393] text-white shadow-md'
+                                      : 'bg-white border-gray-200 text-gray-700 hover:border-[#0F9393]/30'
+                                  }`}
+                                >
+                                  {num}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex justify-between px-1 text-[11px] font-bold text-gray-400">
+                              <span>Very low</span>
+                              <span>Very high</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {step === 6 && (
+                      <div className="flex flex-col gap-6 text-black">
+                        <div className="mb-2">
+                          <h3 className="font-georgia font-bold text-[28px] text-black mb-1">Safety & Consent</h3>
+                          <p className="font-nunito text-gray-500">These questions help us ensure your safety and provide the right support.</p>
+                        </div>
+                        <div className="flex flex-col gap-6 max-h-[55vh] md:max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
+                          {/* Harming yourself */}
+                          <div className="flex flex-col gap-2">
+                            <label className="font-nunito font-bold text-[14px] text-gray-900">Are you currently having any thoughts of harming yourself or ending your life? *</label>
+                            <div className="flex flex-wrap gap-2.5">
+                              {['No', 'Yes — sometimes', 'Yes — frequently', 'Prefer not to say'].map((option) => (
+                                <button
+                                  key={option}
+                                  type="button"
+                                  onClick={() => setFormData({
+                                    ...formData, 
+                                    harmingThoughts: option,
+                                    ...(option === 'No' ? {
+                                      trustedPerson: '',
+                                      emergencyContactName: '',
+                                      emergencyContactPhone: '',
+                                      emergencyContactRelation: ''
+                                    } : {})
+                                  })}
+                                  className={`px-4 py-2 rounded-full text-[13px] font-bold border-2 transition-all ${
+                                    formData.harmingThoughts === option
+                                      ? 'bg-[#0F9393] border-[#0F9393] text-white shadow-sm'
+                                      : 'bg-white border-gray-100 text-gray-600 hover:border-gray-300'
+                                  }`}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Conditional elements if harmingThoughts is NOT 'No' and is selected */}
+                          {formData.harmingThoughts !== '' && formData.harmingThoughts !== 'No' && (
+                            <motion.div 
+                              initial={{ opacity: 0, y: -10 }} 
+                              animate={{ opacity: 1, y: 0 }}
+                              className="flex flex-col gap-5 border-l-2 border-[#0F9393]/20 pl-4 py-1"
+                            >
+                              {/* Trusted person */}
+                              <div className="flex flex-col gap-2">
+                                <label className="font-nunito font-bold text-[14px] text-gray-900">Do you have a trusted person you can contact in a crisis? *</label>
+                                <div className="flex gap-3">
+                                  {['Yes', 'No', 'Not sure'].map((option) => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      onClick={() => setFormData({...formData, trustedPerson: option})}
+                                      className={`px-6 py-2 rounded-full text-[13px] font-bold border-2 transition-all ${
+                                        formData.trustedPerson === option
+                                          ? 'bg-[#0F9393] border-[#0F9393] text-white shadow-sm'
+                                          : 'bg-white border-gray-100 text-gray-600 hover:border-gray-300'
+                                      }`}
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Emergency contact name, number, relation */}
+                              <div className="flex flex-col gap-3">
+                                <label className="font-nunito font-bold text-[14px] text-gray-900">Emergency Contact Details *</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Contact Name</span>
+                                    <input
+                                      type="text"
+                                      value={formData.emergencyContactName}
+                                      onChange={(e) => setFormData({...formData, emergencyContactName: e.target.value})}
+                                      placeholder="Name"
+                                      className="border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:border-[#0F9393] bg-gray-50/50 text-black placeholder:text-gray-400"
+                                    />
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Phone Number</span>
+                                    <input
+                                      type="text"
+                                      value={formData.emergencyContactPhone}
+                                      onChange={(e) => setFormData({...formData, emergencyContactPhone: e.target.value})}
+                                      placeholder="Phone number"
+                                      className="border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:border-[#0F9393] bg-gray-50/50 text-black placeholder:text-gray-400"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Relationship</span>
+                                  <select
+                                    value={formData.emergencyContactRelation}
+                                    onChange={(e) => setFormData({...formData, emergencyContactRelation: e.target.value})}
+                                    className="border border-gray-200 rounded-xl px-4 py-2.5 text-[14px] focus:outline-none focus:border-[#0F9393] bg-gray-50/50 text-black font-semibold"
+                                  >
+                                    <option value="" disabled>Select relationship...</option>
+                                    {['Spouse', 'Parent', 'Sibling', 'Child', 'Friend', 'Guardian', 'Other'].map((rel) => (
+                                      <option key={rel} value={rel}>{rel}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <span className="text-[11px] text-gray-400 italic mt-0.5 ml-1">Only contacted in an emergency, with your consent.</span>
+                              </div>
+                            </motion.div>
+                          )}
+
+                          {/* Consent & confidentiality */}
+                          <div className="flex flex-col gap-4 border-t border-gray-100 pt-4">
+                            <h4 className="font-georgia font-bold text-[18px] text-gray-900">Consent & Confidentiality</h4>
+                            
+                            <div className="flex flex-col gap-3 bg-gray-50 p-4 rounded-2xl text-[12px] md:text-[13px] text-gray-600 leading-relaxed border border-gray-100">
+                              <div>
+                                <span className="font-bold text-gray-900 block mb-0.5">Confidentiality</span>
+                                Everything you share is kept strictly confidential. The only exceptions are where there is a serious risk of harm to yourself or others, or where disclosure is required by law.
+                              </div>
+                              <div className="border-t border-gray-200/50 pt-2.5">
+                                <span className="font-bold text-gray-900 block mb-0.5">Data & Privacy</span>
+                                Your information is stored securely and never shared with third parties without your consent. You may request access to or deletion of your data at any time.
+                              </div>
+                              <div className="border-t border-gray-200/50 pt-2.5">
+                                <span className="font-bold text-gray-900 block mb-0.5">Cancellations</span>
+                                Please give at least 24 hours notice if you need to reschedule or cancel a session.
+                              </div>
+                            </div>
+
+                            {/* Terms Single Checkbox */}
+                            <label className="flex items-start gap-3 cursor-pointer group mt-1">
+                              <input
+                                type="checkbox"
+                                checked={formData.acceptTerms}
+                                onChange={(e) => setFormData({...formData, acceptTerms: e.target.checked})}
+                                className="mt-1 w-4 h-4 rounded text-[#0F9393] focus:ring-[#0F9393] border-gray-300"
+                              />
+                              <span className="text-[13px] font-semibold text-gray-700 leading-snug group-hover:text-black transition-colors select-none">
+                                I have read and understand the confidentiality policy, consent to my information being stored securely, and confirm all information provided is accurate.
+                              </span>
+                            </label>
+
+                            {/* Digital Signature */}
+                            <div className="flex flex-col gap-2 mt-2">
+                              <label className="font-nunito font-bold text-[14px] text-gray-900">Digital signature (full name) *</label>
+                              <input
+                                type="text"
+                                value={formData.digitalSignature}
+                                onChange={(e) => setFormData({...formData, digitalSignature: e.target.value})}
+                                placeholder="Type your full name"
+                                className="border border-gray-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-[#0F9393] bg-gray-50/50 text-black placeholder:text-gray-400 font-semibold"
+                              />
+                              <span className="text-[11px] text-gray-400 ml-1">Typing your name serves as your digital signature.</span>
+                            </div>
+
+                            {/* Today's Date */}
+                            <div className="flex flex-col gap-1.5">
+                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Today&apos;s Date</span>
+                              <div className="bg-gray-100 rounded-xl px-5 py-3 text-[14px] text-gray-600 font-bold w-full select-none cursor-not-allowed">
+                                {new Date().toLocaleDateString('en-GB')}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {step === 7 && (
                       <div className="flex flex-col gap-6">
                         <div className="mb-2">
                           <h3 className="font-georgia font-bold text-[28px] text-black mb-2">Select Plan</h3>
@@ -702,7 +1179,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                                  placeholder="ENTER CODE"
                                  className="flex-grow bg-white border border-gray-200 rounded-xl px-4 py-2.5 font-bold text-gray-900 outline-none focus:border-[#0F9393]"
-                               />
+                                />
                                <button className="bg-black text-white px-6 py-2.5 rounded-xl font-bold text-[13px] hover:bg-gray-800 transition-all">Apply</button>
                              </div>
                           </div>
@@ -714,7 +1191,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
               </div>
 
               {/* Navigation Footer */}
-              <div className="mt-8 pt-8 border-t border-gray-100 flex items-center justify-between">
+              <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
                 <div>
                   {step > 1 && (
                     <button onClick={handlePrev} className="group flex items-center gap-2 font-nunito font-bold text-gray-400 hover:text-black transition-colors">
@@ -724,10 +1201,10 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                 </div>
                 
                 <div className="flex gap-4">
-                  {step < 5 ? (
+                  {step < 7 ? (
                     <button 
                       onClick={handleNext} 
-                      disabled={loading || (step === 1 && !formData.phone) || (step === 2 && formData.otp.length !== 6) || (step === 4 && !process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost') && (!formData.scheduled_date || !formData.scheduled_time))}
+                      disabled={loading || (step === 1 && !isStep1Valid) || (step === 2 && formData.otp.length !== 6) || (step === 4 && !process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost') && (!formData.scheduled_date || !formData.scheduled_time)) || (step === 5 && !isStep5Valid) || (step === 6 && !isStep6Valid)}
                       className="bg-black text-white px-8 py-3.5 rounded-2xl font-nunito font-bold flex items-center gap-3 shadow-lg shadow-black/10 hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? 'Processing...' : 'Continue'}
@@ -762,12 +1239,12 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                   <div className="flex flex-col gap-6">
                     <p className="font-nunito text-[16px] text-gray-700 leading-relaxed italic border-l-4 border-[#0F9393]/20 pl-4">{previewTherapist.bio || 'Navigating mental clarity with evidence-based support.'}</p>
                     <div>
-                      <h4 className="font-bold text-black mb-3">Specialties</h4>
-                      <div className="flex flex-wrap gap-2">
+                       <h4 className="font-bold text-black mb-3">Specialties</h4>
+                       <div className="flex flex-wrap gap-2">
                         {(previewTherapist.specialties || ['Growth', 'Anxiety']).map((s: string) => (
                            <span key={s} className="bg-gray-100 px-4 py-1.5 rounded-full text-[12px] font-bold text-gray-600">{s}</span>
                         ))}
-                      </div>
+                       </div>
                     </div>
                   </div>
                   <div className="mt-auto pt-8">
@@ -788,6 +1265,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
           </motion.div>
         </div>
       )}
+      </AnimatePresence>
       
       <AnimatedModal
         isOpen={modalState.isOpen}
@@ -796,6 +1274,6 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
         title={modalState.title}
         message={modalState.message}
       />
-    </AnimatePresence>
+    </>
   );
 }
