@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { requestSession } from '@/lib/actions';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, ChevronLeft, Calendar, Clock } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Calendar, Clock, Heart } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '@/utils/supabase/client';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
@@ -30,12 +30,30 @@ interface Therapist {
   pricing?: Record<string, number>;
 }
 
+const caringMessages = [
+  'Securing your confidential space...',
+  'Matching you with your clinical expert...',
+  'Finalizing clinical assessments...',
+  'Preparing your safe healing zone...'
+];
+
 export default function BookingModal({ isOpen, onClose, initialConfig }: BookingModalProps) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [direction, setDirection] = useState(1);
   const [supabase] = useState(() => createClient());
   const [therapists, setTherapists] = useState<Therapist[]>([]);
+
+  const [isCaringInProgress, setIsCaringInProgress] = useState(false);
+  const [caringMessageIndex, setCaringMessageIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isCaringInProgress) return;
+    const interval = setInterval(() => {
+      setCaringMessageIndex((prev) => (prev + 1) % caringMessages.length);
+    }, 1200);
+    return () => clearInterval(interval);
+  }, [isCaringInProgress]);
 
   const [user, setUser] = useState<any>(null); 
   const [formData, setFormData] = useState({
@@ -398,7 +416,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
             initiatePhonePeTransaction(payData.redirectUrl, async (status) => {
               console.log("PAYMENT CALLBACK STATUS:", status);
               if (status === 'CONCLUDED') {
-                setLoading(true);
+                setIsCaringInProgress(true);
                 // Manually trigger verification for instant feedback/local testing
                 try {
                   await fetch('/api/payment/phonepe/verify', {
@@ -410,13 +428,16 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                   console.error("Verification Trigger Error:", vErr);
                 }
 
-                setModalState({
-                  isOpen: true,
-                  type: 'success',
-                  title: 'Booking Confirmed!',
-                  message: 'Your payment was successful. We are now preparing your session.'
-                });
-                closeAndReset();
+                setTimeout(() => {
+                  setIsCaringInProgress(false);
+                  setModalState({
+                    isOpen: true,
+                    type: 'success',
+                    title: 'Booking Confirmed!',
+                    message: 'Your payment was successful. We are now preparing your session.'
+                  });
+                  closeAndReset();
+                }, 3500);
               } else if (status === 'USER_CANCEL') {
                 setLoading(false); // Let them try again
                 setModalState({
@@ -437,13 +458,17 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
         }
       }
 
-      setModalState({
-        isOpen: true,
-        type: 'success',
-        title: 'Request Received!',
-        message: 'A clinical expert is reviewing your questionnaire and will assign the best therapist for your success.'
-      });
-      closeAndReset();
+      setIsCaringInProgress(true);
+      setTimeout(() => {
+        setIsCaringInProgress(false);
+        setModalState({
+          isOpen: true,
+          type: 'success',
+          title: 'Request Received!',
+          message: 'A clinical expert is reviewing your questionnaire and will assign the best therapist for your success.'
+        });
+        closeAndReset();
+      }, 3500);
     } catch (err: any) {
       reportClientError(err.message, 'BookingModal.tsx - handleBookNow');
       setModalState({
@@ -476,11 +501,11 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   const renderStepIndicator = () => (
     <div className="flex items-center justify-between mb-8">
       <div className="flex items-center gap-2">
-        {[1, 2, 3, 4, 5, 6].map((s) => (
+        {[1, 2, 3, 4, 5, 6, 7].map((s) => (
           <div key={s} className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? 'w-8 bg-[#0F9393]' : 'w-4 bg-gray-200'}`} />
         ))}
         <span className="ml-2 font-nunito font-bold text-[12px] text-gray-400 uppercase tracking-wider">
-          Step {step}/6
+          Step {step}/7
         </span>
       </div>
       
@@ -549,8 +574,52 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
             </div>
 
             {/* Forms Section */}
-            <div className="flex-grow p-8 md:p-12 flex flex-col relative bg-white text-black">
+            <div className="flex-grow p-8 md:p-12 flex flex-col relative bg-white text-black overflow-hidden">
               <button onClick={closeAndReset} className="hidden md:flex absolute top-8 right-8 text-gray-400 hover:text-black transition-colors"><X size={28} /></button>
+
+              {/* CARING IN PROGRESS LOADING OVERLAY */}
+              <AnimatePresence>
+                {isCaringInProgress && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8 text-center"
+                  >
+                    <div className="flex flex-col items-center gap-6 max-w-sm">
+                      {/* Glowing pulsating heart icon container */}
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-[#0F9393]/20 rounded-full blur-xl animate-pulse scale-150" />
+                        <div className="w-24 h-24 rounded-[32px] bg-[#0F9393]/10 flex items-center justify-center text-[#0F9393] relative shadow-inner">
+                          <Heart size={44} className="animate-pulse duration-1000 fill-current animate-bounce" />
+                        </div>
+                        {/* Sub spinner */}
+                        <div className="absolute -top-1.5 -right-1.5 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center">
+                          <div className="w-4 h-4 rounded-full border-2 border-[#0F9393]/20 border-t-[#0F9393] animate-spin" />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-2.5 mt-2">
+                        <h3 className="font-georgia font-black text-[24px] text-gray-900 tracking-tight">Caring in progress...</h3>
+                        <div className="h-10 flex items-center justify-center">
+                          <AnimatePresence mode="wait">
+                            <motion.p
+                              key={caringMessageIndex}
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -5 }}
+                              transition={{ duration: 0.2 }}
+                              className="font-nunito font-semibold text-[14px] text-gray-500 italic"
+                            >
+                              {caringMessages[caringMessageIndex]}
+                            </motion.p>
+                          </AnimatePresence>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {renderStepIndicator()}
 
