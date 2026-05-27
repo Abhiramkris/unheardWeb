@@ -19,6 +19,7 @@ interface TherapistProfileData {
   microtag?: string;
   approach?: string;
   good_fit_for?: string[];
+  qualification_desc?: string;
 }
 
 interface TherapistProfileModalProps {
@@ -88,26 +89,44 @@ export default function TherapistProfileModal({
                 </div>
               </div>
 
-              {/* Glassmorphic Overlay Banner at Bottom */}
-              <div className="relative z-10 m-6 bg-black/65 backdrop-blur-lg border border-white/10 rounded-[20px] p-6 text-left shadow-2xl">
-                <span className="bg-[#0F9393] text-white px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  {therapist.microtag || 'Mental Health Expert'}
-                </span>
-                <h3 className="font-georgia text-[24px] lg:text-[28px] font-bold text-white mt-2.5 leading-tight">
+              {/* Overlay Banner at Bottom (Same styling, order, and fonts as Polaroid card) */}
+              <div className="relative z-10 m-6 bg-[#0F9393] border border-white/10 rounded-[20px] p-6 text-left shadow-2xl flex flex-col gap-1">
+                {/* Therapist Name */}
+                <h3 className="font-georgia text-[22px] font-[900] text-white leading-tight">
                   {therapist.full_name}
                 </h3>
-                <div className="w-8 h-[2px] bg-[#0F9393] my-3"></div>
-                <p className="font-nunito text-white/90 text-[13.5px] font-semibold leading-relaxed">
+
+                {/* Designation */}
+                <div className="text-[13px] font-sans font-[900] text-white leading-none mt-1">
+                  {(therapist.qualification_desc || 'clinical') === 'clinical' ? (
+                    <>
+                      Psychologist <span className="text-[9px] font-[500] text-white/85 font-sans tracking-normal">(trained in clinical psychology)</span>
+                    </>
+                  ) : (
+                    'Counselling Psychologist'
+                  )}
+                </div>
+
+                {/* Qualifications */}
+                <div className="text-[11px] font-sans font-[700] text-white/90 leading-none mt-1">
                   {therapist.qualification}
-                </p>
+                </div>
+
+                {/* Divider line */}
+                <div className="w-full h-[1.5px] bg-white/25 my-2" />
+
+                {/* Microtag */}
+                <div className="text-[11px] font-sans font-[600] text-white/85 tracking-wider">
+                  {therapist.microtag || 'Mental Health Expert'}
+                </div>
               </div>
             </div>
 
             {/* Right Column - detailed content with custom scrolling */}
             <div className="flex-1 p-6 md:p-10 lg:p-12 flex flex-col relative bg-white text-black overflow-y-auto min-h-0 md:max-h-[85vh]">
-              <div className="flex flex-col gap-8 text-left max-w-[580px] mx-auto w-full pb-4">
+              <div className="flex flex-col gap-6 text-left max-w-[580px] mx-auto w-full pb-4">
                 {/* Mobile Header Image - inside scrollable area (Hidden on Desktop) */}
-                <div className="md:hidden w-[calc(100%+48px)] -mx-6 -mt-6 h-[260px] relative overflow-hidden shrink-0 mb-6 rounded-t-[24px]">
+                <div className="md:hidden w-[calc(100%+48px)] -mx-6 -mt-6 h-[340px] relative overflow-hidden shrink-0 mb-6 rounded-t-[24px]">
                   <Image
                     src={therapist.avatar_url || '/assets/section_2_4.webp'}
                     alt={therapist.full_name}
@@ -116,65 +135,45 @@ export default function TherapistProfileModal({
                     className="object-cover object-top"
                     priority
                   />
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-transparent pointer-events-none" />
-                </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
 
-                {/* Mobile Name & Credentials Section (Hidden on Desktop) */}
-                <div className="md:hidden flex flex-col items-start gap-2 border-b border-gray-100 pb-5 mb-1">
-                  <span className="bg-[#0F9393]/10 text-[#0F9393] px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
-                    {therapist.microtag || 'Mental Health Expert'}
-                  </span>
-                  <h2 className="font-georgia text-[28px] font-bold text-gray-900 leading-tight mt-1.5">
-                    {therapist.full_name}
-                  </h2>
-                  <p className="font-nunito text-gray-500 text-[14.5px] font-semibold">
-                    {therapist.qualification}
-                  </p>
-                </div>
+                  {/* Mobile details overlay at the bottom of the photo */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-[#0F9393] border border-white/10 rounded-[16px] p-4 text-left shadow-xl flex flex-col gap-1">
+                    {/* Therapist Name */}
+                    <h3 className="font-georgia text-[20px] font-[900] text-white leading-tight">
+                      {therapist.full_name}
+                    </h3>
 
-                {/* Quote block/Tagline - Clean & Large Typography */}
-                <div className="relative mt-2 md:mt-4">
-                  <span className="absolute -left-4 -top-4 text-[60px] font-georgia text-[#0F9393]/20 leading-none pointer-events-none">&ldquo;</span>
-                  <p className="text-[17px] md:text-[19px] font-medium text-gray-700 font-nunito italic pl-6 border-l-2 border-[#0F9393]/35 leading-relaxed">
-                    {therapist.tagline || therapist.bio || "Helping you find the strength to navigate through life's most complex emotional landscapes."}
-                  </p>
-                </div>
-
-                {/* Impact stats grid */}
-                <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
-                  {[
-                    { label: 'Avg Rating', val: therapist.display_rating || '5.0', extra: 'Out of 5' },
-                    { label: 'Sessions', val: therapist.display_hours || '100+', extra: 'Completed' },
-                    { label: 'Experience', val: '12+ Yrs', extra: 'Practice' }
-                  ].map((stat, i) => (
-                    <div 
-                      key={i} 
-                      className="bg-gray-50 border border-gray-100 rounded-[16px] md:rounded-[20px] px-1 py-3 sm:px-3 sm:py-4 md:px-4 md:py-5 flex flex-col items-center justify-between text-center shadow-sm hover:border-[#0F9393]/20 transition-all duration-300 min-h-[90px] sm:min-h-[110px] md:min-h-[120px]"
-                    >
-                      <p className="text-[8.5px] sm:text-[9.5px] md:text-[10px] font-black text-[#0F9393] uppercase tracking-[0.1em] sm:tracking-[0.15em] mb-1.5 leading-none">
-                        {stat.label}
-                      </p>
-                      
-                      <span className="font-georgia font-bold text-[15px] xs:text-[17px] sm:text-[20px] md:text-[23px] text-gray-900 flex items-center justify-center gap-0.5 sm:gap-1 leading-none my-auto whitespace-nowrap">
-                        {i === 0 && (
-                          <Star className="fill-[#0F9393] stroke-none w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                        )}
-                        {stat.val}
-                      </span>
-                      
-                      <p className="text-[7.5px] sm:text-[8.5px] md:text-[9px] text-gray-400 font-bold font-nunito mt-1.5 uppercase tracking-wider leading-none">
-                        {stat.extra}
-                      </p>
+                    {/* Designation */}
+                    <div className="text-[12px] font-sans font-[900] text-white leading-none mt-1">
+                      {(therapist.qualification_desc || 'clinical') === 'clinical' ? (
+                        <>
+                          Psychologist <span className="text-[8.5px] font-[500] text-white/85 font-sans tracking-normal">(trained in clinical psychology)</span>
+                        </>
+                      ) : (
+                        'Counselling Psychologist'
+                      )}
                     </div>
-                  ))}
+
+                    {/* Qualifications */}
+                    <div className="text-[10px] font-sans font-[700] text-white/90 leading-none mt-1">
+                      {therapist.qualification}
+                    </div>
+
+                    {/* Divider line */}
+                    <div className="w-full h-[1px] bg-white/25 my-1.5" />
+
+                    {/* Microtag */}
+                    <div className="text-[10px] font-sans font-[600] text-white/85 tracking-wider">
+                      {therapist.microtag || 'Mental Health Expert'}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Biography Section */}
                 {therapist.bio && (
                   <div>
-                    <h4 className="text-[12px] md:text-[13px] font-black text-[#0F9393] uppercase tracking-[0.2em] mb-3 flex items-center gap-2 border-b border-gray-100 pb-1.5">
-                      <Award size={14} className="text-[#0F9393]" /> Biography
-                    </h4>
+
                     <p className="text-gray-600 text-[15px] md:text-[16px] leading-relaxed font-nunito font-medium">
                       {therapist.bio}
                     </p>

@@ -261,7 +261,8 @@ export default function TherapistListing() {
             note: t.note || '',
             tagline: t.tagline || '',
             approach: t.approach || '',
-            good_fit_for: t.good_fit_for || []
+            good_fit_for: t.good_fit_for || [],
+            qualification_desc: t.qualification_desc || 'clinical'
           }));
           setTherapists(formatted);
         } else {
