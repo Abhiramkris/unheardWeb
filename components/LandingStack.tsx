@@ -204,7 +204,7 @@ export const LandingStack = () => {
         }}
       >
         <div className="w-full flex flex-col items-center">
-          <div className="relative h-screen max-h-[1000px] w-full max-w-[2560px] flex items-center px-[5vw] lg:px-[10vw]">
+          <div className="relative h-[85vh] max-h-[800px] w-full max-w-[2560px] flex items-center px-[5vw] lg:px-[10vw]">
             <div className="absolute inset-0 z-0 text-white bg-[#0a0a0a]">
               <Image
                 src="/assets/landingimage.webp"
@@ -234,12 +234,11 @@ export const LandingStack = () => {
               </div>
             </div>
           </div>
-
-          <div className="w-full px-4 flex justify-center pb-20 -mt-[150px] md:-mt-[200px] relative z-10">
-            <div className="w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] pt-18 pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-2xl pointer-events-auto">
+          <div className="w-full px-4 flex justify-center pb-8 -mt-[140px] md:-mt-[180px] relative z-10">
+            <div className="w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] pt-10 pb-12 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-2xl pointer-events-auto">
               {/* Centered Title */}
-              <div className="w-full flex flex-col items-center text-center mb-16">
-                <h2 className="font-georgia text-[36px] font-bold leading-tight text-black max-w-[900px]">
+              <div className="w-full flex flex-col items-center text-center mb-8">
+                <h2 className="font-georgia text-[28px] md:text-[34px] font-bold leading-tight text-black max-w-[900px]">
                   There’s a reason it’s called Unheard.
                 </h2>
               </div>
@@ -250,39 +249,39 @@ export const LandingStack = () => {
                 {/* 2x2 Cluster (Left 2 columns on LG, Full width on MD) */}
                 <div className="lg:col-span-2 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Card 1a: Image */}
-                  <div className="relative rounded-[30px] overflow-hidden border border-black/10 aspect-square group">
+                  <div className="relative rounded-[24px] overflow-hidden border border-black/10 aspect-[16/10] group">
                     <Image src="/assets/section_2_1.webp" alt="Philosophy" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
-                    <div className="absolute inset-0 bg-black/20 flex items-end p-8">
-                      <span className="text-white font-nunito text-[14px] font-bold tracking-widest uppercase border border-white/20 px-4 py-2 rounded-full backdrop-blur-sm">Philosophy</span>
+                    <div className="absolute inset-0 bg-black/20 flex items-end p-6">
+                      <span className="text-white font-nunito text-[11px] font-bold tracking-widest uppercase border border-white/20 px-3 py-1 rounded-full backdrop-blur-sm">Philosophy</span>
                     </div>
                   </div>
 
                   {/* Card 1b: Philosophy Text */}
-                  <div className="rounded-[30px] border border-black/10 p-8 md:p-10 flex flex-col justify-between bg-white hover:shadow-lg transition-all aspect-square">
-                    <span className="text-[20px] font-bold text-black/20 font-nunito">01</span>
-                    <p className="font-nunito text-[18px] xl:text-[20px] font-semibold text-black/80 leading-relaxed">
+                  <div className="rounded-[24px] border border-black/10 p-6 md:p-8 flex flex-col justify-between bg-white hover:shadow-lg transition-all aspect-[16/10]">
+                    <span className="text-[15px] font-bold text-black/20 font-nunito">01</span>
+                    <p className="font-nunito text-[15px] xl:text-[17px] font-semibold text-black/80 leading-relaxed">
                       unHeard., isn&apos;t built on quick fixes or motivational language.
                     </p>
                   </div>
 
                   {/* Card 3: Listening Text */}
-                  <div className="rounded-[30px] border border-black/10 p-8 md:p-10 flex flex-col justify-between bg-[#F8F8F6] hover:shadow-lg transition-all aspect-square">
-                    <span className="text-[20px] font-bold text-black/20 font-nunito">02</span>
-                    <div className="space-y-4">
-                      <p className="font-nunito text-[18px] xl:text-[20px] font-semibold text-black/80 leading-relaxed">
+                  <div className="rounded-[24px] border border-black/10 p-6 md:p-8 flex flex-col justify-between bg-[#F8F8F6] hover:shadow-lg transition-all aspect-[16/10]">
+                    <span className="text-[15px] font-bold text-black/20 font-nunito">02</span>
+                    <div className="space-y-2">
+                      <p className="font-nunito text-[15px] xl:text-[17px] font-semibold text-black/80 leading-relaxed">
                         It’s built on careful listening. On trained observation. On understanding before intervention.
                       </p>
-                      <p className="font-nunito text-[15px] xl:text-[17px] font-semibold text-black/50 leading-relaxed">
+                      <p className="font-nunito text-[13px] xl:text-[14px] font-semibold text-black/50 leading-relaxed">
                         Because a lot of what people carry… never quite gets said properly.
                       </p>
                     </div>
                   </div>
 
                   {/* Card 4: Observation Image */}
-                  <div className="relative rounded-[30px] overflow-hidden border border-black/10 aspect-square group">
+                  <div className="relative rounded-[24px] overflow-hidden border border-black/10 aspect-[16/10] group">
                     <Image src="/assets/section_2_2.webp" alt="Observation" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
-                    <div className="absolute inset-0 bg-black/40 flex flex-col justify-end p-8">
-                      <p className="text-white font-nunito text-[16px] md:text-[18px] font-bold leading-relaxed">
+                    <div className="absolute inset-0 bg-black/40 flex flex-col justify-end p-6">
+                      <p className="text-white font-nunito text-[13px] md:text-[15px] font-bold leading-relaxed">
                         We pay attention to what&apos;s said. And also to what&apos;s avoided, repeated, or left unfinished.
                       </p>
                     </div>
@@ -290,28 +289,28 @@ export const LandingStack = () => {
                 </div>
 
                 {/* Card 2: Single Big Card (Right column on LG, Full width on MD) */}
-                <div className="lg:col-span-1 md:col-span-2 rounded-[30px] border border-black/10 p-8 md:p-10 flex flex-col justify-between bg-white hover:shadow-xl transition-all h-full md:h-auto lg:h-full min-h-[400px] md:min-h-0 lg:min-h-[500px]">
+                <div className="lg:col-span-1 md:col-span-2 rounded-[24px] border border-black/10 p-6 md:p-8 flex flex-col justify-between bg-white hover:shadow-xl transition-all h-full md:h-auto lg:h-full min-h-[300px] md:min-h-0 lg:min-h-[380px]">
                   <div>
-                    <span className="text-[24px] font-bold text-[#0F9393] font-nunito">03</span>
-                    <div className="mt-10 space-y-8">
-                      <p className="font-nunito text-[20px] xl:text-[22px] font-bold text-black/90 leading-tight">
+                    <span className="text-[18px] font-bold text-[#0F9393] font-nunito">03</span>
+                    <div className="mt-4 space-y-4">
+                      <p className="font-nunito text-[16px] xl:text-[18px] font-bold text-black/90 leading-snug">
                         Our work is guided by qualified psychologists and trained therapists offering online mental health support that is confidential, ethical, structural, culturally aware, and grounded in evidence-based care.
                       </p>
-                      <p className="font-nunito text-[18px] xl:text-[20px] font-bold text-[#0F9393] leading-relaxed italic border-l-4 border-[#0F9393]/30 pl-6">
+                      <p className="font-nunito text-[14px] xl:text-[16px] font-bold text-[#0F9393] leading-relaxed italic border-l-4 border-[#0F9393]/30 pl-4">
                         This is not advice. It&apos;s not venting. It&apos;s therapy that actually engages with how your mind works.
                       </p>
                     </div>
                   </div>
-                  <div className="mt-12 pt-10 border-t border-black/5">
+                  <div className="mt-6 pt-4 border-t border-black/5">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-[#0F9393]/10 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-[#0F9393]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="w-10 h-10 rounded-full bg-[#0F9393]/10 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-[#0F9393]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04M12 20.944a11.955 11.955 0 01-8.618-3.04A12.02 12.02 0 013 9c0-3.314 2.686-6 6-6s6 2.686 6 6a6 6 0 01-3 5.196" />
                         </svg>
                       </div>
                       <div>
-                        <p className="font-nunito text-[16px] font-bold text-black/80">Psychological Care</p>
-                        <p className="font-nunito text-[14px] text-black/40">Evidence-based Support</p>
+                        <p className="font-nunito text-[13px] font-bold text-black/80">Psychological Care</p>
+                        <p className="font-nunito text-[11px] text-black/40">Evidence-based Support</p>
                       </div>
                     </div>
                   </div>
@@ -319,7 +318,7 @@ export const LandingStack = () => {
               </div>
 
               {/* Centered CTA */}
-              <div className="mt-20 mb-12 md:mb-20 w-full flex flex-col items-center">
+              <div className="mt-8 mb-4 w-full flex flex-col items-center">
                 <div ref={cta1Ref} className="flex flex-row items-center justify-center gap-4 md:gap-6">
                   <Button variant="black" className="w-[180px] sm:w-[200px] md:w-[240px] h-[48px] md:h-[56px] text-[13px] sm:text-[14px] md:text-[17px] px-4 sm:px-6 md:px-8 whitespace-nowrap shadow-xl" onClick={openBookingModal}>Begin with understanding.</Button>
                   <Image src="/assets/Group 54.svg" alt="Try now!" width={55} height={55} className="h-[40px] md:h-[55px] w-auto invert -mt-3" />
@@ -327,7 +326,7 @@ export const LandingStack = () => {
               </div>
             </div>
           </div>
-          <div className="h-[100px] md:h-[150px] w-full shrink-0" />
+          <div className="h-[200px] md:h-[280px] w-full shrink-0" />
         </div>
       </section>
 
