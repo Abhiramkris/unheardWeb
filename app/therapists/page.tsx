@@ -19,6 +19,7 @@ interface Therapist {
   tagline?: string;
   approach?: string;
   good_fit_for?: string[];
+  qualification_desc?: string;
 }
 
 const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; index: number; onOpen: () => void }) => {
@@ -27,16 +28,8 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
   const qualification = therapist.qualification || 'Licensed Professional';
   const microtag = therapist.microtag || 'Mental Health';
 
-  // Dynamic font scaling for the cutout name based on string length
-  const getFontSize = (str: string) => {
-    const len = str.length;
-    if (len > 18) return '22';
-    if (len > 14) return '28';
-    if (len > 10) return '34';
-    return '40';
-  };
-
-  const nameFontSize = getFontSize(name);
+  const designation = therapist.qualification_desc || 'clinical';
+  const nameFontSize = '22';
 
   return (
     <div 
@@ -86,8 +79,8 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
           {/* Therapist Name (White text) */}
           <text 
             x="16" 
-            y="430" 
-            fontFamily="'Inter', 'Arial Black', system-ui, -apple-system, sans-serif" 
+            y="418" 
+            fontFamily="'Georgia', serif" 
             fontWeight="900" 
             fontSize={nameFontSize} 
             fill="white"
@@ -96,13 +89,40 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
             {name}
           </text>
 
+          {/* Designation text */}
+          {designation === 'clinical' ? (
+            <text 
+              x="16" 
+              y="438" 
+              fontFamily="'Inter', system-ui, -apple-system, sans-serif" 
+              fontWeight="900" 
+              fontSize="13" 
+              fill="white"
+              letterSpacing="0.3"
+            >
+              Psychologist <tspan fontSize="9" fontWeight="500" fill="white" opacity="0.85">(trained in clinical psychology)</tspan>
+            </text>
+          ) : (
+            <text 
+              x="16" 
+              y="438" 
+              fontFamily="'Inter', system-ui, -apple-system, sans-serif" 
+              fontWeight="900" 
+              fontSize="13" 
+              fill="white"
+              letterSpacing="0.3"
+            >
+              Counselling Psychologist
+            </text>
+          )}
+
           {/* Qualifications text */}
           <text 
             x="16" 
-            y="453" 
+            y="458" 
             fontFamily="'Inter', system-ui, -apple-system, sans-serif" 
             fontWeight="700" 
-            fontSize={qualification.length > 25 ? "11" : "13"} 
+            fontSize="11" 
             fill="white"
             opacity="0.9"
             letterSpacing="0.3"
@@ -113,9 +133,9 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
           {/* Divider line */}
           <line 
             x1="16" 
-            y1="470" 
+            y1="472" 
             x2="384" 
-            y2="470" 
+            y2="472" 
             stroke="white" 
             strokeWidth="1.5" 
             opacity="0.25" 
@@ -139,10 +159,10 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
           <g>
             <rect 
               x="256" 
-              y="479" 
+              y="483" 
               width="128" 
-              height="32" 
-              rx="16" 
+              height="26" 
+              rx="13" 
               fill="white"
               className="transition-colors duration-300 group-hover:fill-neutral-200"
             />

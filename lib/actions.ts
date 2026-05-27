@@ -227,6 +227,12 @@ export async function adminUpdateTherapistProfile(
     avatar_url?: string;
     approach?: string;
     good_fit_for?: string[];
+    display_hours?: string;
+    phone?: string;
+    note?: string;
+    specialties?: string[];
+    is_available?: boolean;
+    qualification_desc?: string;
   }
 ) {
   const supabase = await createClient()

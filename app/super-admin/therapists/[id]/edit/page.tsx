@@ -90,7 +90,8 @@ export default function SuperAdminEditTherapist() {
         specialties: profile.specialties || [],
         good_fit_for: profile.good_fit_for || [],
         avatar_url: profile.avatar_url,
-        is_available: profile.is_available ?? true
+        is_available: profile.is_available ?? true,
+        qualification_desc: profile.qualification_desc || 'clinical'
       }
       
       await adminUpdateTherapistProfile(id, updatePayload)
@@ -200,6 +201,17 @@ export default function SuperAdminEditTherapist() {
                   onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                   className="w-full border-2 border-gray-200 rounded-2xl px-6 py-4 outline-none focus:border-[#0F9393] focus:bg-white bg-gray-50 font-bold text-gray-900 transition-all placeholder-gray-400"
                 />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-[#0F9393] uppercase tracking-widest ml-1">Designation Type (for Polaroid Card)</label>
+                <select
+                  value={profile.qualification_desc || 'clinical'}
+                  onChange={(e) => setProfile({ ...profile, qualification_desc: e.target.value })}
+                  className="w-full border-2 border-gray-200 rounded-2xl px-6 py-4 outline-none focus:border-[#0F9393] focus:bg-white bg-gray-50 font-bold text-gray-900 transition-all appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M7%209l3%203%203-3%22%20stroke%3D%22%25236b7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_1.25rem_center] bg-no-repeat pr-10"
+                >
+                  <option value="clinical">Psychologist (trained in clinical psychology)</option>
+                  <option value="counselling">Counselling Psychologist</option>
+                </select>
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-[10px] font-bold text-[#0F9393] uppercase tracking-widest ml-1">Primary Qualification</label>
