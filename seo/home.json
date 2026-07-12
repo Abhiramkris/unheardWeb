@@ -1,0 +1,84 @@
+{
+  "title": "unHeard — Clarity For Your Inner World",
+  "description": "Professional psychological counseling that listens, understands, and responds with clarity. Book a session with a licensed therapist today.",
+  "keywords": [
+    "online therapy India",
+    "mental health counseling",
+    "therapist online",
+    "psychology counseling",
+    "unHeard therapy",
+    "online counseling Bengaluru"
+  ],
+  "ogImage": "https://unheard.in/og/home.png",
+  "canonical": "https://unheard.in",
+  "noindex": false,
+  "geo": {
+    "region": "IN-KA",
+    "placename": "Bengaluru, Karnataka, India",
+    "position": "12.9716;77.5946",
+    "icbm": "12.9716, 77.5946"
+  },
+  "schema": [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://unheard.in/#organization",
+      "name": "unHeard",
+      "url": "https://unheard.in",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://unheard.in/assets/logo unherd white.svg",
+        "width": 200,
+        "height": 60
+      },
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "availableLanguage": [
+          "English",
+          "Hindi"
+        ]
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://unheard.in/#website",
+      "name": "unHeard",
+      "url": "https://unheard.in",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://unheard.in/therapists?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": [
+        "MedicalBusiness",
+        "LocalBusiness"
+      ],
+      "@id": "https://unheard.in/#localbusiness",
+      "name": "unHeard",
+      "description": "Professional psychological counseling platform offering therapy sessions online.",
+      "url": "https://unheard.in",
+      "telephone": "",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Bengaluru",
+        "addressRegion": "Karnataka",
+        "addressCountry": "IN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 12.9716,
+        "longitude": 77.5946
+      },
+      "areaServed": "India",
+      "priceRange": "₹₹",
+      "currenciesAccepted": "INR",
+      "openingHours": "Mo-Su 08:00-22:00"
+    }
+  ]
+}

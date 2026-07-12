@@ -1,0 +1,50 @@
+{
+  "title": "Mental Health Blog | Articles & Insights by unHeard",
+  "description": "Read expert articles on mental health, therapy, mindfulness, and emotional wellbeing. Insights from licensed counselors at unHeard.",
+  "keywords": [
+    "mental health blog",
+    "therapy articles India",
+    "psychology insights",
+    "mindfulness tips",
+    "emotional wellbeing"
+  ],
+  "ogImage": "https://unheard.in/og/blog.png",
+  "canonical": "https://unheard.in/blog",
+  "noindex": false,
+  "geo": {
+    "region": "IN-KA",
+    "placename": "Bengaluru, Karnataka, India",
+    "position": "12.9716;77.5946",
+    "icbm": "12.9716, 77.5946"
+  },
+  "schema": [
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "@id": "https://unheard.in/blog#blog",
+      "name": "unHeard Mental Health Blog",
+      "url": "https://unheard.in/blog",
+      "publisher": {
+        "@id": "https://unheard.in/#organization"
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://unheard.in"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://unheard.in/blog"
+        }
+      ]
+    }
+  ]
+}

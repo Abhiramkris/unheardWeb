@@ -182,7 +182,9 @@ export default function TherapistProfileModal({
 
                 {/* Therapeutic Approach */}
                 {therapist.approach && (
-                  <div>
+  
+  
+  <div>
                     <h4 className="text-[12px] md:text-[13px] font-black text-[#0F9393] uppercase tracking-[0.2em] mb-3 flex items-center gap-2 border-b border-gray-100 pb-1.5">
                       <Compass size={14} className="text-[#0F9393]" /> Therapeutic Approach
                     </h4>

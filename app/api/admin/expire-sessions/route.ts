@@ -1,8 +1,24 @@
-import { createAdminClient } from '@/utils/supabase/server'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function POST() {
   try {
+    const userClient = await createClient()
+    const { data: { user: currentUser } } = await userClient.auth.getUser()
+    if (!currentUser) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { data: roleData } = await userClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', currentUser.id)
+      .single()
+
+    if (!roleData?.role || !['admin', 'super_admin'].includes(roleData.role)) {
+      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
+    }
+
     const supabase = await createAdminClient()
     const now = new Date();
     

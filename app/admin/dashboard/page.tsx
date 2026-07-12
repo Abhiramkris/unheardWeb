@@ -114,13 +114,29 @@ export default function AdminDashboard() {
     const user = existingUser || (await supabase.auth.getUser()).data.user
     if (!user) return
 
-    const { data: apts } = await supabase
+    // Query user role directly to enforce security checks
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+
+    const userRole = roleData?.role || 'user'
+    const hasAdminAccess = ['admin', 'super_admin'].includes(userRole)
+
+    let query = supabase
       .from('appointments')
       .select(`
         *,
         pre_booking_questionnaires(answers)
       `)
-      .order('start_time', { ascending: false })
+
+    if (!hasAdminAccess) {
+      // Regular therapists can only see appointments assigned to them
+      query = query.eq('therapist_id', user.id)
+    }
+
+    const { data: apts } = await query.order('start_time', { ascending: false })
 
     const { data: profiles } = await supabase
       .from('therapist_profiles')
@@ -383,6 +399,24 @@ export default function AdminDashboard() {
   const performanceData = [4.2, 4.5, 4.3, 4.8, 4.6, 4.9, 4.7];
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#FEFEFC]">Loading Admin Dashboard...</div>
+
+  // Access Denied Gate
+  if (!role || !['therapist', 'admin', 'super_admin'].includes(role)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FEFEFC] font-georgia text-center p-8">
+        <div className="max-w-md">
+           <h1 className="text-3xl font-bold text-red-600 mb-2">Access Denied 🛑</h1>
+           <p className="text-gray-600 font-nunito">You do not have permission to view this page. If you are a therapist or admin, please log in with your authorized credentials.</p>
+           <button 
+             onClick={() => window.location.href = '/login'}
+             className="mt-6 px-6 py-2.5 bg-black text-white rounded-full font-bold uppercase tracking-wider text-xs hover:scale-105 active:scale-95 transition-all shadow-md"
+           >
+             Go to Login
+           </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans flex flex-col md:flex-row relative">

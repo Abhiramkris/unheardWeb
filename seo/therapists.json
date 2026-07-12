@@ -1,0 +1,49 @@
+{
+  "title": "Find a Therapist | Licensed Counselors & Psychologists",
+  "description": "Browse verified therapists and psychologists on unHeard. Filter by specialty, language, and availability. Book your first session online today.",
+  "keywords": [
+    "find therapist India",
+    "licensed psychologist online",
+    "book therapist",
+    "counselor online India",
+    "therapist list"
+  ],
+  "ogImage": "https://unheard.in/og/therapists.png",
+  "canonical": "https://unheard.in/therapists",
+  "noindex": false,
+  "geo": {
+    "region": "IN-KA",
+    "placename": "Bengaluru, Karnataka, India",
+    "position": "12.9716;77.5946",
+    "icbm": "12.9716, 77.5946"
+  },
+  "schema": [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "Our Therapists",
+      "url": "https://unheard.in/therapists",
+      "isPartOf": {
+        "@id": "https://unheard.in/#website"
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://unheard.in"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Therapists",
+          "item": "https://unheard.in/therapists"
+        }
+      ]
+    }
+  ]
+}

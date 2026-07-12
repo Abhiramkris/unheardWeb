@@ -1,0 +1,29 @@
+{
+  "title": "Privacy Policy | unHeard",
+  "description": "Read the unHeard privacy policy. We are committed to protecting your personal data and mental health information with the highest standards.",
+  "keywords": [
+    "unHeard privacy policy",
+    "mental health data privacy",
+    "therapy platform privacy"
+  ],
+  "ogImage": "https://unheard.in/og/default.png",
+  "canonical": "https://unheard.in/privacy",
+  "noindex": false,
+  "geo": {
+    "region": "IN-KA",
+    "placename": "Bengaluru, Karnataka, India",
+    "position": "12.9716;77.5946",
+    "icbm": "12.9716, 77.5946"
+  },
+  "schema": [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Privacy Policy",
+      "url": "https://unheard.in/privacy",
+      "isPartOf": {
+        "@id": "https://unheard.in/#website"
+      }
+    }
+  ]
+}

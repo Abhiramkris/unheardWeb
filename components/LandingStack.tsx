@@ -7,6 +7,7 @@ import Button from './ui/Button';
 import { useBooking } from '@/components/BookingContext';
 import AnimatedCounter from './ui/AnimatedCounter';
 import { faqData, blogData, specialtiesData } from '@/lib/data/landing';
+
 import { FeatureCard } from '@/components/landing/FeatureCard';
 import { FAQAccordion } from '@/components/landing/FAQAccordion';
 import { BlogCard } from '@/components/landing/BlogCard';
@@ -92,13 +93,13 @@ export const LandingStack = () => {
   const card1Ref = React.useRef<HTMLElement>(null);
   const cta1Ref = React.useRef<HTMLDivElement>(null);
   const card2Ref = React.useRef<HTMLElement>(null);
-  const lastRef2 = React.useRef<HTMLDivElement>(null);
+  const cta2Ref = React.useRef<HTMLDivElement>(null);
   const card3Ref = React.useRef<HTMLElement>(null);
-  const lastRef3 = React.useRef<HTMLDivElement>(null);
+  const cta3Ref = React.useRef<HTMLDivElement>(null);
   const card4Ref = React.useRef<HTMLElement>(null);
-  const lastRef4 = React.useRef<HTMLDivElement>(null);
+  const cta4Ref = React.useRef<HTMLDivElement>(null);
   const card5Ref = React.useRef<HTMLElement>(null);
-  const lastRef5 = React.useRef<HTMLDivElement>(null);
+  const cta5Ref = React.useRef<HTMLDivElement>(null);
 
   const [stickyTop1, setStickyTop1] = React.useState(0);
   const [stickyTop2, setStickyTop2] = React.useState(0);
@@ -135,10 +136,10 @@ export const LandingStack = () => {
       };
 
       setStickyTop1(getOffset(card1Ref.current, cta1Ref.current));
-      setStickyTop2(getOffset(card2Ref.current, lastRef2.current));
-      setStickyTop3(getOffset(card3Ref.current, lastRef3.current));
-      setStickyTop4(getOffset(card4Ref.current, lastRef4.current));
-      setStickyTop5(getOffset(card5Ref.current, lastRef5.current));
+      setStickyTop2(getOffset(card2Ref.current, cta2Ref.current));
+      setStickyTop3(getOffset(card3Ref.current, cta3Ref.current));
+      setStickyTop4(getOffset(card4Ref.current, cta4Ref.current));
+      setStickyTop5(getOffset(card5Ref.current, cta5Ref.current));
     };
 
     let resizeTimer: NodeJS.Timeout;
@@ -216,7 +217,7 @@ export const LandingStack = () => {
                 quality={90}
               />
             </div>
-            <div className="relative z-10 max-w-[800px] flex flex-col gap-4">
+            <div className="relative z-10 max-w-[800px] flex flex-col gap-4 pt-12 md:pt-0">
               <h1 className="text-[40px] font-bold leading-[1.1] tracking-[-0.02em] text-white font-georgia">
                 When your mind feels louder than your life, clarity is non-negotiable.
               </h1>
@@ -234,7 +235,7 @@ export const LandingStack = () => {
               </div>
             </div>
           </div>
-          <div className="w-full px-4 flex justify-center pb-8 -mt-[140px] md:-mt-[180px] relative z-10">
+          <div className="w-full flex justify-center pb-8 -mt-[30px] sm:-mt-[60px] md:-mt-[180px] relative z-10">
             <div className="w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] pt-10 pb-12 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-2xl pointer-events-auto">
               {/* Centered Title */}
               <div className="w-full flex flex-col items-center text-center mb-8">
@@ -326,7 +327,7 @@ export const LandingStack = () => {
               </div>
             </div>
           </div>
-          <div className="h-[200px] md:h-[280px] w-full shrink-0" />
+          <div className="h-[320px] md:h-[350px] w-full shrink-0" />
         </div>
       </section>
 
@@ -462,7 +463,7 @@ export const LandingStack = () => {
             />
           </div>
 
-          <div ref={lastRef2} className="mt-20 md:mt-28 w-full max-w-[1000px] flex flex-col md:flex-row items-center justify-between gap-12 md:gap-6 px-10">
+          <div ref={cta2Ref} className="mt-20 md:mt-28 w-full max-w-[1000px] flex flex-col md:flex-row items-center justify-between gap-12 md:gap-6 px-10">
             <div className="flex flex-col items-center text-center">
               <span className="font-georgia font-bold text-[56px] md:text-[60px] lg:text-[72px] text-white leading-none"><AnimatedCounter end={1500} suffix="+" /></span>
               <span className="font-nunito font-semibold text-[18px] md:text-[20px] lg:text-[24px] text-white mt-1">Happy Patients</span>
@@ -476,7 +477,7 @@ export const LandingStack = () => {
               <span className="font-nunito font-semibold text-[18px] md:text-[20px] lg:text-[24px] text-white mt-1">Hours of Therapy</span>
             </div>
           </div>
-          <div className="h-[200px] md:h-[250px] w-full shrink-0" />
+          <div className="h-[320px] md:h-[350px] w-full shrink-0" />
         </div>
       </section>
 
@@ -492,26 +493,26 @@ export const LandingStack = () => {
           minHeight: sectionHeights['3'] ? `${sectionHeights['3']}px` : 'auto'
         }}
       >
-        <div className="w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] pt-18 pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-2xl pointer-events-auto">
-          <div className="text-center mb-16 max-w-[1200px]">
+        <div className="w-[97vw] max-w-[2440px] bg-[#FEFEFC] rounded-t-[40px] rounded-b-[40px] pt-12 pb-16 md:pt-18 md:pb-24 px-6 md:px-12 lg:px-24 flex flex-col items-center shadow-2xl pointer-events-auto">
+          <div className="text-center mb-10 md:mb-16 max-w-[1200px]">
             <h2 className="font-georgia text-[36px] md:text-[48px] font-bold leading-tight text-black">
               Your Questions, Answered <br /> <span className="text-[#0F9393]">At Unheard.</span>
             </h2>
           </div>
           <div className="flex flex-col lg:flex-row w-full max-w-[1200px] gap-12 lg:gap-20 items-stretch">
-            <div className="w-full lg:w-1/2 flex justify-center lg:justify-end shrink-0">
+            <div className="hidden lg:flex lg:w-1/2 justify-center lg:justify-end shrink-0">
               <div className="relative w-full max-w-[450px] aspect-[4/5] rounded-[30px] overflow-hidden shadow-lg bg-gray-200">
                 <Image src="/assets/section_2_2.webp" alt="FAQ Preview" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 450px" className="object-cover" />
               </div>
             </div>
             <div className="w-full lg:w-1/2 flex flex-col justify-center">
               <FAQAccordion data={faqData} />
-              <div ref={lastRef3} className="mt-12 w-full flex justify-center">
+              <div ref={cta3Ref} className="mt-12 w-full flex justify-center">
                 <button className="bg-black hover:bg-gray-800 text-white font-nunito font-bold text-[14px] md:text-[18px] w-[200px] md:w-[300px] h-[54px] md:h-[64px] flex items-center justify-center rounded-full transition-colors whitespace-nowrap" onClick={() => window.location.href = '#contact'}>Contact Us</button>
               </div>
             </div>
           </div>
-          <div className="h-[250px] md:h-[350px] w-full shrink-0 pointer-events-none" />
+          <div className="h-[320px] md:h-[350px] w-full shrink-0 pointer-events-none" />
         </div>
       </section>
 
@@ -585,7 +586,7 @@ export const LandingStack = () => {
             </div>
 
             {/* CTA Content */}
-            <div ref={lastRef4} className="text-center mb-32 px-6 max-w-[600px] lg:max-w-[520px] lg:-mt-[340px] relative z-20">
+            <div ref={cta4Ref} className="text-center mb-32 px-6 max-w-[600px] lg:max-w-[520px] lg:-mt-[340px] relative z-20">
               <p className="font-georgia italic text-[22px] md:text-[32px] text-[#0F9393] mb-6 tracking-tight">Therapy for when your mind doesn&apos;t switch off.</p>
               <p className="font-nunito text-[18px] md:text-[24px] text-white/40 mb-12 mx-auto leading-relaxed">Professional care tailored to identify, understand, and restructure thought, emotion, and behavior.</p>
               <div className="flex flex-row items-center justify-center gap-4 md:gap-6 mt-4">
@@ -594,7 +595,7 @@ export const LandingStack = () => {
               </div>
             </div>
           </div>
-          <div className="h-[250px] md:h-[350px] w-full shrink-0 pointer-events-none" />
+          <div className="h-[320px] md:h-[350px] w-full shrink-0 pointer-events-none" />
         </div>
       </section>
 
@@ -627,7 +628,7 @@ export const LandingStack = () => {
               ))}
             </div>
             
-            <div ref={lastRef5} className="mt-24 flex justify-center">
+            <div ref={cta5Ref} className="mt-24 flex justify-center">
               <button onClick={() => window.location.href = '#'} className="group flex items-center gap-4 bg-black p-1.5 pl-8 pr-2 rounded-full border-2 border-black hover:bg-gray-800 transition-all shadow-xl">
                 <span className="text-white font-nunito font-bold text-[14px] md:text-[18px]">View all articles</span>
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center transition-transform group-hover:translate-x-1">
@@ -638,6 +639,13 @@ export const LandingStack = () => {
           </div>
         </div>
       </section>
+
+      {/* Invisible SEO crawl anchors — not visible to users, fully crawlable by Google */}
+      <div className="sr-only" aria-hidden="true">
+        <Link href="/extra-seo">Mental Health Guides</Link>
+        <Link href="/blog">Blog</Link>
+        <Link href="/sitemap-page">Sitemap</Link>
+      </div>
     </div>
   );
 };

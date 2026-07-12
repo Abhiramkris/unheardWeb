@@ -1,0 +1,29 @@
+{
+  "title": "Refund Policy | unHeard",
+  "description": "Learn about unHeard refund and cancellation policy for therapy sessions. We strive to be fair and transparent.",
+  "keywords": [
+    "unHeard refund policy",
+    "therapy session refund",
+    "cancellation policy"
+  ],
+  "ogImage": "https://unheard.in/og/default.png",
+  "canonical": "https://unheard.in/refund",
+  "noindex": false,
+  "geo": {
+    "region": "IN-KA",
+    "placename": "Bengaluru, Karnataka, India",
+    "position": "12.9716;77.5946",
+    "icbm": "12.9716, 77.5946"
+  },
+  "schema": [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Refund Policy",
+      "url": "https://unheard.in/refund",
+      "isPartOf": {
+        "@id": "https://unheard.in/#website"
+      }
+    }
+  ]
+}

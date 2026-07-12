@@ -62,7 +62,37 @@ export async function requestSession(data: {
     }
 
     // 4. CREATE PENDING QUESTIONNAIRE (Primary Entry Point)
-    const amount = data.is_trial ? 0 : 999; 
+    let pricing: { trial: number; single: number; standard: number; premium: number } = {
+      trial: 399,
+      single: 999,
+      standard: 2999,
+      premium: 1999
+    };
+    if (data.therapist_id) {
+      const { data: profile } = await adminSupabase
+        .from('therapist_profiles')
+        .select('pricing')
+        .eq('user_id', data.therapist_id)
+        .maybeSingle();
+      if (profile?.pricing && typeof profile.pricing === 'object') {
+        pricing = { ...pricing, ...(profile.pricing as any) };
+      }
+    }
+
+    let amount = 999;
+    const planType = data.questionnaire?.plan_type || '';
+    if (data.is_trial) {
+      amount = 0;
+    } else if (planType === 'Single Session') {
+      amount = pricing.single;
+    } else if (planType === 'Standard Pack') {
+      amount = pricing.standard;
+    } else if (planType === 'Premium Pack') {
+      amount = pricing.premium;
+    } else {
+      amount = pricing.single;
+    }
+
     const questionnairePayload: any = {
       patient_id: identity?.user_id || null,
       guest_name: data.patient_details?.name || 'Guest',

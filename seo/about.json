@@ -1,0 +1,56 @@
+{
+  "title": "About unHeard | Our Mission & Story",
+  "description": "Learn about unHeard — a mental health platform built to make professional counseling accessible, affordable, and deeply personal across India.",
+  "keywords": [
+    "about unHeard",
+    "mental health platform India",
+    "online therapy mission",
+    "counseling platform story"
+  ],
+  "ogImage": "https://unheard.in/og/about.png",
+  "canonical": "https://unheard.in/about",
+  "noindex": false,
+  "geo": {
+    "region": "IN-KA",
+    "placename": "Bengaluru, Karnataka, India",
+    "position": "12.9716;77.5946",
+    "icbm": "12.9716, 77.5946"
+  },
+  "schema": [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://unheard.in/#organization",
+      "name": "unHeard",
+      "url": "https://unheard.in",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://unheard.in/assets/logo unherd white.svg",
+        "width": 200,
+        "height": 60
+      },
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "availableLanguage": [
+          "English",
+          "Hindi"
+        ]
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      "@id": "https://unheard.in/about#webpage",
+      "name": "About unHeard",
+      "url": "https://unheard.in/about",
+      "isPartOf": {
+        "@id": "https://unheard.in/#website"
+      },
+      "about": {
+        "@id": "https://unheard.in/#organization"
+      }
+    }
+  ]
+}

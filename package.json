@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/generate-seo.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "seo:generate": "node scripts/generate-seo.js",
     "whatsapp-reauth": "curl -X GET http://localhost:3001/api/whatsapp/keep-alive"
   },
   "dependencies": {

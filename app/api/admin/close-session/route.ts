@@ -1,9 +1,26 @@
-import { createAdminClient } from '@/utils/supabase/server';
+import { createClient, createAdminClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { NotificationController } from '@/lib/notifications/NotificationController';
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', currentUser.id)
+      .single();
+
+    const userRole = roleData?.role;
+    if (!userRole || !['therapist', 'admin', 'super_admin'].includes(userRole)) {
+      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    }
+
     const { appointment_id, summary } = await req.json();
 
     if (!appointment_id) {
@@ -11,6 +28,19 @@ export async function POST(req: Request) {
     }
 
     const adminSupabase = await createAdminClient();
+
+    // If the user is a therapist, verify they are assigned to this appointment
+    if (userRole === 'therapist') {
+      const { data: aptCheck } = await adminSupabase
+        .from('appointments')
+        .select('therapist_id')
+        .eq('id', appointment_id)
+        .maybeSingle();
+
+      if (!aptCheck || aptCheck.therapist_id !== currentUser.id) {
+        return NextResponse.json({ success: false, error: 'Forbidden: You are not assigned to this appointment' }, { status: 403 });
+      }
+    }
 
     // 1. Update the appointment status and record completion
     const { error: updateError } = await adminSupabase
