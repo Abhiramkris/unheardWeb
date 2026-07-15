@@ -850,121 +850,129 @@ export default function SuperAdminDashboard() {
         )}
 
         {activeTab === 'coupons' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 text-black">
-            {/* Create Coupon */}
-            <div className="bg-white p-10 rounded-[32px] shadow-xl border border-gray-100 flex flex-col gap-6">
-              <h2 className="text-[24px] font-bold font-georgia text-gray-900">Create New Coupon</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-black">
+            {/* Create Coupon (Left pane, 5-cols) */}
+            <div className="lg:col-span-5 bg-white p-6 rounded-lg border border-gray-200 flex flex-col gap-5">
+              <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider block border-b pb-2">Create New Coupon</span>
               <form 
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const { error } = await supabase.from('coupons').insert([couponForm]);
-                  if (error) alert(error.message);
-                  else {
-                    alert('Coupon created!');
+                  if (error) {
+                    showToast(error.message, 'error');
+                  } else {
+                    showToast('Coupon created successfully!');
                     setCouponForm({ code: '', discount_type: 'percentage', value: 0, usage_limit: -1, expires_at: '' });
                     fetchCoupons();
                   }
                 }}
-                className="flex flex-col gap-5"
+                className="flex flex-col gap-4"
               >
-                <div className="flex flex-col gap-2">
-                  <label className="text-[14px] font-bold text-gray-600">Coupon Code</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Coupon Code</label>
                   <input 
                     type="text" 
                     value={couponForm.code}
                     onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })}
-                    className="border border-gray-200 rounded-full px-5 py-3 focus:border-[#0F9393] outline-none" 
+                    className="w-full border border-gray-300 rounded px-4 py-2 outline-none focus:border-[#0F9393] text-gray-800 text-[14px] font-semibold bg-white transition-colors" 
                     placeholder="E.g. UNHEARD20"
                     required
                   />
                 </div>
-                <div className="flex gap-4">
-                  <div className="flex-1 flex flex-col gap-2">
-                    <label className="text-[14px] font-bold text-gray-600">Type</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Type</label>
                     <select 
                       value={couponForm.discount_type}
                       onChange={(e) => setCouponForm({ ...couponForm, discount_type: e.target.value as any })}
-                      className="border border-gray-200 rounded-full px-5 py-3 focus:border-[#0F9393] outline-none bg-white"
+                      className="w-full border border-gray-300 rounded px-4 py-2 outline-none focus:border-[#0F9393] text-gray-800 text-[14px] font-semibold bg-white transition-colors appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M7%209l3%203%203-3%22%20stroke%3D%22%25236b7280%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%2%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat pr-10"
                     >
                       <option value="percentage">Percentage (%)</option>
                       <option value="fixed">Fixed Amount (₹)</option>
                     </select>
                   </div>
-                  <div className="flex-1 flex flex-col gap-2">
-                    <label className="text-[14px] font-bold text-gray-600">Value</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Value</label>
                     <input 
                       type="number" 
                       value={couponForm.value}
                       onChange={(e) => setCouponForm({ ...couponForm, value: Number(e.target.value) })}
-                      className="border border-gray-200 rounded-full px-5 py-3 focus:border-[#0F9393] outline-none"
+                      className="w-full border border-gray-300 rounded px-4 py-2 outline-none focus:border-[#0F9393] text-gray-800 text-[14px] font-semibold bg-white transition-colors"
                       required
                     />
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="flex-1 flex flex-col gap-2">
-                    <label className="text-[14px] font-bold text-gray-600">Usage Limit (-1 for unlimited)</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Usage Limit (-1 for unlimited)</label>
                     <input 
                       type="number" 
                       value={couponForm.usage_limit}
                       onChange={(e) => setCouponForm({ ...couponForm, usage_limit: Number(e.target.value) })}
-                      className="border border-gray-200 rounded-full px-5 py-3 focus:border-[#0F9393] outline-none"
+                      className="w-full border border-gray-300 rounded px-4 py-2 outline-none focus:border-[#0F9393] text-gray-800 text-[14px] font-semibold bg-white transition-colors"
                       required
                     />
                   </div>
-                  <div className="flex-1 flex flex-col gap-2">
-                    <label className="text-[14px] font-bold text-gray-600">Expires At (Optional)</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Expires At (Optional)</label>
                     <input 
                       type="date" 
                       value={couponForm.expires_at}
                       onChange={(e) => setCouponForm({ ...couponForm, expires_at: e.target.value })}
-                      className="border border-gray-200 rounded-full px-5 py-3 focus:border-[#0F9393] outline-none"
+                      className="w-full border border-gray-300 rounded px-4 py-2 outline-none focus:border-[#0F9393] text-gray-850 text-[14px] font-semibold bg-white transition-colors"
                     />
                   </div>
                 </div>
-                <Button variant="black" type="submit" className="mt-4">Generate Coupon Code</Button>
+                <button type="submit" className="w-full mt-2 py-3 bg-[#0F9393] hover:bg-[#0c7f7f] text-white font-bold text-xs uppercase tracking-wider rounded transition-colors cursor-pointer">
+                  Generate Coupon Code
+                </button>
               </form>
             </div>
 
-            {/* List Coupons */}
-            <div className="bg-white p-10 rounded-[32px] shadow-xl border border-gray-100 flex flex-col gap-6 overflow-hidden">
-               <h2 className="text-[24px] font-bold font-georgia text-gray-900">Active Coupons</h2>
-               <div className="flex flex-col gap-4 overflow-y-auto max-h-[600px] pr-2">
+            {/* List Coupons (Right pane, 7-cols) */}
+            <div className="lg:col-span-7 bg-white p-6 rounded-lg border border-gray-200 flex flex-col gap-5 overflow-hidden">
+               <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider block border-b pb-2">Active Coupons</span>
+               <div className="flex flex-col gap-3 overflow-y-auto max-h-[600px] pr-1">
                   {coupons.length === 0 ? (
-                    <p className="text-gray-400 italic">No coupons created yet.</p>
+                    <p className="text-sm text-gray-400 italic py-6 text-center">No coupons created yet.</p>
                   ) : (
                     coupons.map((coupon, i) => (
-                      <div key={coupon.id || i} className="p-5 border border-gray-100 rounded-2xl hover:bg-gray-50/50 transition-all group">
-                         <div className="flex justify-between items-start mb-4">
+                      <div key={coupon.id || i} className="p-4 border border-gray-200 rounded flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-gray-300 transition-colors">
+                         <div className="flex items-center gap-4">
+                            <div className="px-3 py-1.5 bg-[#0F9393]/10 rounded border border-[#0F9393]/20 flex items-center justify-center">
+                              <span className="text-[15px] font-black text-[#0F9393] tracking-widest">{coupon.code}</span>
+                            </div>
                             <div className="flex flex-col">
-                               <span className="text-[20px] font-black text-[#0F9393] tracking-wider">{coupon.code}</span>
-                               <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
-                                 {coupon.discount_type === 'percentage' ? `${coupon.value}% Off` : `₹${coupon.value} Off`}
+                               <span className="text-[12px] font-bold text-slate-800 uppercase tracking-wide">
+                                 {coupon.discount_type === 'percentage' ? `${coupon.value}% Discount` : `₹${coupon.value} Fixed Discount`}
                                </span>
+                               <span className="text-[10px] text-gray-400 font-bold uppercase mt-0.5">
+                                 Usage: {coupon.usage_count} / {coupon.usage_limit === -1 ? 'Unlimited' : coupon.usage_limit}
+                               </span>
+                            </div>
+                         </div>
+                         <div className="flex items-center justify-between md:justify-end gap-6">
+                            <div className="flex items-center gap-2">
+                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                               <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Active</span>
                             </div>
                             <button 
                               onClick={async () => {
-                                if(confirm('Delete coupon?')) {
-                                  await supabase.from('coupons').delete().eq('id', coupon.id);
-                                  fetchCoupons();
+                                if(confirm('Are you sure you want to delete this coupon?')) {
+                                  const { error } = await supabase.from('coupons').delete().eq('id', coupon.id);
+                                  if (error) {
+                                    showToast(error.message, 'error');
+                                  } else {
+                                    showToast('Coupon deleted!');
+                                    fetchCoupons();
+                                  }
                                 }
                               }}
-                              className="text-red-200 hover:text-red-500 transition-colors"
+                              className="p-1.5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors cursor-pointer"
+                              title="Delete Coupon"
                             >
-                              <Trash2 size={18} />
+                              <Trash2 size={14} />
                             </button>
-                         </div>
-                         <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white p-3 rounded-xl border border-gray-50 shadow-sm">
-                               <p className="text-[10px] uppercase font-black text-gray-400 tracking-tighter">Usage</p>
-                               <p className="text-[14px] font-bold text-gray-700">{coupon.usage_count} / {coupon.usage_limit === -1 ? '∞' : coupon.usage_limit}</p>
-                            </div>
-                            <div className="bg-white p-3 rounded-xl border border-gray-50 shadow-sm">
-                               <p className="text-[10px] uppercase font-black text-gray-400 tracking-tighter">Status</p>
-                               <p className={`text-[14px] font-bold ${coupon.is_active ? 'text-green-600' : 'text-red-600'}`}>
-                                 {coupon.is_active ? 'Active' : 'Disabled'}
-                               </p>
-                            </div>
                          </div>
                       </div>
                     ))
@@ -975,191 +983,224 @@ export default function SuperAdminDashboard() {
         )}
 
         {activeTab === 'whatsapp' && (
-          <div className="bg-white p-10 rounded-[32px] shadow-xl border border-gray-100 flex flex-col items-center text-center max-w-[600px] mx-auto text-black mt-8">
-            <h2 className="text-[28px] font-bold font-georgia text-gray-900 mb-2">WhatsApp Integration</h2>
-            <p className="text-gray-500 mb-8">Scan to connect the automated message dispatcher.</p>
+          <div className="max-w-xl mx-auto bg-white p-6 rounded-lg border border-gray-200 flex flex-col gap-6 text-black">
+            <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider block border-b pb-2">WhatsApp Integration</span>
+            <p className="text-xs text-gray-500 -mt-2">Scan to connect the automated message dispatcher.</p>
             
             {whatsappStatus.status === 'authenticated' && (
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-2 shadow-inner">
-                  <svg width="40" height="40" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path></svg>
+              <div className="flex flex-col items-center text-center gap-4 py-4">
+                <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <h3 className="text-[24px] font-bold text-green-600 tracking-tight">Connected & Automated</h3>
-                <p className="text-gray-500 mb-6 max-w-[300px]">The secure WebSocket session is actively running and ready to dispatch messages.</p>
-                <div className="flex gap-4">
-                  <Button variant="black" onClick={handleWhatsappReconnect} className="bg-red-600 hover:bg-red-700">Reset Login & Logout</Button>
+                <h3 className="text-[16px] font-bold text-emerald-600 tracking-tight">Connected & Automated</h3>
+                <p className="text-gray-500 text-xs max-w-sm leading-relaxed">The secure WhatsApp WebSocket session is actively running and routing clinical message dispatches.</p>
+                <div className="pt-2 w-full">
+                  <button 
+                    onClick={async () => {
+                      if (confirm('Are you sure you want to reset WhatsApp login?')) {
+                        await handleWhatsappReconnect();
+                        showToast('WhatsApp session reset initiated.');
+                      }
+                    }} 
+                    className="w-full py-3 bg-red-50 hover:bg-red-100 border border-red-200 text-red-650 font-bold text-xs uppercase tracking-wider rounded transition-colors cursor-pointer"
+                  >
+                    Reset Connection &amp; Logout
+                  </button>
                 </div>
               </div>
             )}
 
             {whatsappStatus.status === 'error' && (
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-600 mb-2 shadow-inner">
-                  <svg width="40" height="40" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+              <div className="flex flex-col items-center text-center gap-4 py-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </div>
-                <h3 className="text-[24px] font-bold text-red-600 tracking-tight">Session Expired</h3>
-                <p className="text-gray-500 mb-6 max-w-[300px]">The WhatsApp connection was closed due to a protocol error. Manual re-authentication is required.</p>
-                <Button variant="black" className="bg-red-600 hover:bg-red-700" onClick={handleWhatsappReconnect}>Full Reset & Scan QR</Button>
+                <h3 className="text-[16px] font-bold text-red-600 tracking-tight">Session Expired</h3>
+                <p className="text-gray-500 text-xs max-w-sm leading-relaxed">The WhatsApp connection was closed due to a protocol error. Manual re-authentication is required.</p>
+                <div className="pt-2 w-full">
+                  <button 
+                    onClick={handleWhatsappReconnect} 
+                    className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded transition-colors cursor-pointer"
+                  >
+                    Full Reset &amp; Scan QR
+                  </button>
+                </div>
               </div>
             )}
 
             {whatsappStatus.status === 'pending_qr' && whatsappStatus.qrDataUrl && (
-              <div className="flex flex-col items-center gap-6">
-                 <div className="p-4 border border-gray-200 rounded-3xl bg-white shadow-xl shadow-black/5">
-                   <Image src={whatsappStatus.qrDataUrl} alt="WhatsApp QR Code" width={280} height={280} className="rounded-xl" />
+              <div className="flex flex-col items-center gap-5 py-2">
+                 <div className="p-3 border border-gray-200 rounded bg-white">
+                   <Image src={whatsappStatus.qrDataUrl} alt="WhatsApp QR Code" width={220} height={220} className="rounded" />
                  </div>
-                 <div className="flex flex-col gap-2 bg-gray-50 p-6 rounded-2xl w-full">
-                   <p className="text-gray-700 font-bold text-[14px]">1. Open WhatsApp on your phone</p>
-                   <p className="text-gray-700 font-bold text-[14px]">2. Tap Menu or Settings and select Linked Devices</p>
-                   <p className="text-gray-700 font-bold text-[14px]">3. Point your phone to this screen</p>
+                 <div className="flex flex-col gap-2 bg-slate-50 p-4 rounded border border-gray-200 w-full text-xs">
+                   <p className="text-slate-800 font-bold">1. Open WhatsApp on your mobile phone</p>
+                   <p className="text-slate-800 font-bold">2. Tap Menu or Settings and select Linked Devices</p>
+                   <p className="text-slate-800 font-bold">3. Point your phone scanner to this QR code</p>
                  </div>
-                 <Button variant="black" onClick={handleWhatsappReconnect} className="w-full mt-2">Refresh QR Code</Button>
+                 <button 
+                   onClick={handleWhatsappReconnect} 
+                   className="w-full py-3 bg-[#0F9393] hover:bg-[#0c7f7f] text-white font-bold text-xs uppercase tracking-wider rounded transition-colors cursor-pointer"
+                 >
+                   Refresh QR Code
+                 </button>
               </div>
             )}
 
             {(whatsappStatus.status === 'disconnected' || whatsappStatus.status === 'initializing') && (
-               <div className="flex flex-col items-center gap-6 py-12">
-                 <div className="w-16 h-16 border-4 border-gray-100 border-t-[#0F9393] rounded-full animate-spin"></div>
-                 <div className="flex flex-col gap-1">
-                   <p className="text-black text-[18px] font-bold">
+               <div className="flex flex-col items-center gap-5 py-6">
+                 <div className="w-10 h-10 border-2 border-gray-200 border-t-[#0F9393] rounded-full animate-spin"></div>
+                 <div className="flex flex-col gap-1 text-center">
+                   <p className="text-slate-800 text-sm font-bold">
                      {whatsappStatus.status === 'initializing' ? 'Booting Secure WebSocket Connection...' : 'Waiting for Engine Startup'}
                    </p>
-                   <p className="text-gray-400 text-[14px]">
-                     Establishing link with Supabase session store
+                   <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider">
+                     Establishing session stores
                    </p>
                  </div>
                  {whatsappStatus.status === 'disconnected' && (
-                   <Button variant="black" onClick={handleWhatsappReconnect} className="mt-4">
+                   <button 
+                     onClick={handleWhatsappReconnect} 
+                     className="w-full py-3 bg-[#0F9393] hover:bg-[#0c7f7f] text-white font-bold text-xs uppercase tracking-wider rounded transition-colors cursor-pointer"
+                   >
                      Start WhatsApp Engine
-                   </Button>
+                   </button>
                  )}
                </div>
             )}
           </div>
         )}
         {activeTab === 'rooms' && (
-          <div className="bg-white p-10 rounded-[32px] shadow-xl border border-gray-100 flex flex-col gap-6 text-black">
-              <div className="flex justify-between items-center mb-6">
-                 <div>
-                    <h2 className="text-[28px] font-bold font-georgia text-gray-900">Virtual Room Engine</h2>
-                    <p className="text-gray-500 font-nunito">Supply Google Meet links to beautifully automate session routing without any APIs.</p>
-                 </div>
-                 <form 
-                   onSubmit={async (e) => {
-                     e.preventDefault();
-                     const formData = new FormData(e.currentTarget);
-                     const { error } = await supabase.from('virtual_rooms').insert({
-                       name: formData.get('name'),
-                       gmeet_link: formData.get('gmeet_link')
-                     });
-                     if (error) alert(error.message);
-                     else {
-                       fetchVirtualRooms();
-                       (e.target as HTMLFormElement).reset();
-                     }
-                   }}
-                   className="flex gap-3 bg-gray-50 p-2 rounded-2xl"
-                 >
-                   <input required name="name" type="text" placeholder="e.g. Room A" className="px-4 py-2 rounded-xl border border-gray-200" />
-                   <input required name="gmeet_link" type="url" placeholder="https://meet.google.com/..." className="px-4 py-2 rounded-xl border border-gray-200 w-[280px]" />
-                   <Button variant="black" type="submit">Add Room</Button>
-                 </form>
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-black">
+            {/* Configure Virtual Room Form (5-cols) */}
+            <div className="lg:col-span-5 bg-white p-6 rounded-lg border border-gray-200 flex flex-col gap-5">
+              <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider block border-b pb-2">Add Virtual Room Pool</span>
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const { error } = await supabase.from('virtual_rooms').insert({
+                    name: formData.get('name'),
+                    gmeet_link: formData.get('gmeet_link')
+                  });
+                  if (error) {
+                    showToast(error.message, 'error');
+                  } else {
+                    showToast('Virtual Room added to pool!');
+                    fetchVirtualRooms();
+                    (e.target as HTMLFormElement).reset();
+                  }
+                }}
+                className="flex flex-col gap-4"
+              >
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Room Name</label>
+                  <input 
+                    required 
+                    name="name" 
+                    type="text" 
+                    placeholder="e.g. Room A" 
+                    className="w-full border border-gray-300 rounded px-4 py-2 outline-none focus:border-[#0F9393] text-gray-800 text-[14px] font-semibold bg-white transition-colors"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Google Meet Meeting Link</label>
+                  <input 
+                    required 
+                    name="gmeet_link" 
+                    type="url" 
+                    placeholder="https://meet.google.com/..." 
+                    className="w-full border border-gray-300 rounded px-4 py-2 outline-none focus:border-[#0F9393] text-gray-800 text-[14px] font-semibold bg-white transition-colors"
+                  />
+                </div>
+                <button type="submit" className="w-full mt-2 py-3 bg-[#0F9393] hover:bg-[#0c7f7f] text-white font-bold text-xs uppercase tracking-wider rounded transition-colors cursor-pointer">
+                  Add Room
+                </button>
+              </form>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {virtualRooms.length === 0 ? (
-                   <div className="col-span-full py-20 text-center flex flex-col items-center">
-                      <p className="text-gray-400 font-bold">No virtual rooms configured.</p>
-                   </div>
-                 ) : (
-                   virtualRooms.map((room, i) => (
-                     <div key={room.id || i} className="p-6 rounded-2xl border border-gray-100 flex flex-col gap-4 shadow-sm bg-gray-50/50">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-bold text-[18px]">{room.name}</h4>
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${room.is_active ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                            {room.is_active ? 'Active' : 'Disabled'}
-                          </span>
-                        </div>
-                        <p className="text-[12px] font-mono p-3 bg-white rounded-xl break-all border border-gray-100 text-gray-500">{room.gmeet_link}</p>
-                        <div className="flex gap-2 mt-2">
-                           <button 
-                             onClick={async () => {
-                               const { error } = await supabase.from('virtual_rooms').delete().eq('id', room.id);
-                               if (!error) fetchVirtualRooms();
-                             }}
-                             className="flex-1 bg-red-50 text-red-500 font-bold text-[13px] py-2.5 rounded-xl hover:bg-red-100 transition-all"
-                           >
-                             Remove Pool
-                           </button>
-                        </div>
-                     </div>
-                   ))
-                 )}
-              </div>
+            {/* Active Virtual Rooms List (7-cols) */}
+            <div className="lg:col-span-7 bg-white p-6 rounded-lg border border-gray-200 flex flex-col gap-5 overflow-hidden">
+               <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider block border-b pb-2">Active Virtual Rooms Pool</span>
+               <div className="flex flex-col gap-3 overflow-y-auto max-h-[600px] pr-1">
+                  {virtualRooms.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic py-6 text-center">No virtual rooms configured yet.</p>
+                  ) : (
+                    virtualRooms.map((room, i) => (
+                      <div key={room.id || i} className="p-4 border border-gray-200 rounded flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-gray-300 transition-colors">
+                         <div className="flex-1 flex flex-col gap-1">
+                            <div className="flex items-center gap-3">
+                              <span className="text-[15px] font-bold text-slate-800">{room.name}</span>
+                              <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                                Active
+                              </span>
+                            </div>
+                            <span className="text-xs font-mono text-gray-500 break-all select-all">{room.gmeet_link}</span>
+                         </div>
+                         <div className="flex items-center justify-end">
+                            <button 
+                              onClick={async () => {
+                                if (confirm('Are you sure you want to delete this virtual room?')) {
+                                  const { error } = await supabase.from('virtual_rooms').delete().eq('id', room.id);
+                                  if (error) {
+                                    showToast(error.message, 'error');
+                                  } else {
+                                    showToast('Virtual Room deleted!');
+                                    fetchVirtualRooms();
+                                  }
+                                }
+                              }}
+                              className="p-1.5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors cursor-pointer"
+                              title="Remove Pool"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                         </div>
+                      </div>
+                    ))
+                  )}
+               </div>
+            </div>
           </div>
         )}
 
-           {activeTab === 'system' && (
-             <div className="flex flex-col gap-8 max-w-4xl mx-auto">
-                <div className="bg-white rounded-[40px] p-10 border border-gray-100 shadow-sm">
-                   <div className="flex items-center justify-between mb-10">
-                      <div className="flex items-center gap-4">
-                         <div className="w-14 h-14 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-500">
-                            <Sparkles size={28} />
-                         </div>
-                         <div>
-                            <h3 className="text-[24px] font-bold text-gray-900 tracking-tight">Notification Engine</h3>
-                            <p className="text-gray-400 text-[13px] font-bold">Automated reminders & meeting link delivery</p>
-                         </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Engine Status</span>
-                         <span className="flex items-center gap-2 text-green-500 font-bold text-[14px]">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            Active (Auto-Pilot)
-                         </span>
-                      </div>
-                   </div>
-
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="p-8 bg-gray-50 rounded-[32px] border border-gray-100">
-                         <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-4">Last Processed Sync</p>
-                         <h4 className="text-[28px] font-bold text-gray-900">{cronStatus.lastRun || 'Never'}</h4>
-                         <p className="text-gray-500 text-[12px] mt-2">Next auto-sync in 15 minutes</p>
-                      </div>
-
-                      <div className="flex flex-col justify-center gap-4">
-                         <Button 
-                           variant="black" 
-                           onClick={triggerCron}
-                           disabled={cronStatus.loading}
-                           className="h-[70px] bg-[#0F9393] hover:bg-[#0D7F7F] border-none rounded-3xl font-black uppercase tracking-widest text-[14px] shadow-xl"
-                         >
-                            {cronStatus.loading ? 'Synchronizing...' : 'Manual Sync Now'}
-                         </Button>
-                         <p className="text-gray-400 text-[11px] text-center font-bold px-4">
-                            Triggering a manual sync will instantly check for upcoming sessions and dispatch any pending 6h or 15m WhatsApp reminders.
-                         </p>
-                      </div>
-                   </div>
-
-                   <div className="mt-10 pt-10 border-t border-gray-50 grid grid-cols-1 md:grid-cols-3 gap-8">
-                      <div className="flex flex-col gap-2">
-                         <span className="text-[10px] font-bold text-[#0F9393] uppercase tracking-widest">6h Reminder</span>
-                         <p className="text-[13px] text-gray-500 leading-relaxed font-medium">Sends the secure meeting link to the patient precisely 6 hours before the session.</p>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                         <span className="text-[10px] font-bold text-[#0F9393] uppercase tracking-widest">15m Reminder</span>
-                         <p className="text-[13px] text-gray-500 leading-relaxed font-medium">Final alert sent to both patient and therapist to ensure everyone joins the room on time.</p>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                         <span className="text-[10px] font-bold text-[#0F9393] uppercase tracking-widest">Auto-Pilot</span>
-                         <p className="text-[13px] text-gray-500 leading-relaxed font-medium">As long as this dashboard is open in any admin's browser, reminders will be sent automatically.</p>
-                      </div>
-                   </div>
-                </div>
+         {activeTab === 'system' && (
+           <div className="max-w-xl mx-auto bg-white p-6 rounded-lg border border-gray-200 flex flex-col gap-6 text-black">
+             <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider block border-b pb-2">System Controller</span>
+             <div className="flex flex-col gap-4 text-center py-4">
+               <div className="flex justify-center mb-2">
+                 <button 
+                   onClick={async () => {
+                     setCronStatus(prev => ({ ...prev, loading: true }));
+                     showToast('Rebooting System Queue & Synchronization Cache...');
+                     try {
+                       await triggerCron();
+                       await fetchQueue();
+                       await fetchAdmins();
+                       await fetchVirtualRooms();
+                       showToast('System Reboot Complete.');
+                     } catch (err: any) {
+                       showToast('Reboot encountered issues: ' + err.message, 'error');
+                     } finally {
+                       setCronStatus(prev => ({ ...prev, loading: false }));
+                     }
+                   }}
+                   disabled={cronStatus.loading}
+                   className="w-16 h-16 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 flex items-center justify-center text-red-650 transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                   title="Reboot System"
+                 >
+                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                     <path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/>
+                   </svg>
+                 </button>
+               </div>
+               <h3 className="font-bold text-slate-800 text-[16px]">Soft Reset & Reboot</h3>
+               <p className="text-gray-500 text-xs leading-relaxed px-4">
+                 Clears the local sync schedules, triggers an immediate check for clinical session notifications, and updates live queue queries to fix any stuck room pools or client states.
+               </p>
              </div>
-           )}
+           </div>
+         )}
         </main>
 
       {/* Clinical Intake Detail Sheet */}
