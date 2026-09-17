@@ -31,6 +31,12 @@ export async function POST(req: Request) {
 
     if (qError) {
       console.warn('Check Phone - Questionnaire Query Error:', qError);
+      if (typeof qError.message === 'string' && (qError.message.includes('522') || qError.message.includes('timed out') || (qError as any).code === '522')) {
+        return NextResponse.json({
+          success: false,
+          error: 'Database connection timed out. If your Supabase project is paused, please resume it in the Supabase dashboard.'
+        }, { status: 503 });
+      }
     }
 
     // 2. Check for existing user in user_roles or auth.users

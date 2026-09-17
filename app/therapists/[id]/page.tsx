@@ -223,7 +223,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                   onClick={() => openBookingModal({ therapist_id: t.user_id })}
                   className="w-full md:w-auto h-[54px] md:h-[64px] bg-black text-white px-8 md:px-12 rounded-full text-[14px] md:text-[18px] font-bold flex flex-row items-center justify-center gap-4 hover:bg-gray-800 transition-all shadow-xl group active:scale-95 font-nunito"
                 >
-                  Book Free Intro Session 
+                  Book First Consultation
                   <span className="bg-[#0F9393] rounded-full p-1.5 md:p-2 flex items-center justify-center shrink-0">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
                   </span>
@@ -396,7 +396,7 @@ export default function TherapistProfile({ params }: { params: Promise<{ id: str
                 </span>
               </button>
               <div className="text-gray-400 text-[14px] md:text-[18px] font-bold italic md:border-l border-white/10 md:pl-10 text-center md:text-left">
-                First session is always <br className="hidden md:block" /> <span className="text-white">100% Free of cost.</span>
+                First consultation at <br className="hidden md:block" /> <span className="text-white">₹499 (15 min)</span>
               </div>
             </div>
           </div>

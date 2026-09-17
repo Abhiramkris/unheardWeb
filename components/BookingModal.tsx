@@ -9,6 +9,7 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import AnimatedModal from './ui/AnimatedModal';
 import { reportClientError } from '@/lib/actions';
 import { initiatePhonePeTransaction } from '@/components/PhonePeProvider';
+import { getPlansForDisplay, calculateSessionAmount } from '@/lib/pricing';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -29,6 +30,9 @@ interface Therapist {
   bio?: string;
   specialties?: string[];
   pricing?: Record<string, number>;
+  qualification_desc?: string;
+  designation?: string;
+  is_senior?: boolean;
 }
 
 const caringMessages = [
@@ -105,11 +109,12 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
     otp: '',
     language: 'English',
     type: 'Individual',
+    practitioner_level: 'Standard Psychologist',
     age: '26-35',
     service: '',
     therapist_id: '',
     is_trial: true,
-    plan_type: 'Trial Session',
+    plan_type: 'First Consultation',
     scheduled_date: '',
     scheduled_time: ''
   });
@@ -350,7 +355,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
           const trialData = await trialCheck.json();
           setIsTrialAvailable(trialData.available);
           if (!trialData.available) {
-            setFormData(prev => ({ ...prev, is_trial: false }));
+            setFormData(prev => ({ ...prev, is_trial: false, plan_type: '1 Session' }));
           }
         } catch (tErr) {
           console.warn('Trial check error:', tErr);
@@ -429,7 +434,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
       const trialData = await trialCheck.json();
       setIsTrialAvailable(trialData.available);
       if (!trialData.available) {
-        setFormData(prev => ({ ...prev, is_trial: false }));
+        setFormData(prev => ({ ...prev, is_trial: false, plan_type: '1 Session' }));
       }
 
       setIsEnteringOtp(false);
@@ -552,6 +557,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
           age: formData.age,
           language: formData.language,
           type: formData.type,
+          practitioner_level: effectivePractitionerLevel,
           service: formData.service,
           plan_type: formData.plan_type,
           preferredFormat: formData.preferredFormat,
@@ -676,14 +682,31 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
   };
 
   const selectedTherapistData = therapists.find(t => t.user_id === formData.therapist_id);
+  const isSelectedTherapistSenior = Boolean(
+    selectedTherapistData?.qualification_desc === 'senior' ||
+    selectedTherapistData?.qualification_desc?.toLowerCase().includes('senior') ||
+    selectedTherapistData?.qualification?.toLowerCase().includes('senior') ||
+    selectedTherapistData?.designation?.toLowerCase().includes('senior') ||
+    selectedTherapistData?.is_senior
+  );
 
-  const getPricing = () => {
-    const defaultPricing = { trial: 399, single: 999, standard: 2999, premium: 1999 };
-    if (!selectedTherapistData?.pricing) return defaultPricing;
-    return { ...defaultPricing, ...selectedTherapistData.pricing };
-  };
+  const effectivePractitionerLevel = selectedTherapistData
+    ? (isSelectedTherapistSenior ? 'Senior Psychologist' : 'Standard Psychologist')
+    : formData.practitioner_level;
 
-  const currentPricing = getPricing();
+  const availablePlans = getPlansForDisplay({
+    therapyType: formData.type,
+    practitionerLevel: effectivePractitionerLevel,
+    isTrialAvailable
+  });
+
+  const currentSelectedPrice = calculateSessionAmount({
+    planType: formData.plan_type,
+    therapyType: formData.type,
+    practitionerLevel: effectivePractitionerLevel,
+    isTrial: formData.is_trial,
+    therapistPricing: selectedTherapistData?.pricing
+  });
 
   const stepVariants = {
     enter: (direction: number) => ({ x: direction > 0 ? 40 : -40, opacity: 0 }),
@@ -1214,6 +1237,42 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                           </div>
 
                           <div className="flex flex-col gap-1.5">
+                            <label className="font-nunito font-bold text-[12px] text-gray-900">Psychologist Level</label>
+                            <div className="flex flex-wrap gap-2">
+                              {[
+                                { id: 'Standard Psychologist', label: 'Standard Psychologist' },
+                                { id: 'Senior Psychologist', label: 'Senior Psychologist (10+ yrs)' }
+                              ].map((lvl) => {
+                                const isSelected = effectivePractitionerLevel === lvl.id;
+                                return (
+                                  <button
+                                    key={lvl.id}
+                                    type="button"
+                                    onClick={() => {
+                                      if (!selectedTherapistData) {
+                                        setFormData({...formData, practitioner_level: lvl.id});
+                                      }
+                                    }}
+                                    disabled={Boolean(selectedTherapistData)}
+                                    className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold border-2 transition-all ${
+                                      isSelected
+                                        ? 'bg-[#0F9393] border-[#0F9393] text-white shadow-sm'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                                    } ${selectedTherapistData ? 'opacity-80 cursor-default' : 'cursor-pointer'}`}
+                                  >
+                                    {lvl.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {selectedTherapistData && (
+                              <p className="text-[11px] text-[#0F9393] font-semibold">
+                                Matched with {selectedTherapistData.full_name} ({isSelectedTherapistSenior ? 'Senior Psychologist' : 'Standard Psychologist'})
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col gap-1.5">
                             <label className="font-nunito font-bold text-[12px] text-gray-900">Preferred Session Format</label>
                             <div className="flex flex-wrap gap-2">
                               {['Video call', 'Phone call', 'In person'].map((format) => (
@@ -1461,45 +1520,109 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
 
                     {/* STEP: PLAN SELECTION & CHECKOUT */}
                     {currentStep === 'plan_selection' && (
-                      <div className="flex flex-col gap-3.5">
-                        <div>
-                          <h3 className="font-georgia font-bold text-[20px] text-black mb-0.5">Select Plan</h3>
-                          <p className="font-nunito text-gray-500 text-[12px]">Choose a session plan. Your first intro call is on us if eligible.</p>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-georgia font-bold text-[20px] text-black mb-0.5">Select Session Plan</h3>
+                            <p className="font-nunito text-gray-500 text-[12px]">Choose your plan. Secure payments powered by PhonePe.</p>
+                          </div>
+
+                          {/* Practitioner level toggle / indicator */}
+                          {!selectedTherapistData ? (
+                            <div className="flex bg-gray-100 p-0.5 rounded-lg text-[11px] font-bold">
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, practitioner_level: 'Standard Psychologist' })}
+                                className={`px-2.5 py-1 rounded-md transition-all ${
+                                  effectivePractitionerLevel === 'Standard Psychologist'
+                                    ? 'bg-white text-black shadow-sm'
+                                    : 'text-gray-500 hover:text-black'
+                                }`}
+                              >
+                                Standard
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, practitioner_level: 'Senior Psychologist' })}
+                                className={`px-2.5 py-1 rounded-md transition-all ${
+                                  effectivePractitionerLevel === 'Senior Psychologist'
+                                    ? 'bg-[#0F9393] text-white shadow-sm'
+                                    : 'text-gray-500 hover:text-black'
+                                }`}
+                              >
+                                Senior
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-[11px] font-bold text-[#0F9393] bg-[#0F9393]/10 px-2.5 py-1 rounded-full">
+                              {isSelectedTherapistSenior ? 'Senior Psychologist' : 'Psychologist'}
+                            </span>
+                          )}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2.5 max-h-[220px] overflow-y-auto custom-scrollbar">
-                          {[
-                            { label: 'Trial Session', price: currentPricing.trial, isTrial: true, available: isTrialAvailable },
-                            { label: 'Single Session', price: currentPricing.single, isTrial: false, available: true },
-                            { label: 'Standard Pack', price: currentPricing.standard, isTrial: false, available: true },
-                            { label: 'Premium Pack', price: currentPricing.premium, isTrial: false, available: true }
-                          ].map((plan, i) => {
+                        {/* Plan Cards Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
+                          {availablePlans.map((plan) => {
                             const isSelected = formData.plan_type === plan.label;
                             const isDisabled = !plan.available;
 
                             return (
-                              <div 
-                                key={i} 
-                                onClick={() => !isDisabled && setFormData({...formData, is_trial: plan.isTrial, plan_type: plan.label})}
-                                className={`group relative border-2 ${isSelected ? 'border-[#0F9393] bg-[#0F9393]/5' : 'border-gray-100'} ${isDisabled ? 'opacity-60 grayscale cursor-not-allowed' : 'hover:border-gray-200 cursor-pointer'} rounded-xl p-3 transition-all flex flex-col items-center justify-center text-center`}
+                              <div
+                                key={plan.id}
+                                onClick={() => {
+                                  if (!isDisabled) {
+                                    setFormData({
+                                      ...formData,
+                                      is_trial: plan.isTrial,
+                                      plan_type: plan.label
+                                    });
+                                  }
+                                }}
+                                className={`group relative border-2 ${
+                                  isSelected
+                                    ? 'border-[#0F9393] bg-[#0F9393]/5 ring-1 ring-[#0F9393]'
+                                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                                } ${
+                                  isDisabled
+                                    ? 'opacity-50 grayscale cursor-not-allowed'
+                                    : 'cursor-pointer hover:shadow-sm'
+                                } rounded-xl p-3 transition-all flex flex-col justify-between`}
                               >
-                                {plan.isTrial && plan.available && (
-                                  <div className="absolute top-2 right-2 text-[#0F9393]">
-                                    <ShieldCheck size={14} />
+                                {plan.badge && (
+                                  <div className="flex items-center justify-between w-full mb-1">
+                                    <span className="font-nunito font-extrabold text-[9.5px] uppercase tracking-wider text-[#0F9393] bg-[#0F9393]/10 px-2 py-0.5 rounded-full">
+                                      {isDisabled ? 'Already Availed' : plan.badge}
+                                    </span>
+                                    {plan.duration && (
+                                      <span className="font-nunito font-bold text-[10px] text-gray-400">
+                                        {plan.duration}
+                                      </span>
+                                    )}
                                   </div>
                                 )}
-                                
-                                <span className="font-nunito font-bold text-[10px] text-[#0F9393] uppercase tracking-wider mb-0.5">
-                                  {isDisabled ? 'Intro Call (Availed)' : plan.label}
-                                </span>
 
-                                <div className="flex flex-col items-center">
-                                  {isDisabled ? (
-                                    <span className="font-georgia font-bold text-[18px] text-gray-400 line-through">₹75/-</span>
-                                  ) : (
-                                    <h4 className="font-georgia font-bold text-[22px] text-black">
-                                      {plan.isTrial ? 'FREE' : `₹${plan.price}/-`}
-                                    </h4>
+                                <div className="flex flex-col mt-0.5">
+                                  <span className="font-georgia font-bold text-[14px] text-gray-900 leading-tight">
+                                    {isDisabled ? `${plan.label} (Availed)` : plan.label}
+                                  </span>
+                                  <p className="font-nunito text-[11px] text-gray-500 line-clamp-1 mt-0.5">
+                                    {plan.description}
+                                  </p>
+                                </div>
+
+                                <div className="flex items-baseline gap-1.5 mt-2 pt-1 border-t border-gray-100">
+                                  {plan.originalPrice && !isDisabled && (
+                                    <span className="font-nunito font-bold text-[12px] text-gray-400 line-through">
+                                      ₹{plan.originalPrice.toLocaleString('en-IN')}
+                                    </span>
+                                  )}
+                                  <h4 className="font-georgia font-bold text-[20px] text-black">
+                                    {isDisabled ? '—' : `₹${plan.price.toLocaleString('en-IN')}/-`}
+                                  </h4>
+                                  {plan.savings && !isDisabled && (
+                                    <span className="ml-auto text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                      Save ₹{plan.savings}
+                                    </span>
                                   )}
                                 </div>
                               </div>
@@ -1553,7 +1676,7 @@ export default function BookingModal({ isOpen, onClose, initialConfig }: Booking
                       disabled={loading} 
                       className="bg-[#0F9393] text-white px-7 py-2.5 md:px-8 md:py-2.5 rounded-xl font-nunito font-bold flex items-center gap-2 shadow-lg shadow-[#0F9393]/20 hover:bg-[#0D7F7F] transition-all active:scale-95 disabled:opacity-50 text-[13px]"
                     >
-                      {loading ? 'Processing...' : 'Complete'}
+                      {loading ? 'Processing...' : `Pay ₹${currentSelectedPrice.toLocaleString('en-IN')}`}
                       <ChevronRight size={16} />
                     </button>
                   )}

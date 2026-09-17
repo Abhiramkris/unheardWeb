@@ -98,7 +98,9 @@ export default function TherapistProfileModal({
 
                 {/* Designation */}
                 <div className="text-[13px] font-sans font-[900] text-white leading-none mt-1">
-                  {(therapist.qualification_desc || 'clinical') === 'clinical' ? (
+                  {therapist.qualification_desc === 'senior' ? (
+                    'Senior Psychologist'
+                  ) : (therapist.qualification_desc || 'clinical') === 'clinical' ? (
                     <>
                       Psychologist <span className="text-[9px] font-[500] text-white/85 font-sans tracking-normal">(trained in clinical psychology)</span>
                     </>
@@ -146,7 +148,9 @@ export default function TherapistProfileModal({
 
                     {/* Designation */}
                     <div className="text-[12px] font-sans font-[900] text-white leading-none mt-1">
-                      {(therapist.qualification_desc || 'clinical') === 'clinical' ? (
+                      {therapist.qualification_desc === 'senior' ? (
+                        'Senior Psychologist'
+                      ) : (therapist.qualification_desc || 'clinical') === 'clinical' ? (
                         <>
                           Psychologist <span className="text-[8.5px] font-[500] text-white/85 font-sans tracking-normal">(trained in clinical psychology)</span>
                         </>

@@ -40,7 +40,7 @@ export class WhatsAppManager {
     let isLockedByOther = false;
     if (lock) {
       const lastUpdate = new Date(lock.updated_at).getTime();
-      const isFresh = (Date.now() - lastUpdate) < 45000; // 45s threshold
+      const isFresh = (Date.now() - lastUpdate) < 120000; // 2m threshold
       isLockedByOther = isFresh && lock.data?.instanceId !== instanceId;
     }
 
@@ -280,7 +280,7 @@ export class WhatsAppManager {
                   globalForWhatsApp.heartbeatInterval = null;
                 }
               }
-            }, 15000);
+            }, 60000);
 
             // Start Background Worker (High Frequency Queue Processor)
             if (globalForWhatsApp.workerInterval) clearInterval(globalForWhatsApp.workerInterval);

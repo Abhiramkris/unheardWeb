@@ -6,6 +6,7 @@ import { WhatsAppManager } from './whatsapp/WhatsAppClient';
 import { IdentityManager } from './identity/IdentityManager';
 import { headers } from 'next/headers';
 import { resend } from './resend';
+import { calculateSessionAmount } from './pricing';
 
 /**
  * REQUESTS A NEW SESSION (Client-side trigger)
@@ -36,15 +37,19 @@ export async function requestSession(data: {
     // 2. IDENTITY & ANTI-EXPLOIT
     const identity = await IdentityManager.resolveIdentity(cleanPhone, data.deviceId);
 
-    if (data.is_trial) {
+    const planType = data.questionnaire?.plan_type || (data.is_trial ? 'First Consultation' : '1 Session');
+    const isFirstConsultation = Boolean(data.is_trial || planType === 'First Consultation' || planType === 'Trial Session');
+
+    if (isFirstConsultation) {
       if (identity && identity.is_trial_claimed) {
-        return { success: false, error: 'You have already availed a free introductory session. Please choose a standard plan.' }
+        return { success: false, error: 'You have already availed your first consultation. Please choose a single session or package.' };
       }
     }
 
     // 3. CHECK CONFLICTS (Optional for pending)
+    const durationMinutes = isFirstConsultation ? 15 : 60;
     const start = new Date(data.start_time);
-    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
 
     if (data.therapist_id) {
       const { data: existing } = await adminSupabase
@@ -54,44 +59,48 @@ export async function requestSession(data: {
         .neq('status', 'cancelled')
         .lt('start_time', end.toISOString())
         .gt('end_time', start.toISOString())
-        .maybeSingle()
+        .maybeSingle();
 
       if (existing && !(process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_SITE_URL?.includes('localhost'))) {
-        return { success: false, error: 'This time slot has already been booked. Please select another time.' }
+        return { success: false, error: 'This time slot has already been booked. Please select another time.' };
       }
     }
 
     // 4. CREATE PENDING QUESTIONNAIRE (Primary Entry Point)
-    let pricing: { trial: number; single: number; standard: number; premium: number } = {
-      trial: 399,
-      single: 999,
-      standard: 2999,
-      premium: 1999
-    };
+    const therapyType = data.questionnaire?.type || 'Individual';
+    let practitionerLevel = data.questionnaire?.practitioner_level || 'Standard Psychologist';
+    let therapistPricing: Record<string, number> | undefined;
+
     if (data.therapist_id) {
       const { data: profile } = await adminSupabase
         .from('therapist_profiles')
-        .select('pricing')
+        .select('pricing, qualification_desc, qualification, designation')
         .eq('user_id', data.therapist_id)
         .maybeSingle();
-      if (profile?.pricing && typeof profile.pricing === 'object') {
-        pricing = { ...pricing, ...(profile.pricing as any) };
+
+      if (profile) {
+        if (
+          profile.qualification_desc === 'senior' ||
+          profile.qualification_desc?.toLowerCase().includes('senior') ||
+          profile.designation?.toLowerCase().includes('senior') ||
+          profile.qualification?.toLowerCase().includes('senior') ||
+          (profile.pricing as any)?.is_senior
+        ) {
+          practitionerLevel = 'Senior Psychologist';
+        }
+        if (profile.pricing && typeof profile.pricing === 'object') {
+          therapistPricing = profile.pricing as Record<string, number>;
+        }
       }
     }
 
-    let amount = 999;
-    const planType = data.questionnaire?.plan_type || '';
-    if (data.is_trial) {
-      amount = 0;
-    } else if (planType === 'Single Session') {
-      amount = pricing.single;
-    } else if (planType === 'Standard Pack') {
-      amount = pricing.standard;
-    } else if (planType === 'Premium Pack') {
-      amount = pricing.premium;
-    } else {
-      amount = pricing.single;
-    }
+    const amount = calculateSessionAmount({
+      planType,
+      therapyType,
+      practitionerLevel,
+      isTrial: isFirstConsultation,
+      therapistPricing
+    });
 
     const questionnairePayload: any = {
       patient_id: identity?.user_id || null,
@@ -99,9 +108,9 @@ export async function requestSession(data: {
       guest_phone: cleanPhone,
       guest_email: data.patient_details?.email || '',
       requested_start_time: start.toISOString(),
-      is_trial: data.is_trial,
+      is_trial: isFirstConsultation,
       status: 'pending',
-      payment_status: data.is_trial ? 'completed' : 'pending',
+      payment_status: amount === 0 ? 'completed' : 'pending',
       amount: amount,
       expires_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
       transaction_id: `TXN_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -109,21 +118,21 @@ export async function requestSession(data: {
         ...data.questionnaire,
         ip_address: ip
       }
-    }
+    };
 
     const { data: questionnaire, error: qError } = await adminSupabase
       .from('pre_booking_questionnaires')
       .insert([questionnairePayload])
       .select()
-      .single()
+      .single();
 
-      if (qError) {
-        console.error('DATABASE ERROR [questionnaire]:', qError)
-        return { success: false, error: 'Database error: Could not save session request.' }
-      }
+    if (qError) {
+      console.error('DATABASE ERROR [questionnaire]:', qError);
+      return { success: false, error: 'Database error: Could not save session request.' };
+    }
 
     // If payment is required, return early and let client handle payment gateway
-    if (!data.is_trial) {
+    if (amount > 0) {
       return { 
         success: true, 
         questionnaireId: questionnaire.id, 
@@ -133,16 +142,16 @@ export async function requestSession(data: {
       };
     }
 
-    // Finalize for Free Trial
+    // Finalize for Free Trial / Zero Amount
     await finalizeBooking(questionnaire.id);
 
     // 7. RECORD IDENTITY UPDATE & COUPON CLAIM
     if (identity) {
-      await IdentityManager.claimCoupon(identity.id, data.is_trial ? 'FREE_TRIAL' : 'STANDARD', data.is_trial);
+      await IdentityManager.claimCoupon(identity.id, isFirstConsultation ? 'FIRST_CONSULTATION' : 'STANDARD', isFirstConsultation);
     }
 
-    revalidatePath('/super-admin')
-    return { success: true, questionnaireId: questionnaire.id }
+    revalidatePath('/super-admin');
+    return { success: true, questionnaireId: questionnaire.id };
   } catch (error: any) {
       console.error('CRITICAL SESSION REQUEST ERROR:', error)
       return { success: false, error: error.message || 'An unexpected internal error occurred.' }
@@ -182,6 +191,14 @@ export async function finalizeBooking(questionnaireId: string) {
         if (admin.phone_number) {
           await WhatsAppManager.enqueueMessage(admin.phone_number, adminMsg);
         }
+      }
+    }
+
+    // Update identity trial status if First Consultation was completed
+    if (q.is_trial && q.guest_phone) {
+      const identity = await IdentityManager.resolveIdentity(q.guest_phone);
+      if (identity) {
+        await IdentityManager.claimCoupon(identity.id, 'FIRST_CONSULTATION', true);
       }
     }
 

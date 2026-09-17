@@ -235,6 +235,7 @@ export default function SuperAdminEditTherapist() {
                   >
                     <option value="clinical">Psychologist (trained in clinical psychology)</option>
                     <option value="counselling">Counselling Psychologist</option>
+                    <option value="senior">Senior Psychologist</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">

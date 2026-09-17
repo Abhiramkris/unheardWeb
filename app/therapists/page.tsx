@@ -90,7 +90,19 @@ const TherapistCard = ({ therapist, index, onOpen }: { therapist: Therapist; ind
           </text>
 
           {/* Designation text */}
-          {designation === 'clinical' ? (
+          {designation === 'senior' ? (
+            <text 
+              x="16" 
+              y="438" 
+              fontFamily="'Inter', system-ui, -apple-system, sans-serif" 
+              fontWeight="900" 
+              fontSize="13" 
+              fill="white"
+              letterSpacing="0.3"
+            >
+              Senior Psychologist
+            </text>
+          ) : designation === 'clinical' ? (
             <text 
               x="16" 
               y="438" 
