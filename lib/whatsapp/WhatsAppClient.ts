@@ -90,8 +90,8 @@ export class WhatsAppManager {
       const supabase = await createAdminClient();
       await supabase.from('whatsapp_auth')
         .delete()
-        .neq('id', 'creds'); // Delete all bloated session/pre-keys, keep only main identity
-      console.log('🧹 Purged bloated WhatsApp session keys (retained creds).');
+        .not('id', 'in', '("creds","session_keys","connection_lock")');
+      console.log('🧹 Cleaned up legacy WhatsApp auth rows (retained creds and session_keys).');
     } catch (err) {
       console.error('Failed to clean auth data:', err);
     }
