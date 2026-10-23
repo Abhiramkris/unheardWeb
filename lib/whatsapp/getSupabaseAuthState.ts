@@ -72,6 +72,7 @@ export const getSupabaseAuthState = async (): Promise<{ state: AuthenticationSta
           .select('id, data')
           .neq('id', 'creds')
           .neq('id', 'connection_lock')
+          .neq('id', 'qr')
           .limit(500);
 
         if (legacyRows && legacyRows.length > 0) {

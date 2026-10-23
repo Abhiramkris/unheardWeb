@@ -44,9 +44,33 @@ export class WhatsAppManager {
       isLockedByOther = isFresh && lock.data?.instanceId !== instanceId;
     }
 
+    let status = globalForWhatsApp.status;
+    let qrDataUrl = globalForWhatsApp.qrDataUrl;
+
+    // In multi-instance or serverless environments, retrieve the shared active QR from Supabase if not in memory
+    if (!qrDataUrl) {
+      try {
+        const { data: qrRow } = await supabase.from('whatsapp_auth').select('data, updated_at').eq('id', 'qr').single();
+        if (qrRow?.data?.qrDataUrl) {
+          const qrAge = Date.now() - new Date(qrRow.updated_at).getTime();
+          if (qrAge < 60000) { // QR is fresh (< 60s)
+            qrDataUrl = qrRow.data.qrDataUrl;
+            if (status === 'disconnected' || status === 'initializing') {
+              status = 'pending_qr';
+            }
+          }
+        }
+      } catch {}
+    }
+
+    // Sync authenticated status if DB indicates active authentication
+    if (lock?.data?.status === 'authenticated' && status !== 'authenticated') {
+      status = 'authenticated';
+    }
+
     return {
-      status: globalForWhatsApp.status,
-      qrDataUrl: globalForWhatsApp.qrDataUrl,
+      status,
+      qrDataUrl,
       isLockedByOther,
       lockInstanceId: lock?.data?.instanceId
     };
@@ -90,8 +114,8 @@ export class WhatsAppManager {
       const supabase = await createAdminClient();
       await supabase.from('whatsapp_auth')
         .delete()
-        .not('id', 'in', '("creds","session_keys","connection_lock")');
-      console.log('🧹 Cleaned up legacy WhatsApp auth rows (retained creds and session_keys).');
+        .not('id', 'in', '("creds","session_keys","connection_lock","qr")');
+      console.log('🧹 Cleaned up legacy WhatsApp auth rows (retained creds, session_keys, qr).');
     } catch (err) {
       console.error('Failed to clean auth data:', err);
     }
@@ -216,6 +240,12 @@ export class WhatsAppManager {
             try {
               const dataUrl = await QRCode.toDataURL(qr, { margin: 2, scale: 6 });
               globalForWhatsApp.qrDataUrl = dataUrl;
+              const sb = await createAdminClient();
+              await sb.from('whatsapp_auth').upsert({
+                id: 'qr',
+                data: { qrDataUrl: dataUrl },
+                updated_at: new Date().toISOString()
+              });
             } catch {}
           }
 
@@ -261,6 +291,10 @@ export class WhatsAppManager {
             globalForWhatsApp.status = 'authenticated';
             globalForWhatsApp.qrDataUrl = null; 
             globalForWhatsApp.connectionPromise = null; // Clear promise on success
+            try {
+              const sb = await createAdminClient();
+              await sb.from('whatsapp_auth').delete().eq('id', 'qr');
+            } catch {}
 
             // Start Heartbeat
             if (globalForWhatsApp.heartbeatInterval) clearInterval(globalForWhatsApp.heartbeatInterval);
