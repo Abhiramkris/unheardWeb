@@ -1679,7 +1679,7 @@ export default function AdminDashboard() {
                   <div className="bg-white border border-gray-100 p-6 rounded-[32px] flex justify-between items-center">
                     <div>
                       <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">Rate</span>
-                      <h4 className="text-[24px] font-bold text-gray-900">₹{selectedSession?.is_trial ? '399.00' : '1,200.00'} <span className="text-[14px] text-gray-400 font-medium">/ 50 mins</span></h4>
+                      <h4 className="text-[24px] font-bold text-gray-900">₹{selectedSession?.is_trial ? '499.00' : '1,499.00'} <span className="text-[14px] text-gray-400 font-medium">/ 50 mins</span></h4>
                     </div>
                     <div className="bg-gray-50 px-4 py-2 rounded-xl text-[12px] font-bold text-gray-500">
                       Patient Paid
