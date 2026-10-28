@@ -233,6 +233,7 @@ export default function SuperAdminDashboard() {
   const handleWhatsappReconnect = async () => {
     setWhatsappStatus({ status: 'initializing', qrDataUrl: null });
     await fetch('/api/whatsapp/reconnect', { method: 'POST' });
+    await fetchStatus();
   };
 
   useEffect(() => {

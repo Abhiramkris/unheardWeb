@@ -10,7 +10,7 @@ let isInitialized = false;
 /**
  * Flush in-memory keys to the single 'session_keys' row in Supabase.
  */
-const flushKeysToDatabase = async () => {
+export const flushKeysToDatabase = async () => {
   try {
     const supabase = await createAdminClient();
     const serialized = JSON.parse(JSON.stringify(keysCache, BufferJSON.replacer));
@@ -22,6 +22,21 @@ const flushKeysToDatabase = async () => {
   } catch (err) {
     console.error('Failed to flush consolidated WhatsApp session keys:', err);
   }
+};
+
+/**
+ * Clear in-memory cache when session is reset or reconnected.
+ */
+export const clearAuthStateCache = () => {
+  memoryCreds = null;
+  for (const key of Object.keys(keysCache)) {
+    delete keysCache[key];
+  }
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+    saveTimeout = null;
+  }
+  isInitialized = false;
 };
 
 /**

@@ -1,8 +1,14 @@
-import { makeWASocket, DisconnectReason, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
+import { 
+  makeWASocket, 
+  DisconnectReason, 
+  fetchLatestWaWebVersion, 
+  fetchLatestBaileysVersion, 
+  Browsers 
+} from '@whiskeysockets/baileys';
 import QRCode from 'qrcode';
 import pino from 'pino';
 import { NotificationController } from '../notifications/NotificationController';
-import { getSupabaseAuthState } from './getSupabaseAuthState';
+import { getSupabaseAuthState, clearAuthStateCache, flushKeysToDatabase } from './getSupabaseAuthState';
 import { createAdminClient } from '../supabase/admin';
 import { normalizePhone } from '@/utils/phone';
 
@@ -28,8 +34,6 @@ const logger = pino({ level: 'silent' });
 
 // Unique ID for this instance to prevent multi-instance connection wars
 const instanceId = Math.random().toString(36).substring(7);
-let lastCredsSave = 0;
-const CREDS_SAVE_THROTTLE = 2000; // 2 seconds
 const WORKER_INTERVAL_MS = 60 * 1000; // 1 minute (high frequency for queue)
 
 export class WhatsAppManager {
@@ -89,16 +93,29 @@ export class WhatsAppManager {
       globalForWhatsApp.socket = null;
     }
 
-    // 2. Clear state
+    // 2. Clear state and intervals
     globalForWhatsApp.status = 'disconnected';
     globalForWhatsApp.qrDataUrl = null;
+    globalForWhatsApp.connectionPromise = null;
 
-    // 3. PURGE ALL AUTH DATA from Supabase
+    if (globalForWhatsApp.heartbeatInterval) {
+      clearInterval(globalForWhatsApp.heartbeatInterval);
+      globalForWhatsApp.heartbeatInterval = null;
+    }
+    if (globalForWhatsApp.workerInterval) {
+      clearInterval(globalForWhatsApp.workerInterval);
+      globalForWhatsApp.workerInterval = null;
+    }
+
+    // 3. Clear in-memory auth state cache
+    clearAuthStateCache();
+
+    // 4. PURGE ALL AUTH DATA from Supabase
     const supabase = await createAdminClient();
-    await supabase.from('whatsapp_auth').delete().not('id', 'is', 'null'); // Delete EVERYTHING
+    await supabase.from('whatsapp_auth').delete().neq('id', 'none'); // Delete EVERYTHING cleanly
 
-    // 4. Trigger fresh connection
-    return await this.connectToWhatsApp();
+    // 5. Trigger fresh connection
+    return await this.connectToWhatsApp(true);
   }
 
   static async getClient() {
@@ -211,25 +228,34 @@ export class WhatsAppManager {
         }
 
         const { state, saveCreds } = await getSupabaseAuthState();
-        const { version, isLatest } = await fetchLatestBaileysVersion();
-        console.log(`Using WhatsApp v${version.join('.')} (latest: ${isLatest})`);
+        
+        let version: [number, number, number] = [2, 3000, 1052005295];
+        try {
+          const waWeb = await fetchLatestWaWebVersion();
+          if (waWeb?.version) {
+            version = waWeb.version;
+            console.log(`Using live WhatsApp Web v${version.join('.')}`);
+          }
+        } catch (e) {
+          console.warn('Failed to fetch latest WA Web version, falling back to bundled Baileys version:', e);
+          try {
+            const baileysVer = await fetchLatestBaileysVersion();
+            version = baileysVer.version;
+          } catch {}
+        }
 
         const socket = makeWASocket({
           version,
           auth: state,
           printQRInTerminal: false,
-          browser: ['unHeard', 'Chrome', '1.0.0'], 
+          browser: Browsers.macOS('Chrome'), 
           logger, 
           connectTimeoutMs: 60000,
           keepAliveIntervalMs: 15000,
         });
 
         socket.ev.on('creds.update', async () => {
-          const now = Date.now();
-          if (now - lastCredsSave > CREDS_SAVE_THROTTLE) {
-            lastCredsSave = now;
-            await saveCreds();
-          }
+          await saveCreds();
         });
 
         socket.ev.on('connection.update', async (update) => {
@@ -291,6 +317,15 @@ export class WhatsAppManager {
             globalForWhatsApp.status = 'authenticated';
             globalForWhatsApp.qrDataUrl = null; 
             globalForWhatsApp.connectionPromise = null; // Clear promise on success
+            
+            // Persist creds and consolidated keys to Supabase immediately
+            try {
+              await saveCreds();
+              await flushKeysToDatabase();
+            } catch (e) {
+              console.warn('Failed to flush auth on open:', e);
+            }
+
             try {
               const sb = await createAdminClient();
               await sb.from('whatsapp_auth').delete().eq('id', 'qr');
